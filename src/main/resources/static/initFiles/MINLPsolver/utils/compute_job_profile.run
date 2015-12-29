@@ -1,0 +1,21 @@
+# vim: set filetype=ampl : #
+
+#################################################
+### Utility to compute job profile            ###
+### Eugenio Gianniti 16/11/2014               ###
+#################################################
+
+for {i in AM}
+  {
+    let A[i] := NM[i] * Mavg[i] - 2 * Mmax[i];
+    let B[i] := NR[i]*SHtypavg[i] - 2*SHtypmax[i] + NR[i]*Ravg[i] - 2*Rmax[i];
+    let C[i] := 2*SHtypmax[i] + SH1max[i] + 2 * Mmax[i] + 2 * Rmax[i];
+    let E[i] := C[i] - D[i];
+
+    let xiM[i] := cM[i] / (1 + sqrt (B[i] * cM[i]) / sqrt (A[i] * cR[i]));
+    let xiR[i] := cR[i] / (1 + sqrt (A[i] * cR[i]) / sqrt (B[i] * cM[i]));
+    let K[i] := - (sqrt (A[i] / cM[i]) + sqrt (B[i] / cR[i])) ^ 2 / E[i];
+
+    let yUp[i] := K[i] * HUp[i];
+    let yLow[i] := K[i] * HLow[i];
+  }

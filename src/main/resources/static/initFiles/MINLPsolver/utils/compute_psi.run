@@ -1,0 +1,13 @@
+# vim: set filetype=ampl : #
+
+#################################################
+### Utility to compute psi from H             ###
+### Eugenio Gianniti 16/11/2014               ###
+#################################################
+
+for {i in AM}
+  {
+   
+    let psiLow[i]:= 1 / HUp[i];
+    let psiUp[i]:= 1 / HLow[i];
+  }

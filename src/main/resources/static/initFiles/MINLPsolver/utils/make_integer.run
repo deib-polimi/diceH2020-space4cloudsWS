@@ -1,0 +1,40 @@
+
+# vim: set filetype=ampl : #
+
+#################################################
+### Heuristic to make the variables integer   ###
+### Eugenio Gianniti 24/12/2014               ###
+#################################################
+
+printf "Heuristic to make the variables integer\n\n";
+
+include ../utils/order_AMs.run;
+let {i in AM} r[i] := ceil (r[i]);
+let {i in AM} y[i] := ceil (y[i]);
+
+###for {i in AM}
+###  {
+    
+###    let r[idx[i]] := r[idx[i]];
+###    let y[idx[i]] := y[idx[i]];
+###  }
+
+for {i in AM}{
+printf "%d ", y[i];
+}
+printf "\n";
+
+let {i in AM} sM[i] := ceil (sM[i]);
+let {i in AM} sR[i] := ceil (sR[i]);
+
+
+for {i in AM}
+  {
+    printf "AM n. %d\n", idx[i];
+   
+        let sR[idx[i]] := sR[idx[i]];
+        let sM[idx[i]] := sM[idx[i]];
+      
+  
+  
+  }

@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "cM": {
+      "id": "cM",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "array",
+        "items": {
+          "id": "1",
+          "type": "integer"
+        }
+      }
+    },
+    "cR": {
+      "id": "cR",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "array",
+        "items": {
+          "id": "1",
+          "type": "integer"
+        }
+      }
+    },
+    "gamma": {
+      "id": "gamma",
+      "type": "integer"
+    },
+    "id_job": {
+      "id": "id_job",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "integer"
+      }
+    },
+    "job_penalty": {
+      "id": "job_penalty",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "provider": {
+      "id": "provider",
+      "type": "string"
+    },
+    "think": {
+      "id": "think",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "tm": {
+      "id": "tm",
+      "type": "object",
+      "properties": {
+        "type": {
+          "id": "type",
+          "type": "string"
+        },
+        "provider": {
+          "id": "provider",
+          "type": "object",
+          "properties": {
+            "name": {
+              "id": "name",
+              "type": "string"
+            }
+          }
+        },
+        "core": {
+          "id": "core",
+          "type": "integer"
+        },
+        "deltabar": {
+          "id": "deltabar",
+          "type": "number"
+        },
+        "rhobar": {
+          "id": "rhobar",
+          "type": "number"
+        },
+        "sigmabar": {
+          "id": "sigmabar",
+          "type": "number"
+        }
+      }
+    },
+    "typeVm": {
+      "id": "typeVm",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "string"
+      }
+    },
+    "numberTypeVM": {
+      "id": "numberTypeVM",
+      "type": "integer"
+    },
+    "n": {
+      "id": "n",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "r": {
+      "id": "r",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "numberJobs": {
+      "id": "numberJobs",
+      "type": "integer"
+    },
+    "mavg": {
+      "id": "mavg",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "ravg": {
+      "id": "ravg",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "shtypavg": {
+      "id": "shtypavg",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "nm": {
+      "id": "nm",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "integer"
+      }
+    },
+    "nr": {
+      "id": "nr",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "integer"
+      }
+    },
+    "d": {
+      "id": "d",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "hup": {
+      "id": "hup",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "integer"
+      }
+    },
+    "hlow": {
+      "id": "hlow",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "integer"
+      }
+    },
+    "mmax": {
+      "id": "mmax",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "rmax": {
+      "id": "rmax",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "sh1max": {
+      "id": "sh1max",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    },
+    "shtypmax": {
+      "id": "shtypmax",
+      "type": "array",
+      "items": {
+        "id": "1",
+        "type": "number"
+      }
+    }
+  }
+}

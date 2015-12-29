@@ -1,0 +1,34 @@
+# vim: set filetype=ampl : #
+
+#################################################
+### Centralized results saving utility        ###
+### Eugenio Gianniti 06/11/2014               ###
+#################################################
+
+let solfile := (outfile & ".sol");
+
+printf "### Saved solution ### \n" > (solfile);
+printf "### Centralized problem ### \n\n" >> (solfile);
+
+display solve_result >> (solfile);
+
+printf "### Objective \n" >> (solfile);
+display centralized_obj >> (solfile);
+display centralized_objConst >> (solfile);
+
+let energy_total := sum {i in AM} (r[i]*rhobar[i]) ;
+printf "energy_total = %g \n\n", energy_total >> (solfile);
+display t >> (solfile);
+
+printf "### Variables \n" >> (solfile);
+display r, y, s, d, psi, sM, sR >> (solfile);
+
+
+printf "### alphabeta \n" >> (solfile);
+printf "param: job_penalty alpha beta := \n" >> (solfile);
+for {i in AM}
+  {
+    printf "%d %g %g %g \n", i, job_penalty[i], alpha[i], beta[i] >> (solfile);
+  }
+printf "; \n\n" >> (solfile);
+close (solfile);

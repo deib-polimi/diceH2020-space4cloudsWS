@@ -1,0 +1,25 @@
+reset;
+option solver "/usr/optimization/knitro-9.0.1-z/knitroampl/knitroampl";
+model ../problems/models1.mod;
+data ../scratch/data.dat;
+option randseed 1;
+include ../utils/compute_psi.run;
+include ../utils/compute_job_profile.run;
+include ../utils/compute_penalties.run;
+include ../utils/save_aux.run;
+let outfile := "../results/risultato";
+include ../problems/centralized.run;
+solve centralized_prob;
+include ../utils/params_for_heuristic.run;
+include ../utils/save_centralized.run;
+include ../utils/calculedsd.run;
+include ../solve/AM_closed_form.run;
+include ../utils/simulated_time.run;
+include ../utils/save_centralized.run;
+if (solve_result_num < 200) then
+{
+include ../utils/make_integer.run;
+let outfile := (outfile & ".heuristic");
+include ../utils/save_centralized.run;
+}
+

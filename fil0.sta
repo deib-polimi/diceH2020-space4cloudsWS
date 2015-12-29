@@ -1,0 +1,12 @@
+Thru_Think = 0.022333
+Thru_Reduce = 0.133771
+Thru_Map = 0.817046
+Thru_Join2 = 0.022267
+Thru_Fork2 = 0.022304
+Thru_Join1 = 0.022319
+Thru_Fork1 = 0.022341
+Thru_t13|rel_Cores = 0.133778
+Thru_t12|acq_Cores = 0.133734
+Thru_t7|rel_Cores = 0.817120
+Thru_t6|acq_Cores = 0.817112
+Thru_end = 0.022252

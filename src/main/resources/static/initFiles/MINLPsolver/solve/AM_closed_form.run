@@ -1,0 +1,13 @@
+#AM_closed_form.run vim: set filetype=ampl : #
+
+#####################################################################
+### YARN models - AM problem solution using KKT derived formulae  ###
+### Eugenio Gianniti 23/01/2015                                   ###
+#####################################################################
+
+for {i in AM}
+  {
+    let sM[i] := xiM[i] * y[i];
+    let sR[i] := xiR[i] * y[i];
+    let psi[i] := K[i] / y[i];
+  }

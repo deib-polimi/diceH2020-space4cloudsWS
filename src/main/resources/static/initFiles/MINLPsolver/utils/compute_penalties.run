@@ -1,0 +1,12 @@
+# vim: set filetype=ampl : #
+
+#################################################
+### Utility to compute penalties              ###
+### Eugenio Gianniti 16/11/2014               ###
+#################################################
+
+for {i in AM}
+  {
+    let alpha[i] := job_penalty[i] * HUp[i] * HLow[i];
+    let beta[i] := job_penalty[i] * HLow[i];
+  }
