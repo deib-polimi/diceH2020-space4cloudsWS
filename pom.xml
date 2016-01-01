@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>eu</groupId>
-	<artifactId>diceH2020</artifactId>
+	<artifactId>diceH2020-SPACE4CloudWS</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -22,7 +22,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<start-class>eu.diceH2020.SPACE4CloudWS.app</start-class>
+		<start-class>eu.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS</start-class>
 		<java.version>1.7</java.version>
 	</properties>
 
@@ -136,6 +136,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
