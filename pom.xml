@@ -22,7 +22,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<start-class>eu.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS</start-class>
+		<start-class>eu.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS.java</start-class>
 		<java.version>1.7</java.version>
 	</properties>
 

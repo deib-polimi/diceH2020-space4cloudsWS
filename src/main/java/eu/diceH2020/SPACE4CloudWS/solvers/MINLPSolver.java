@@ -137,7 +137,7 @@ public class MINLPSolver {
 		 System.out.println("--------------------------------------------");
 		 System.out.println("Starting math solver service initializatio phase");
 		 System.out.println("--------------------------------------------");
-		 if (lstProfiles.contains("dev")){
+		 if (lstProfiles.contains("test")){
 			 System.out.println("Test phase: the remote work directory tree is assumed to be ok.");
 			 
 		 }
