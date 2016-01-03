@@ -12,8 +12,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
-import eu.diceH2020.SPACE4CloudWS.model.Provider;
-import eu.diceH2020.SPACE4CloudWS.model.TypeVM;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.States;
 
 @Configuration
@@ -59,7 +57,6 @@ public class Configurator {
 		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
 		double[] think = { 0.5, 0.10 }; // check
 		int[][] cM = { { 3, 4 }, { 1, 2 } };
-		;
 		int[][] cR = { { 1, 2 }, { 3, 4 } };
 		double[] n = { 0.1, 0.5 };
 		int[] hUp = { 10, 10 };
@@ -76,17 +73,8 @@ public class Configurator {
 		double[] sHtypavg = { 0.7, 0.6 };
 		double[] job_penalty = { 0.2, 2.1 };
 		double[] r = { 2.2, 1.1 };
-		TypeVM tm = new TypeVM();
-		tm.setCore(2);
-		tm.setDeltabar(0.2);
-		tm.setRhobar(0.4);
-		tm.setSigmabar(1.2);
-		tm.setType("T1");
-		Provider providerObj = new Provider();
-		providerObj.setName("Amazon");
-		tm.setProvider(providerObj);
 		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR, n, hUp, hLow, nM, nR, mmax, rmax, mavg,
-				ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r, tm);
+				ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
 	}
 
 	

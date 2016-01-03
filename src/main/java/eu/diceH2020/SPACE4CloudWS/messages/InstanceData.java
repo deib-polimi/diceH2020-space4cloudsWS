@@ -29,7 +29,7 @@ public class InstanceData {
 	private double[] SHtypavg;
 	private double[] SHtypmax;
 	private double[] think;
-	private TypeVM tm;
+//	private TypeVM tm;
 	private List<String> typeVm;
 
 	
@@ -39,7 +39,7 @@ public class InstanceData {
 	public InstanceData(int gamma, List<String> typeVm, String provider, List<Integer> id_job, double[] think, int[][] cM, int[][] cR,
 			double[] n, int[] hUp, int[] hLow, int[] nM, int[] nR, double[] mmax, double[] rmax, double[] mavg,
 			double[] ravg, double[] d, double[] sH1max, double[] sHtypmax, double[] sHtypavg, double[] job_penalty,
-			double[] r, TypeVM tm) {
+			double[] r) {
 		super();
 
 		this.gamma = gamma;
@@ -64,46 +64,12 @@ public class InstanceData {
 		SHtypavg = sHtypavg;
 		this.job_penalty = job_penalty;
 		R = r;
-		this.tm = tm;
 	}
 
 	
 	public void clear(){
 		//TODO implement cleansing method here
 	}
-	
-
-	//This function has been implemented because in the 
-	//input data can be in seconds or in minutes. 
-	//However, things are going the change. Presently there is no such info
-	//I have to add this asap
-//	private static double transfString(String x) {
-//		char[] xh = new char[x.length()];
-//		int k = x.length();
-//		double d;
-//		int i;
-//		for (i = 0; i < k; i++) {
-//			xh[i] = x.charAt(i);
-//		}
-//		x = "";
-//		if (xh[k - 1] == 's' && xh[k - 2] == 'm') {
-//
-//			for (int j = 0; j < k - 2; j++) {
-//				x = x + xh[j];
-//			}
-//
-//			d = Double.parseDouble(x) / 1000;
-//
-//		} else {
-//			for (int p = 0; p < k - 1; p++) {
-//				x = x + xh[p];
-//			}
-//
-//			d = Double.parseDouble(x);
-//
-//		}
-//		return d;
-//	}
 	
 	public int[][] getcM() {
 		return cM;
@@ -269,10 +235,6 @@ public class InstanceData {
 	public double getThink(int pos) {
 		return think[pos];
 	}
-	
-	public TypeVM getTm() {
-		return tm;
-	}
 
 	public List<String> getTypeVm() {
 		return typeVm;
@@ -373,10 +335,6 @@ public class InstanceData {
 		this.think = think;
 	}
 
-	public void setTm(TypeVM tm) {
-		this.tm = tm;
-	}
-
 	public void setTypeVm(List<String> typeVm) {
 		this.typeVm = typeVm;
 	}
@@ -391,7 +349,7 @@ public class InstanceData {
 				+ Arrays.toString(Mavg) + ", Ravg=" + Arrays.toString(Ravg) + ", D=" + Arrays.toString(D) + ", SH1max="
 				+ Arrays.toString(SH1max) + ", SHtypmax=" + Arrays.toString(SHtypmax) + ", SHtypavg="
 				+ Arrays.toString(SHtypavg) + ", job_penalty=" + Arrays.toString(job_penalty) + ", R="
-				+ Arrays.toString(R) + ", tm=" + tm + "]";
+				+ Arrays.toString(R) + "]";
 	}
 
 	public int getNumberTypeVM() {

@@ -32,5 +32,6 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/SPACE4Cloud_messages"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
