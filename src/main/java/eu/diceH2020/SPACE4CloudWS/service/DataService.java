@@ -15,7 +15,7 @@ import eu.diceH2020.SPACE4CloudWS.algorithm.Solution;
 import eu.diceH2020.SPACE4CloudWS.model.Key;
 import eu.diceH2020.SPACE4CloudWS.model.Provider;
 import eu.diceH2020.SPACE4CloudWS.model.TypeVM;
-import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_shared.InstanceData;
 
 /**
  * @author ciavotta

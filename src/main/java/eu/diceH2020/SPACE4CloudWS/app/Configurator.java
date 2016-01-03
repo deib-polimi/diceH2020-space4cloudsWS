@@ -12,7 +12,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import eu.diceH2020.SPACE4CloudWS.stateMachine.States;
-import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_shared.InstanceData;
 
 @Configuration
 public class Configurator {

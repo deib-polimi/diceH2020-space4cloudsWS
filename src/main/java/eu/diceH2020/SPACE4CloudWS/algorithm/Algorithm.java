@@ -23,8 +23,8 @@ import eu.diceH2020.SPACE4CloudWS.data.Format;
 import eu.diceH2020.SPACE4CloudWS.service.DataService;
 import eu.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import eu.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
-import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
-import eu.diceH2020.SPACE4Cloud_messages.Settings;
+import eu.diceH2020.SPACE4Cloud_shared.InstanceData;
+import eu.diceH2020.SPACE4Cloud_shared.Settings;
 
 @Component
 public class Algorithm {

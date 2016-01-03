@@ -16,8 +16,8 @@ import eu.diceH2020.SPACE4CloudWS.algorithm.Algorithm;
 import eu.diceH2020.SPACE4CloudWS.algorithm.Solution;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.States;
-import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
-import eu.diceH2020.SPACE4Cloud_messages.Settings;
+import eu.diceH2020.SPACE4Cloud_shared.InstanceData;
+import eu.diceH2020.SPACE4Cloud_shared.Settings;
 
 @Service
 @WithStateMachine

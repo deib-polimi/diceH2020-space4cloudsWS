@@ -20,7 +20,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.Events;
-import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_shared.InstanceData;
 
 @RunWith(SpringJUnit4ClassRunner.class)   // 1
 @SpringApplicationConfiguration(classes = eu.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS.class)   // 2
