@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 import eu.diceH2020.SPACE4CloudWS.jpaRepositories.JobRepository;
 import eu.diceH2020.SPACE4CloudWS.jpaRepositories.ProviderRepository;
 import eu.diceH2020.SPACE4CloudWS.jpaRepositories.TypeVMRepository;
-import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
 import eu.diceH2020.SPACE4CloudWS.model.Job;
 import eu.diceH2020.SPACE4CloudWS.model.Key;
 import eu.diceH2020.SPACE4CloudWS.model.Provider;
 import eu.diceH2020.SPACE4CloudWS.model.TypeVM;
 import eu.diceH2020.SPACE4CloudWS.service.DataService;
+import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
 
 @RestController
 @Profile("test")

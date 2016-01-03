@@ -12,10 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import eu.diceH2020.SPACE4CloudWS.algorithm.Solution;
-import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
 import eu.diceH2020.SPACE4CloudWS.model.Key;
 import eu.diceH2020.SPACE4CloudWS.model.Provider;
 import eu.diceH2020.SPACE4CloudWS.model.TypeVM;
+import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
 
 /**
  * @author ciavotta

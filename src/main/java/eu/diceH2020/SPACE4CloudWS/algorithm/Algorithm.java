@@ -20,11 +20,11 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import eu.diceH2020.SPACE4CloudWS.data.Format;
-import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
-import eu.diceH2020.SPACE4CloudWS.messages.Settings;
 import eu.diceH2020.SPACE4CloudWS.service.DataService;
 import eu.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import eu.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
+import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_messages.Settings;
 
 @Component
 public class Algorithm {

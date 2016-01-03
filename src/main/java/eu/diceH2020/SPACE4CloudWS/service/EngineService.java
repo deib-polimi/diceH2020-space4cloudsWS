@@ -14,10 +14,10 @@ import org.springframework.stereotype.Service;
 
 import eu.diceH2020.SPACE4CloudWS.algorithm.Algorithm;
 import eu.diceH2020.SPACE4CloudWS.algorithm.Solution;
-import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
-import eu.diceH2020.SPACE4CloudWS.messages.Settings;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.States;
+import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_messages.Settings;
 
 @Service
 @WithStateMachine

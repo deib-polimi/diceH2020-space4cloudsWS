@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+
 
 public class Format {
 

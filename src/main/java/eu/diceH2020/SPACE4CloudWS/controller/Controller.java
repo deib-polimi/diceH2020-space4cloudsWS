@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import eu.diceH2020.SPACE4CloudWS.algorithm.Solution;
-import eu.diceH2020.SPACE4CloudWS.messages.InstanceData;
-import eu.diceH2020.SPACE4CloudWS.messages.Settings;
 import eu.diceH2020.SPACE4CloudWS.service.EngineService;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import eu.diceH2020.SPACE4CloudWS.stateMachine.States;
+import eu.diceH2020.SPACE4Cloud_messages.InstanceData;
+import eu.diceH2020.SPACE4Cloud_messages.Settings;
 
 @RestController
 public class Controller {
