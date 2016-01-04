@@ -7,7 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@ComponentScan({"eu.diceH2020.SPACE4CloudWS.*" })
+@ComponentScan({"it.polimi.diceH2020.SPACE4CloudWS.*" })
 @EntityScan("it.polimi.diceH2020.SPACE4CloudWS.model")
 @EnableJpaRepositories("it.polimi.diceH2020.SPACE4CloudWS.repositories")
 @SpringBootApplication

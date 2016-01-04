@@ -23,6 +23,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.model.TypeVM;
 @Service
 public class DataService {
 
+	@Autowired(required = false)
 	private InstanceData data;
 
 	@Autowired

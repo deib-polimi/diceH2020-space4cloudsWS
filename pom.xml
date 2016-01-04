@@ -28,7 +28,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<start-class>it.polimi.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS</start-class>
+		<start-class>it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS</start-class>
 		<java.version>1.8</java.version>
 	</properties>
 
@@ -138,14 +138,14 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-  <repository>
-   <id>deib-polimi-releases</id>
-   <url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/releases</url>
-  </repository>
-  <repository>
-   <id>deib-polimi-snapshots</id>
-   <url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/snapshots</url>
-  </repository>
+	<repository>
+		<id>deib-polimi-releases</id>
+		<url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/releases</url>
+	</repository>
+	<repository>
+		<id>deib-polimi-snapshots</id>
+		<url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/snapshots</url>
+	</repository>
 	</repositories>
 
 
