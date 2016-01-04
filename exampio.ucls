@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <class-diagram version="1.1.8" icons="true" automaticImage="PNG" always-add-relationships="false" generalizations="true" 
   realizations="true" associations="true" dependencies="false" nesting-relationships="true">  
-  <class id="1" language="java" name="eu.diceH2020.SPACE4CloudWS.service.DiceServiceImpl" project="DiceWS" 
+  <class id="1" language="java" name="it.polimi.diceH2020.SPACE4CloudWS.services.DiceServiceImpl" project="DiceWS" 
     file="/DiceWS/src/main/java/eu/diceH2020/SPACE4CloudWS/service/DiceServiceImpl.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="1317" width="287" x="-129" y="-417"/>    
@@ -11,7 +11,7 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="2" language="java" name="eu.diceH2020.SPACE4CloudWS.service.DiceService" project="DiceWS" 
+  <class id="2" language="java" name="it.polimi.diceH2020.SPACE4CloudWS.services.DiceService" project="DiceWS" 
     file="/DiceWS/src/main/java/eu/diceH2020/SPACE4CloudWS/service/DiceService.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="278" width="227" x="337" y="357"/>    

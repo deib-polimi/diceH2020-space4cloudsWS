@@ -3,8 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>eu</groupId>
-	<artifactId>diceH2020-SPACE4CloudWS</artifactId>
+	<artifactId>SPACE4CloudWS</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -22,8 +21,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<start-class>eu.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS.java</start-class>
-		<java.version>1.7</java.version>
+		<start-class>it.polimi.diceH2020.SPACE4CloudWS.app.SPACE4CloudWS</start-class>
+		<java.version>1.8</java.version>
 	</properties>
 
 	<dependencies>
@@ -110,10 +109,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.statemachine</groupId>
 			<artifactId>spring-statemachine-core</artifactId>
 			<version>1.1.0.BUILD-SNAPSHOT</version>
@@ -150,4 +145,5 @@
 	<organization>
 		<name>Politecnico di Milano</name>
 	</organization>
+	<groupId>it.polimi.diceH2020</groupId>
 </project>

@@ -32,6 +32,6 @@
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/SPACE4Cloud_shared"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/SPACE4Cloud-shared"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
