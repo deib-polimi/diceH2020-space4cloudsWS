@@ -11,6 +11,13 @@
 	<description>
 	Spring boot web service implementing the optimization algorithm
 	</description>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -113,6 +120,14 @@
 			<artifactId>spring-statemachine-core</artifactId>
 			<version>1.1.0.BUILD-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>it.polimi.diceH2020</groupId>
+			<artifactId>SPACE4Cloud-shared</artifactId>
+			<version>0.0.1-RELEASE</version>
+		</dependency>
+		
+		
+		
 	</dependencies>
 	<repositories>
 		<repository>
@@ -123,6 +138,14 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+  <repository>
+   <id>deib-polimi-releases</id>
+   <url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/releases</url>
+  </repository>
+  <repository>
+   <id>deib-polimi-snapshots</id>
+   <url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/snapshots</url>
+  </repository>
 	</repositories>
 
 
@@ -131,6 +154,10 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				    <configuration>
+				        <mainClass>${start-class}</mainClass>
+				        <layout>ZIP</layout>
+				      </configuration>
 				<executions>
 					<execution>
 						<goals>
