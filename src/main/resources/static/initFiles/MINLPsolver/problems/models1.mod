@@ -1,5 +1,4 @@
 # vim: set filetype=ampl : #
-
 #################################################
 ### YARN models                               ###
 ### liliane tueguem 12/06/2015                ###

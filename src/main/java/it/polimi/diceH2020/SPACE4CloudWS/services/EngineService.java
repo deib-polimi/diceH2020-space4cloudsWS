@@ -1,10 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.statemachine.StateMachine;
@@ -14,18 +12,23 @@ import org.springframework.stereotype.Service;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Settings;
-import it.polimi.diceH2020.SPACE4CloudWS.algorithm.Algorithm;
-import it.polimi.diceH2020.SPACE4CloudWS.algorithm.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.core.InitialSolutionBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.core.Optimizer;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
-
 
 @Service
 @WithStateMachine
 public class EngineService {
 
+	private static Logger logger = Logger.getLogger(EngineService.class.getName());
+
 	@Autowired
-	private Algorithm algorithm;
+	private Optimizer optimizer;
+
+	@Autowired
+	private InitialSolutionBuilder solBuilder;
 
 	@Autowired
 	private DataService dataService;
@@ -37,61 +40,37 @@ public class EngineService {
 	}
 
 	public Solution getSolution() {
-		return algorithm.getSolution();
+		return optimizer.getSolution();
 
 	}
 
 	@Async("workExecutor")
 	@OnTransition(target = "RUNNING")
-	public void greedy() throws Exception {
-		int i = 0;
-		List<Future<Float>> objective = new ArrayList<Future<Float>>();
-		do {
-			algorithm.greedy_cal();
+	public void optimizationPublicCloud() throws Exception {
+		Solution sol = solBuilder.getInitialSolution();
 
-			for (int j = 0; j < dataService.getNumberJobs(); j++)
-				objective.add(algorithm.localSearch(j));
+		optimizer.init(sol);
+		optimizer.parallelLocalSearch();
 
-			for (int j = 0; j < dataService.getNumberJobs(); j++) {
-				while (!(objective.get(j).isDone())) {
-					Thread.sleep(100);
-				}
-				System.out.println("parall" + j);
-			}
-			objective.clear();
-			System.out.println("paralleis3" + i);
+		if (dataService.getNumberJobs() > 1)
+			optimizer.sharedCluster();
 
-			if (dataService.getNumberJobs() > 1)
-				algorithm.sharedCluster();
-
-			for (int j = 0; j < dataService.getNumberJobs(); j++) {
-				dataService.getData().incHUp(j, 1);
-				dataService.getData().setHLow(j, (int) Math.ceil(0.9 * dataService.getData().getHUp(j)));
-
-			}
-			i = i + 1;
-		} while (i < 100);
 		stateHandler.sendEvent(Events.MIGRATE);
-		System.out.println(stateHandler.getState().getId());
-
+		logger.info(stateHandler.getState().getId());
 	}
 
-	public void init() {
-		try {
-			algorithm.init();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	//nobody calls this function
+	// nobody calls this function
+	// TODO generate interface for this ?
 	public void sequence() throws Exception {
-		algorithm.sequentialGreedy();
+		Solution sol = solBuilder.getInitialSolution();
+		optimizer.init(sol);
+		optimizer.sequentialLS();
+		stateHandler.sendEvent(Events.MIGRATE);
+		logger.info(stateHandler.getState().getId());
 	}
 
 	public void setAccuracyAncCycles(Settings settings) {
-		algorithm.extractAccuracyAndCycle(settings);
+		optimizer.extractAccuracyAndCycle(settings);
 	}
 
 	/**
@@ -102,10 +81,12 @@ public class EngineService {
 		this.dataService.setInstanceData(inputData);
 	}
 
-	//this is called from a debug endpoint
-	public void simulation() throws Exception {
-		List<Double> lstResults = algorithm.sharedCluster();
-		System.out.println(lstResults.get(1));
+	// this is called from a debug endpoint
+	public void optimizationScharedCluster() throws Exception {
+		Solution sol = solBuilder.getInitialSolution();
+		optimizer.init(sol);
+		List<Double> lstResults = optimizer.sharedCluster();
+		logger.info(lstResults.toString());
 	}
 
 }

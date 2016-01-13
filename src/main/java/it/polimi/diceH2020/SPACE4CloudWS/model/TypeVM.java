@@ -31,7 +31,7 @@ public class TypeVM {
 
 	private int core;
 
-	public int getCore() {
+	public int getNumCores() {
 		return core;
 	}
 

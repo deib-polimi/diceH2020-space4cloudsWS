@@ -123,11 +123,21 @@
 		<dependency>
 			<groupId>it.polimi.diceH2020</groupId>
 			<artifactId>SPACE4Cloud-shared</artifactId>
-			<version>0.0.1-RELEASE</version>
+			<version>0.0.2-SNAPSHOT</version>
 		</dependency>
-		
-		
-		
+
+
+
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-cypher-compiler-2.2</artifactId>
+			<version>2.2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-core</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>

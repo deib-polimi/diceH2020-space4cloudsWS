@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4CloudWS.algorithm.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.model.Key;
 import it.polimi.diceH2020.SPACE4CloudWS.model.Provider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.TypeVM;
@@ -139,7 +139,7 @@ public class DataService {
 				DataService.this.lstSigmaBar.add(s.getSigmaBar());
 				DataService.this.lstDeltaBar.add(s.getDeltabar());
 				DataService.this.lstRhoBar.add(s.getRhoBar());
-				DataService.this.lstCore.add(s.getCore());
+				DataService.this.lstCore.add(s.getNumCores());
 			}
 		});
 		data.getId_job().forEach(new Consumer<Integer>() {
@@ -150,15 +150,20 @@ public class DataService {
 		});
 	}
 
-	public List<Integer> getUpdatedCores(List<String> selectedVMtypes) {
+	public List<Integer> getNumCores(List<String> selectedVMtypes) {
 		List<Integer> lstCores = new ArrayList<>();
 		for (int i = 0; i < selectedVMtypes.size(); i++) {
 			Key k = new Key(selectedVMtypes.get(i), this.NameProvider);
 			TypeVM tVM = mapTypeVM.get(k);
-			lstCores.add(tVM.getCore());
+			lstCores.add(tVM.getNumCores());
 		}
 		return lstCores;
 	}
 	
+	public Integer getNumCores(String selectedVMType){
+		Key k = new Key(selectedVMType, this.NameProvider);
+		TypeVM tVM = mapTypeVM.get(k);
+		return tVM.getNumCores();
+	}
 	
 }

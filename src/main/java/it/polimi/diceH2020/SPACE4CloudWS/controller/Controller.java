@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Settings;
-import it.polimi.diceH2020.SPACE4CloudWS.algorithm.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
@@ -30,29 +30,28 @@ public class Controller {
 	public @ResponseBody String changestate(@RequestBody Events event) throws Exception {
 
 		stateHandler.sendEvent(event); // if the state is running
-		engineService.greedy();								// engine.greedy() is called
+		engineService.optimizationPublicCloud();								// engine.greedy() is called
 		Thread.sleep(1000000);
-		return stateHandler.getState().getId().toString();
+		return getWSstate();
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "/sendsettings")
 	public @ResponseBody String changestate(@RequestBody Settings settings) {
 		engineService.setAccuracyAncCycles(settings);
-		return stateHandler.getState().getId().toString();
+		return getWSstate();
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "app/debug")
 	public void debug() throws Exception {
-		engineService.simulation();
+		engineService.optimizationScharedCluster();
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "inputdata")
 	@ResponseStatus(value = HttpStatus.OK)
-	public void endpointInputData(@RequestBody InstanceData inputData) throws Exception {
+	public String endpointInputData(@RequestBody InstanceData inputData) throws Exception {
 		engineService.setInstanceData(inputData);
-		engineService.init();
 		stateHandler.sendEvent(Events.MIGRATE);
-		return;
+		return getWSstate();
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "solution")
@@ -65,7 +64,14 @@ public class Controller {
 
 
 	@RequestMapping(value = "/state", method = RequestMethod.GET)
-	public @ResponseBody String getstate() {
+	public @ResponseBody String getState() {
+		return getWSstate();
+	}
+	
+	private String getWSstate(){
 		return stateHandler.getState().getId().toString();
 	}
+	
+	
+	
 }
