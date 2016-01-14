@@ -2,6 +2,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -9,6 +10,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
@@ -20,17 +22,19 @@ public class SPNSolver {
 	@Autowired
 	private SPNSettings connSettings;
 
+	@Autowired
+	private Environment environment; // this is to check which is the active
+										// profile at runtime
+
 	private static Logger logger = Logger.getLogger(SPNSolver.class.getName());
-	
+
 	public SPNSolver() {
 	}
 
 	@PostConstruct
 	private void init() {
-		connector = new SshConnector(connSettings.getAddress(), connSettings.getUsername(), connSettings.getPassword(),
-				connSettings.getPort());
+		connector = new SshConnector(connSettings);
 	}
-
 
 	/**
 	 * @param nameFile
@@ -53,8 +57,8 @@ public class SPNSolver {
 		connector.sendFile(nameFile + ".def", connSettings.getRemoteWorkDir() + "/" + nameFile + ".def");
 		logger.info("file run have been sent");
 		System.out.println("file run have been sended");
-		String command = connSettings.getSolverPath()+" "+ connSettings.getRemoteWorkDir()+"/"+nameFile+ " -a " 
-				+ connSettings.getAccuracy() + " -c 6"; 
+		String command = connSettings.getSolverPath() + " " + connSettings.getRemoteWorkDir() + "/" + nameFile + " -a "
+				+ connSettings.getAccuracy() + " -c 6";
 		connector.exec(command);
 		logger.info("processing execution..." + nameFile);
 		System.out.println("processing execution..." + nameFile);
@@ -89,7 +93,8 @@ public class SPNSolver {
 		logger.info("file run have been sent");
 		System.out.println("file run have been sent");
 
-		String command = connSettings.getSolverPath()+ " "+connSettings.getRemoteWorkDir() +"/"+nameInputFile+" -M 10000";
+		String command = connSettings.getSolverPath() + " " + connSettings.getRemoteWorkDir() + "/" + nameInputFile
+				+ " -M 10000";
 		connector.exec(command);
 		logger.info("processing execution..." + nameInputFile);
 		System.out.println("processing execution..." + nameInputFile);
@@ -116,15 +121,39 @@ public class SPNSolver {
 		startPos = solFileInString.indexOf(throughputStr2);
 		endPos = solFileInString.indexOf('\n', startPos);
 		thr = Double.parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
-		throughputArray.add(thr); 
+		throughputArray.add(thr);
 		return throughputArray;
 	}
 
 	public void setAccuracy(double accuracy) {
 		connSettings.setAccuracy(accuracy);
 	}
-	//STUB function for initialization purpose
-	public boolean init(String param) throws Exception{
-		return true; // if everything was alright
+
+	public void initRemoteEnvironment() throws Exception {
+		List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
+		System.out.println("------------------------------------------------");
+		System.out.println("Starting SPN solver service initialization phase");
+		System.out.println("------------------------------------------------");
+		if (lstProfiles.contains("test") || !connSettings.isForceClean()) {
+			System.out.println("Test phase: the remote work directory tree is assumed to be ok.");
+
+		} else {
+			System.out.println("- Clearing remote work directory tree");
+
+			connector.exec("rm -rf "+connSettings.getRemoteWorkDir());
+			System.out.println("- Creating new remote work directory tree");
+			connector.exec("mkdir "+connSettings.getRemoteWorkDir());
+
+			System.out.println("Done");
+		}
+
+	}
+
+	public List<String> pwd() throws Exception {
+		return connector.pwd();
+	}
+
+	public SshConnector getConnector() {
+		return connector;
 	}
 }

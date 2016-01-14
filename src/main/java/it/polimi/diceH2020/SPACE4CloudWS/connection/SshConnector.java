@@ -3,21 +3,26 @@ package it.polimi.diceH2020.SPACE4CloudWS.connection;
 import java.io.File;
 import java.util.List;
 
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+
 public class SshConnector {
 
-	// this object runs bash-script on AMPL server
+
 	private ExecSSH newExecSSH;
-
-	// this object uploads files on AMPL server
 	private ScpTo newScpTo;
-
-	// this block downloads logs and results of AMPL
 	private ScpFrom newScpFrom;
 
-	public SshConnector(String host, String user, String password, int port) {
-		newExecSSH = new ExecSSH(host, user, password, port);
-		newScpTo = new ScpTo(host, user, password, port);
-		newScpFrom = new ScpFrom(host, user, password, port);
+	public SshConnector( ConnectionSettings connSettings) {
+
+		try {
+			ConnectionCreator connection = new ConnectionCreator(connSettings);
+			newExecSSH = new ExecSSH(connection);
+			newScpTo = new ScpTo(connection);
+			newScpFrom = new ScpFrom(connection);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	public void sendFile(String localFile, String remoteFile) throws Exception {
@@ -36,8 +41,8 @@ public class SshConnector {
 	private void fixFile(String folder, String file) throws Exception {
 		exec(String.format("cd %1$s && tr -d '\r' < %2$s > %2$s-bak && mv %2$s-bak %2$s", folder, file));
 	}
-	
-	public List<String> pwd() throws Exception{
+
+	public List<String> pwd() throws Exception {
 		return newExecSSH.getPWD();
 	}
 
@@ -45,8 +50,5 @@ public class SshConnector {
 		return newExecSSH.removeAllFiles();
 	}
 
-	public void createRemoteDirs() throws Exception {
-				
-	}
 
 }

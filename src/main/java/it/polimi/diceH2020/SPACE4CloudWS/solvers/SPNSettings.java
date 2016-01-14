@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix="SPN")
-public class SPNSettings {
+public class SPNSettings implements ConnectionSettings {
 
 	private String address;
 	
@@ -15,12 +15,32 @@ public class SPNSettings {
 	
 	private String password;
 	
-	private String pubkeyfile;
-	
 	private String solverPath;
 	
 	private String remoteWorkDir;
 	
+	private String pubKeyFile;
+
+	private String setKnownHosts;
+	
+	private boolean forceClean;
+
+	public String getPubKeyFile() {
+		return pubKeyFile;
+	}
+
+	public void setPubKeyFile(String pubKeyFile) {
+		this.pubKeyFile = pubKeyFile;
+	}
+
+	public String getSetKnownHosts() {
+		return setKnownHosts;
+	}
+
+	public void setSetKnownHosts(String setKnownHosts) {
+		this.setKnownHosts = setKnownHosts;
+	}
+
 	private double accuracy= 0.1; //default value
 
 	/**
@@ -80,20 +100,6 @@ public class SPNSettings {
 	}
 
 	/**
-	 * @return the pubkeyfile
-	 */
-	public String getPubkeyfile() {
-		return pubkeyfile;
-	}
-
-	/**
-	 * @param pubkeyfile the pubkeyfile to set
-	 */
-	public void setPubkeyfile(String pubkeyfile) {
-		this.pubkeyfile = pubkeyfile;
-	}
-
-	/**
 	 * @return the solverPath
 	 */
 	public String getSolverPath() {
@@ -133,6 +139,14 @@ public class SPNSettings {
 	 */
 	public void setAccuracy(double accuracy) {
 		this.accuracy = accuracy;
+	}
+
+	public boolean isForceClean() {
+		return forceClean;
+	}
+
+	public void setForceClean(boolean forceClean) {
+		this.forceClean = forceClean;
 	}
 
 	

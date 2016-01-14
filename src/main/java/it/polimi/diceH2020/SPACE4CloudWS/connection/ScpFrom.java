@@ -1,7 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.connection;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,23 +10,15 @@ import org.slf4j.LoggerFactory;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 public class ScpFrom {
 
 	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ScpFrom.class);
+	private ConnectionCreator connector;
 
-	private String host;
-	private String user;
-	private String password;
-	private int port;
-
-	public ScpFrom(String host, String user, String password, int port) {
-		this.host = host;
-		this.user = user;
-		this.password = password;
-		this.port = port;
+	public ScpFrom(ConnectionCreator connector) {
+		this.connector = connector;
 	}
 
 	// main execution function
@@ -39,19 +30,15 @@ public class ScpFrom {
 			String lfile = LFile;
 			String rfile = RFile;
 
-			// creating session with username, server's address and port (22 by
-			// default)
-			JSch jsch = new JSch();
-			Session session = jsch.getSession(user, host, port);
-			session.setPassword(password);
-
 			String prefix = null;
 			if (new File(lfile).isDirectory()) {
 				prefix = lfile + File.separator;
 			}
+			
+			Session session = connector.createSession();
 			// session.setUserInfo(ui);
 			// disabling of certificate checks
-			session.setConfig("StrictHostKeyChecking", "no");
+//			session.setConfig("StrictHostKeyChecking", "no");
 			session.connect();
 			// exec 'scp -f rfile' remotely
 			String command = "scp -f " + rfile;
@@ -162,18 +149,18 @@ public class ScpFrom {
 		return b;
 	}
 
-	public void localReceivefile(String LFile, String RFile) throws Exception {
-		if (!new File(RFile).exists())
-			throw new FileNotFoundException("File " + RFile + " not found!");
-
-		ExecSSH ex = new ExecSSH(RFile, RFile, RFile, port);
-
-		if (new File(LFile).exists() && new File(LFile).isDirectory() && !LFile.endsWith(File.separator))
-			LFile = LFile + File.separator;
-
-		String command = String.format("cp %s %s", RFile, LFile);
-		ex.localExec(command);
-
-	}
+//	public void localReceivefile(String LFile, String RFile) throws Exception {
+//		if (!new File(RFile).exists())
+//			throw new FileNotFoundException("File " + RFile + " not found!");
+//
+//		ExecSSH ex = new ExecSSH(RFile, RFile, RFile, port);
+//
+//		if (new File(LFile).exists() && new File(LFile).isDirectory() && !LFile.endsWith(File.separator))
+//			LFile = LFile + File.separator;
+//
+//		String command = String.format("cp %s %s", RFile, LFile);
+//		ex.localExec(command);
+//
+//	}
 
 }

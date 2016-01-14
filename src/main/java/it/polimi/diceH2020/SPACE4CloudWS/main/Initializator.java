@@ -34,7 +34,7 @@ public class Initializator {
 		try {
 			//This function is a stub, must be completed. Now I have no time.
 			milpSolver.initRemoteEnvironment();
-			SPNSolver.init("...");
+			SPNSolver.initRemoteEnvironment();
 			
 			stateHandler.sendEvent(Events.MIGRATE);
 		} catch (Exception e) {

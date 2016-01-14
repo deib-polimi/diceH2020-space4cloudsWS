@@ -8,21 +8,16 @@ import java.util.List;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 public class ExecSSH {
 
-	private String host;
-	private String user;
-	private String password;
-	private int port;
 
-	public ExecSSH(String host, String user, String password, int port) {
-		this.host = host;
-		this.user = user;
-		this.password = password;
-		this.port = port;
+
+	private ConnectionCreator connector;
+
+	public ExecSSH(ConnectionCreator connector) {
+		this.connector = connector;
 	}
 
 	// main execution function
@@ -30,14 +25,9 @@ public class ExecSSH {
 	public List<String> mainExec(String command) throws Exception {
 		List<String> res = new ArrayList<String>();
 
-		// creating session with username, server's address and port (22 by
-		// default)
-		JSch jsch = new JSch();
-		Session session = jsch.getSession(user, host, port);
-		session.setPassword(password);
-
+		Session session = connector.createSession();
 		// disabling of certificate checks
-		session.setConfig("StrictHostKeyChecking", "no");
+		//session.setConfig("StrictHostKeyChecking", "no");
 		// creating connection
 		session.connect();
 
@@ -97,11 +87,14 @@ public class ExecSSH {
 		return res;
 	}
 
-	public List<String> getPWD() throws Exception{
+	public List<String> getPWD() throws Exception {
 		return this.mainExec("pwd");
 	}
 
 	public List<String> removeAllFiles() throws Exception {
 		return this.mainExec("rm -rf ./*");
 	}
+
+
+
 }

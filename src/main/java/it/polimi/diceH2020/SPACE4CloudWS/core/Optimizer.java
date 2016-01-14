@@ -21,7 +21,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.connection.LocalSearch;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 
@@ -294,7 +293,6 @@ public class Optimizer {
 				logger.info("Local search num " + i + " finished");
 				i++;
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

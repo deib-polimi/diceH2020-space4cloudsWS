@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "minlp")
-public class MINLPSettings {
+public class MINLPSettings implements ConnectionSettings {
 	private String address;
 
 	private String password;
@@ -13,14 +13,19 @@ public class MINLPSettings {
 	private int port = 22;
 
 	private String username;
-	
-	private String pubkeyfile;
-	
+
 	private String remoteWorkDir;
-	
+
 	private String amplDirectory;
-	
+
 	private String solverPath;
+
+	private String pubKeyFile;
+
+	private String setKnownHosts;
+	
+	private boolean forceClean;
+	
 
 	public String getAddress() {
 		return address;
@@ -48,8 +53,10 @@ public class MINLPSettings {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
 	/**
-	 * @param port the port to set
+	 * @param port
+	 *            the port to set
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -57,20 +64,6 @@ public class MINLPSettings {
 
 	public void setUsername(String username) {
 		this.username = username;
-	}
-
-	/**
-	 * @return the pubkeyfile
-	 */
-	public String getPubkeyfile() {
-		return pubkeyfile;
-	}
-
-	/**
-	 * @param pubkeyfile the pubkeyfile to set
-	 */
-	public void setPubkeyfile(String pubkeyfile) {
-		this.pubkeyfile = pubkeyfile;
 	}
 
 
@@ -82,7 +75,8 @@ public class MINLPSettings {
 	}
 
 	/**
-	 * @param amplDirectory the amplDirectory to set
+	 * @param amplDirectory
+	 *            the amplDirectory to set
 	 */
 	public void setAmplDirectory(String amplDirectory) {
 		this.amplDirectory = amplDirectory;
@@ -96,7 +90,8 @@ public class MINLPSettings {
 	}
 
 	/**
-	 * @param solverPath the solverPath to set
+	 * @param solverPath
+	 *            the solverPath to set
 	 */
 	public void setSolverPath(String solverPath) {
 		this.solverPath = solverPath;
@@ -110,10 +105,35 @@ public class MINLPSettings {
 	}
 
 	/**
-	 * @param remoteWorkDir the remoteWorkDir to set
+	 * @param remoteWorkDir
+	 *            the remoteWorkDir to set
 	 */
 	public void setRemoteWorkDir(String remoteWorkDir) {
 		this.remoteWorkDir = remoteWorkDir;
+	}
+
+	public String getPubKeyFile() {
+		return pubKeyFile;
+	}
+
+	public void setPubKeyFile(String pubKeyFile) {
+		this.pubKeyFile = pubKeyFile;
+	}
+
+	public String getSetKnownHosts() {
+		return setKnownHosts;
+	}
+
+	public void setSetKnownHosts(String setKnownHosts) {
+		this.setKnownHosts = setKnownHosts;
+	}
+
+	public boolean isForceClean() {
+		return forceClean;
+	}
+
+	public void setForceClean(boolean forceClean) {
+		this.forceClean = forceClean;
 	}
 
 }

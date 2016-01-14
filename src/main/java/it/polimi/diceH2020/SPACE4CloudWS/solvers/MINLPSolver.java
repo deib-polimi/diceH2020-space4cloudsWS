@@ -23,20 +23,19 @@ public class MINLPSolver {
 
 	private static Logger logger = Logger.getLogger(MINLPSolver.class.getName());
 
-	
 	@Autowired
 	private MINLPSettings connSettings;
 
 	@Autowired
-	private Environment environment; // this is to check which is the active profile at runtime
- 	
+	private Environment environment; // this is to check which is the active
+										// profile at runtime
+
 	public MINLPSolver() {
 	}
 
 	@PostConstruct
 	private void init() {
-		connector = new SshConnector(connSettings.getAddress(), connSettings.getUsername(), connSettings.getPassword(),
-				connSettings.getPort());
+		connector = new SshConnector(connSettings);
 	}
 
 	public Float run(String nameDatFile, String nameSolFile) throws Exception {
@@ -70,13 +69,13 @@ public class MINLPSolver {
 
 		System.out.println(fileToString);
 		System.out.println(objFunctionValue);
-		logger.info("The value of the objective function is: " + objFunctionValue); 
+		logger.info("The value of the objective function is: " + objFunctionValue);
 		return objFunctionValue;
 	}
 
 	public String generateRunFile() {
 
-		String data =  "../scratch/data.dat";
+		String data = "../scratch/data.dat";
 		String result = "../results/risultato";
 		String solverPath = connSettings.getSolverPath();
 
@@ -120,7 +119,7 @@ public class MINLPSolver {
 		String name = "dat.run";
 		File file = new File(name);
 
-		//generating the file
+		// generating the file
 		try (PrintWriter out = new PrintWriter(file)) {
 			out.println(builder.toString());
 			out.flush();
@@ -131,66 +130,79 @@ public class MINLPSolver {
 		return name;
 	}
 
-	public void initRemoteEnvironment() throws Exception{
-		 List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
-		 String localPath = "src/main/resources/static/initFiles/MINLPSolver";
-		 System.out.println("--------------------------------------------");
-		 System.out.println("Starting math solver service initializatio phase");
-		 System.out.println("--------------------------------------------");
-		 if (lstProfiles.contains("test")){
-			 System.out.println("Test phase: the remote work directory tree is assumed to be ok.");
-			 
-		 }
-		 else{
+	public void initRemoteEnvironment() throws Exception {
+		List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
+		String localPath = "src/main/resources/static/initFiles/MINLPSolver";
+		System.out.println("------------------------------------------------");
+		System.out.println("Starting math solver service initializatio phase");
+		System.out.println("------------------------------------------------");
+		if (lstProfiles.contains("test") || !connSettings.isForceClean()) {
+			System.out.println("Test phase: the remote work directory tree is assumed to be ok.");
+
+		} else {
 			System.out.println("- Clearing remote work directory tree");
 			connector.clear();
 			System.out.println("- Creating new remote work directory tree");
 			connector.exec("mkdir AMPL && cd AMPL && mkdir problems utils solve scratch results");
-			
+
 			System.out.println("- Sending work files");
 			System.out.print("[#                    ]- Sending work files\r");
-			connector.sendFile(localPath+"/problems/models1.mod",  connSettings.getRemoteWorkDir()+"/problems/models1.mod");
+			connector.sendFile(localPath + "/problems/models1.mod",
+					connSettings.getRemoteWorkDir() + "/problems/models1.mod");
 			System.out.print("[##                   ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/compute_psi.run",  connSettings.getRemoteWorkDir()+"/utils/compute_psi.run");
+			connector.sendFile(localPath + "/utils/compute_psi.run",
+					connSettings.getRemoteWorkDir() + "/utils/compute_psi.run");
 			System.out.print("[###                  ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/compute_job_profile.run",  connSettings.getRemoteWorkDir()+"/utils/compute_job_profile.run");
+			connector.sendFile(localPath + "/utils/compute_job_profile.run",
+					connSettings.getRemoteWorkDir() + "/utils/compute_job_profile.run");
 			System.out.print("[####                 ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/compute_penalties.run",  connSettings.getRemoteWorkDir()+"/utils/compute_penalties.run");
+			connector.sendFile(localPath + "/utils/compute_penalties.run",
+					connSettings.getRemoteWorkDir() + "/utils/compute_penalties.run");
 			System.out.print("[#####                ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/save_aux.run",  connSettings.getRemoteWorkDir()+"/utils/save_aux.run");
+			connector.sendFile(localPath + "/utils/save_aux.run",
+					connSettings.getRemoteWorkDir() + "/utils/save_aux.run");
 			System.out.print("[######               ]- Sending work files\r");
-			connector.sendFile(localPath+"/problems/centralized.run",  connSettings.getRemoteWorkDir()+"/problems/centralized.run");
+			connector.sendFile(localPath + "/problems/centralized.run",
+					connSettings.getRemoteWorkDir() + "/problems/centralized.run");
 			System.out.print("[#######              ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/params_for_heuristic.run",  connSettings.getRemoteWorkDir()+"/utils/params_for_heuristic.run");
+			connector.sendFile(localPath + "/utils/params_for_heuristic.run",
+					connSettings.getRemoteWorkDir() + "/utils/params_for_heuristic.run");
 			System.out.print("[########             ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/save_centralized.run",  connSettings.getRemoteWorkDir()+"/utils/save_centralized.run");
+			connector.sendFile(localPath + "/utils/save_centralized.run",
+					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.print("[#########            ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/calculedsd.run",  connSettings.getRemoteWorkDir()+"/utils/calculedsd.run");
+			connector.sendFile(localPath + "/utils/calculedsd.run",
+					connSettings.getRemoteWorkDir() + "/utils/calculedsd.run");
 			System.out.print("[##########           ]- Sending work files\r");
-			connector.sendFile(localPath+"/solve/AM_closed_form.run",  connSettings.getRemoteWorkDir()+"/solve/AM_closed_form.run");
+			connector.sendFile(localPath + "/solve/AM_closed_form.run",
+					connSettings.getRemoteWorkDir() + "/solve/AM_closed_form.run");
 			System.out.print("[###########          ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/simulated_time.run",  connSettings.getRemoteWorkDir()+"/utils/simulated_time.run");
+			connector.sendFile(localPath + "/utils/simulated_time.run",
+					connSettings.getRemoteWorkDir() + "/utils/simulated_time.run");
 			System.out.print("[############         ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/save_centralized.run",  connSettings.getRemoteWorkDir()+"/utils/save_centralized.run");
+			connector.sendFile(localPath + "/utils/save_centralized.run",
+					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.print("[#############        ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/make_integer.run",  connSettings.getRemoteWorkDir()+"/utils/make_integer.run");
+			connector.sendFile(localPath + "/utils/make_integer.run",
+					connSettings.getRemoteWorkDir() + "/utils/make_integer.run");
 			System.out.print("[##############       ]- Sending work files\r");
-			connector.sendFile(localPath+"/utils/save_centralized.run",  connSettings.getRemoteWorkDir()+"/utils/save_centralized.run");
+			connector.sendFile(localPath + "/utils/save_centralized.run",
+					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.println("Done");
-		 }
+		}
 	}
+
 	public List<String> pwd() throws Exception {
 		return connector.pwd();
 	}
+
 	public List<String> clear() throws Exception {
 		return connector.clear();
 	}
-	
+
 	@Profile("test")
-	public SshConnector getConnector(){
+	public SshConnector getConnector() {
 		return connector;
 	}
-	
-	
-	
+
 }
