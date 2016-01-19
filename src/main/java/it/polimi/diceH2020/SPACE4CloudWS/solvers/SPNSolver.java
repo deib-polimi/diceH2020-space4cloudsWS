@@ -52,26 +52,26 @@ public class SPNSolver {
 
 		connector.sendFile(nameFile + ".net", connSettings.getRemoteWorkDir() + "/" + nameFile + ".net");
 		logger.info("file" + nameFile + ".def sent");
-		System.out.println("file" + nameFile + "sent");
+		logger.info("file" + nameFile + "sent");
 
 		connector.sendFile(nameFile + ".def", connSettings.getRemoteWorkDir() + "/" + nameFile + ".def");
 		logger.info("file run have been sent");
-		System.out.println("file run have been sended");
+		logger.info("file run have been sended");
 		String command = connSettings.getSolverPath() + " " + connSettings.getRemoteWorkDir() + "/" + nameFile + " -a "
 				+ connSettings.getAccuracy() + " -c 6";
 		connector.exec(command);
 		logger.info("processing execution..." + nameFile);
-		System.out.println("processing execution..." + nameFile);
+		logger.info("processing execution..." + nameFile);
 
 		File solfile = new File(nameSolFile);
 		if (!solfile.exists())
 			solfile.createNewFile();
 
-		System.out.println("solution file created");
+		logger.info("solution file created");
 
 		connector.receiveFile(nameSolFile, connSettings.getRemoteWorkDir() + "/" + nameFile + ".sta");
 		solFileInString = FileUtils.readFileToString(solfile);
-		System.out.println(nameSolFile);
+		logger.info(nameSolFile);
 		String throughputStr = "Thru_end = ";
 		int startPos = solFileInString.indexOf(throughputStr);
 		int endPos = solFileInString.indexOf('\n', startPos);
@@ -84,20 +84,20 @@ public class SPNSolver {
 		double thr;
 		String solFileInString = null;
 
-		System.out.println("sto per eseguire");
+		logger.info("sto per eseguire");
 		connector.sendFile(nameInputFile + ".net", connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".net");
 		logger.info("file" + nameInputFile + ".net has been sent");
-		System.out.println("file" + nameInputFile + "has been sent");
+		logger.info("file" + nameInputFile + "has been sent");
 
 		connector.sendFile(nameInputFile + ".def", connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".def");
 		logger.info("file run have been sent");
-		System.out.println("file run have been sent");
+		logger.info("file run have been sent");
 
 		String command = connSettings.getSolverPath() + " " + connSettings.getRemoteWorkDir() + "/" + nameInputFile
 				+ " -M 10000";
 		connector.exec(command);
 		logger.info("processing execution..." + nameInputFile);
-		System.out.println("processing execution..." + nameInputFile);
+		logger.info("processing execution..." + nameInputFile);
 
 		File file = new File(nameSolutionFile);
 		if (!file.exists())
@@ -105,7 +105,7 @@ public class SPNSolver {
 
 		connector.receiveFile(nameSolutionFile, connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".sta");
 		solFileInString = FileUtils.readFileToString(file);
-		System.out.println(nameSolutionFile);
+		logger.info(nameSolutionFile);
 		String throughputStr = "Thru_end = ";
 		int startPos = solFileInString.indexOf(throughputStr);
 		int endPos = solFileInString.indexOf('\n', startPos);
@@ -131,20 +131,20 @@ public class SPNSolver {
 
 	public void initRemoteEnvironment() throws Exception {
 		List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
-		System.out.println("------------------------------------------------");
-		System.out.println("Starting SPN solver service initialization phase");
-		System.out.println("------------------------------------------------");
+		logger.info("------------------------------------------------");
+		logger.info("Starting SPN solver service initialization phase");
+		logger.info("------------------------------------------------");
 		if (lstProfiles.contains("test") || !connSettings.isForceClean()) {
-			System.out.println("Test phase: the remote work directory tree is assumed to be ok.");
+			logger.info("Test phase: the remote work directory tree is assumed to be ok.");
 
 		} else {
-			System.out.println("- Clearing remote work directory tree");
+			logger.info("Clearing remote work directory tree");
 
 			connector.exec("rm -rf "+connSettings.getRemoteWorkDir());
-			System.out.println("- Creating new remote work directory tree");
+			logger.info("Creating new remote work directory tree");
 			connector.exec("mkdir "+connSettings.getRemoteWorkDir());
 
-			System.out.println("Done");
+			logger.info("Done");
 		}
 
 	}

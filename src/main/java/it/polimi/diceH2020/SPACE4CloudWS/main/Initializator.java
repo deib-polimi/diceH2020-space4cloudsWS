@@ -1,12 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
-import java.io.IOException;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.catalina.core.ApplicationContext;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
@@ -16,40 +13,35 @@ import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
-/**
- * @author ciavotta
- * this class is used to initialize the environments on the remote servers
- * Creation of directories mainly. 
- */
 @Component
 public class Initializator {
+	private static Logger logger = Logger.getLogger(Initializator.class.getName());
 
 	@Autowired
 	private MINLPSolver milpSolver;
-	
+
 	@Autowired(required = true)
 	private SPNSolver SPNSolver;
-	
+
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-	
-	@PostConstruct
-	private void init() throws Exception{
-		stateHandler.start();	
-//		try {
-//			
+
+	@EventListener
+	public void handleContextRefresh(ContextRefreshedEvent event) throws Exception {
+
+		stateHandler.start();
+		logger.info("State machine initialized");
+		try {
+
 			FileUtiliy.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
 			SPNSolver.initRemoteEnvironment();
-			
-			stateHandler.sendEvent(Events.MIGRATE);
-			System.out.println(stateHandler.getState());
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			stateHandler.sendEvent(Events.STOP);
-//			System.out.println(stateHandler.getState());
-//		}
-	}
 
-	
+			stateHandler.sendEvent(Events.MIGRATE);
+			logger.info("Current service state: " + stateHandler.getState().getId());
+		} catch (Exception e) {
+			stateHandler.sendEvent(Events.STOP);
+			logger.info("Current service state: " + stateHandler.getState().getId());
+		}
+	}
 }
