@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
+import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtiliy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
@@ -32,7 +33,8 @@ public class Initializator {
 	private void init(){
 		stateHandler.start();	
 		try {
-			//This function is a stub, must be completed. Now I have no time.
+			
+			FileUtiliy.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
 			SPNSolver.initRemoteEnvironment();
 			

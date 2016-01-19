@@ -39,8 +39,8 @@ public class LocalSearch {
 		int nContainers = solPerJob.getNumberContainers();
 		int hUp = dataService.getData().getHUp(i);
 
-		FileMaster.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-		FileMaster.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+		FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+		FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
 
 		throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 
@@ -51,8 +51,8 @@ public class LocalSearch {
 			while (responseTime < deadline && nUsers < hUp && iter <= maxIter) {
 				tempResponseTime = responseTime;
 				nUsers++;
-				FileMaster.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileMaster.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+				FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+				FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
 				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 				iter++;
@@ -63,8 +63,8 @@ public class LocalSearch {
 				// TODO aggiungere vm invece che gli slot.
 
 				nContainers++;
-				FileMaster.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileMaster.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+				FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+				FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
 
 				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
@@ -76,8 +76,8 @@ public class LocalSearch {
 			while (responseTime > deadline) {
 
 				nContainers++;
-				FileMaster.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileMaster.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+				FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+				FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
 
 				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 

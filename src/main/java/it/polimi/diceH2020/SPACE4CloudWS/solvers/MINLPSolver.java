@@ -1,7 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import java.io.File;
-import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,9 +15,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
+import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtiliy;
 
 @Component
 public class MINLPSolver {
+
+	private static final String RESULTS_RISULTATO_HEURISTIC_SOL = "/results/risultato.heuristic.sol";
+	
+	private static final String REMOTE_SCRATCH = "/scratch";
+	private static final String REMOTE_RESULTS = "/results";
+
+	private static final String REMOTEPATH_DATA_DAT =  REMOTE_SCRATCH+"/data.dat";
+
+	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
 	private static SshConnector connector; // this can be changed with a bean
 
@@ -40,103 +50,67 @@ public class MINLPSolver {
 
 	public Float run(String nameDatFile, String nameSolFile) throws Exception {
 		float objFunctionValue = 0;
-		String fullPath = connSettings.getRemoteWorkDir() + "/scratch/data.dat";
-		connector.sendFile(nameDatFile, fullPath);
+		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
+		String fullLocalPath = FileUtiliy.LOCAL_DYNAMIC_FOLDER+File.separator+nameDatFile;
+		connector.sendFile(fullLocalPath, fullRemotePath);
 		logger.info("file " + nameDatFile + " has been sent");
-		System.out.println("file: " + nameDatFile + " has been sent");
-		String nameRunFile = generateRunFile();
+		String nameRunFile = FileUtiliy.generateRunFile(connSettings.getSolverPath());
 
-		connector.sendFile(nameRunFile, connSettings.getRemoteWorkDir() + nameRunFile);
-		logger.info("dat.run file sent");
+		fullRemotePath = connSettings.getRemoteWorkDir() +REMOTE_SCRATCH+"/"+ REMOTEPATH_DATA_RUN;
+		fullLocalPath = FileUtiliy.LOCAL_DYNAMIC_FOLDER+File.separator+nameRunFile;
+		connector.sendFile(fullLocalPath, fullRemotePath);
+		logger.info("File " +nameRunFile+" file has been sent");
 
-		String command = "cd " + connSettings.getRemoteWorkDir() + " && " + connSettings.getAmplDirectory()
-				+ " dat.run";
-		connector.exec(command);
 		logger.info("Processing execution...");
+		clearResultDir();
+		String command = "cd " + connSettings.getRemoteWorkDir()+REMOTE_SCRATCH + " && " + connSettings.getAmplDirectory() +" "
+				+ REMOTEPATH_DATA_RUN;
+		logger.info("Remote exit status: " + connector.exec(command));
+		
 
-		File file = new File(nameSolFile);
-		if (!file.exists())
-			file.createNewFile();
+		fullLocalPath = FileUtiliy.createLocalSolFile(nameSolFile);
+		
+		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_RISULTATO_HEURISTIC_SOL;
 
-		logger.info("Solution file created");
-		connector.receiveFile(nameSolFile, connSettings.getRemoteWorkDir() + "/results/risultato.heuristic.sol");
-		String fileToString = FileUtils.readFileToString(file);
 
-		String centralized = "centralized_obj = ";
-		int startPos = fileToString.indexOf(centralized);
-		int endPos = fileToString.indexOf('\n', startPos);
-		objFunctionValue = Float.parseFloat(fileToString.substring(startPos + centralized.length(), endPos));
-
-		System.out.println(fileToString);
-		System.out.println(objFunctionValue);
+		logger.info("Solution file has been created");
+		connector.receiveFile(fullLocalPath, fullRemotePath );
+		
+		objFunctionValue = this.analyzeSolution(fullLocalPath);
+				
 		logger.info("The value of the objective function is: " + objFunctionValue);
+		
+		logger.info("Cleaning result directory");
+		clearResultDir();
 		return objFunctionValue;
 	}
 
-	public String generateRunFile() {
 
-		String data = "../scratch/data.dat";
-		String result = "../results/risultato";
-		String solverPath = connSettings.getSolverPath();
 
-		StringBuilder builder = new StringBuilder();
-		builder.append("reset;\n");
+	private float analyzeSolution(String solFilePath) throws IOException {
+		File file = new File(solFilePath);
+		if (!file.exists())
+			file.createNewFile();
+		String fileToString = FileUtils.readFileToString(file);
+		String centralized = "centralized_obj = ";
+		int startPos = fileToString.indexOf(centralized);
+		int endPos = fileToString.indexOf('\n', startPos);
+		float objFunctionValue = Float.parseFloat(fileToString.substring(startPos + centralized.length(), endPos));
 
-		builder.append("option solver \"" + solverPath + "\";\n");
-
-		builder.append("model ../problems/models1.mod;\n");
-		builder.append("data " + data + ";\n");
-
-		builder.append("option randseed 1;\n");
-		builder.append("include ../utils/compute_psi.run;\n");
-		builder.append("include ../utils/compute_job_profile.run;\n");
-		builder.append("include ../utils/compute_penalties.run;\n");
-
-		builder.append("include ../utils/save_aux.run;\n");
-		builder.append("let outfile := \"" + result + "\";\n");
-
-		builder.append("include ../problems/centralized.run;\n");
-
-		builder.append("solve centralized_prob;\n");
-		builder.append("include ../utils/params_for_heuristic.run;\n");
-		builder.append("include ../utils/save_centralized.run;\n");
-		builder.append("include ../utils/calculedsd.run;\n");
-
-		builder.append("include ../solve/AM_closed_form.run;\n");
-
-		builder.append("include ../utils/simulated_time.run;\n");
-		builder.append("include ../utils/save_centralized.run;\n");
-
-		builder.append("if (solve_result_num < 200) then\n");
-		builder.append("{\n");
-
-		builder.append("include ../utils/make_integer.run;\n");
-
-		builder.append("let outfile := (outfile & \".heuristic\");\n");
-		builder.append("include ../utils/save_centralized.run;\n");
-		builder.append("}\n");
-
-		String name = "dat.run";
-		File file = new File(name);
-
-		// generating the file
-		try (PrintWriter out = new PrintWriter(file)) {
-			out.println(builder.toString());
-			out.flush();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return name;
+		System.out.println(fileToString);
+		System.out.println(objFunctionValue);
+		return objFunctionValue;
+		
 	}
 
 	public void initRemoteEnvironment() throws Exception {
 		List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
+		//TODO solve this. 
 		String localPath = "src/main/resources/static/initFiles/MINLPSolver";
 		System.out.println("------------------------------------------------");
 		System.out.println("Starting math solver service initializatio phase");
 		System.out.println("------------------------------------------------");
-		if (lstProfiles.contains("test") || !connSettings.isForceClean()) {
+		if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
 			System.out.println("Test phase: the remote work directory tree is assumed to be ok.");
 
 		} else {
@@ -188,6 +162,9 @@ public class MINLPSolver {
 			System.out.print("[##############       ]- Sending work files\r");
 			connector.sendFile(localPath + "/utils/save_centralized.run",
 					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
+			System.out.print("[###############      ]- Sending work files\r");
+			connector.sendFile(localPath + "/utils/order_AM.run",
+					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.println("Done");
 		}
 	}
@@ -199,6 +176,12 @@ public class MINLPSolver {
 	public List<String> clear() throws Exception {
 		return connector.clear();
 	}
+	
+	private void clearResultDir() throws Exception{
+		String command = "rm -rf "+connSettings.getRemoteWorkDir()+REMOTE_RESULTS+ "/*";
+		connector.exec(command);
+	}
+	
 
 	@Profile("test")
 	public SshConnector getConnector() {

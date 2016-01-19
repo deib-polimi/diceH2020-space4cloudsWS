@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.solr.core.query.result.StatsResult;
 import org.springframework.stereotype.Service;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
@@ -106,7 +105,7 @@ public class InitialSolutionBuilder {
 
 		// Phase 2
 
-		FileMaster.createFullModelFile(startingSol.getIdxVmTypeSelected(), dataService.getData(), "data.dat", sigmaBar,
+		FileUtiliy.createFullModelFile(startingSol.getIdxVmTypeSelected(), dataService.getData(), "data.dat", sigmaBar,
 				deltaBar, rhoBar, lstNumCores);
 		minlpSolver.run("data.dat", "result1.sol");
 		updateWithFinalValues(startingSol, "result1.sol");
@@ -123,7 +122,7 @@ public class InitialSolutionBuilder {
 		sigmaBar = dataService.getLstSigmaBar();
 		deltaBar = dataService.getLstDeltaBar();
 		rhoBar = dataService.getLstRhoBar();
-		FileMaster.contructFile(dataService.getData(), matrixNamesDatFiles, sigmaBar, deltaBar, rhoBar,
+		FileUtiliy.contructFile(dataService.getData(), matrixNamesDatFiles, sigmaBar, deltaBar, rhoBar,
 				dataService.getMatrixJobCores());
 	}
 
