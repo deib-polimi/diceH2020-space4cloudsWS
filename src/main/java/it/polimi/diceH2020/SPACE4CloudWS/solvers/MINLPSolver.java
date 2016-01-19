@@ -170,7 +170,7 @@ public class MINLPSolver {
 			sendFile(localPath + "/save_centralized.run",
 					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.print("[###############]- Sending work files\r");
-			sendFile(localPath + "/order_AMs.run", connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
+			sendFile(localPath + "/order_AMs.run", connSettings.getRemoteWorkDir() + "/utils/order_AMs.run");
 			logger.info("Done");
 		}
 	}
