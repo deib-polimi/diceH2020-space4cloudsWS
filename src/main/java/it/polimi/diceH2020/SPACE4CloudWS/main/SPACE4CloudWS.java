@@ -13,12 +13,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication
 @EnableAsync
 public class SPACE4CloudWS {
-
 	
 	public static void main(String[] args) {
 
 		SpringApplication.run(SPACE4CloudWS.class, args);
-
+		
 	}
 
 }

@@ -1,8 +1,12 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 
+import org.apache.catalina.core.ApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
@@ -30,18 +34,21 @@ public class Initializator {
 	private StateMachine<States, Events> stateHandler;
 	
 	@PostConstruct
-	private void init(){
+	private void init() throws Exception{
 		stateHandler.start();	
-		try {
-			
+//		try {
+//			
 			FileUtiliy.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
 			SPNSolver.initRemoteEnvironment();
 			
 			stateHandler.sendEvent(Events.MIGRATE);
-		} catch (Exception e) {
-			stateHandler.sendEvent(Events.STOP);
-		}
+			System.out.println(stateHandler.getState());
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			stateHandler.sendEvent(Events.STOP);
+//			System.out.println(stateHandler.getState());
+//		}
 	}
 
 	
