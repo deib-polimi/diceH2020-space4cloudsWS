@@ -134,8 +134,8 @@ public class Test1 {
 		String provider = "Amazon";
 		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
 		double[] think = { 15, 5 }; // check
-		int[][] cM = { { 16, 16 }, { 32, 32 } };
-		int[][] cR = { { 16, 16 }, { 16, 32 } };
+		int[][] cM = { { 8, 8 }, { 8, 8 } };
+		int[][] cR = { { 8, 8 }, { 8, 8 } };
 		double[] eta = { 0.1, 0.3 };
 		int[] hUp = { 10, 10 };
 		int[] hLow = { 5, 5 };
@@ -145,11 +145,11 @@ public class Test1 {
 		double[] rmax = {  4.797, 0.499  };
 		double[] mavg = { 17.196,  8.235 };
 		double[] ravg = { 0.605, 0.297 };
-		double[] d = { 240, 60 };
+		double[] d = { 300, 240 };
 		double[] sH1max = { 0, 0 };
 		double[] sHtypmax = { 18.058, 20.141 };
 		double[] sHtypavg = { 2.024, 14.721 };
-		double[] job_penalty = { 19028.2, 29562.9 };
+		double[] job_penalty = { 25.0, 14.99 };
 		double[] r = { 200, 200 };
 		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR,
 				eta, hUp, hLow, nM, nR, mmax, rmax, mavg, ravg,
