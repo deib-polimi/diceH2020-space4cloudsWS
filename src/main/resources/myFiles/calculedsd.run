@@ -1,13 +1,12 @@
 # vim: set filetype=ampl : #
 
 #################################################
-### Utility to calculed s and d               ###
+### Utility to compute s and d                ###
 ### liliane tueguem 12/06/2015                ###
 #################################################
 
 for {i in AM}
   {
-    
-    let s[i]:=N[i]*y[i];
-    let d[i] := (1-N[i])*y[i] - r[i];
+    let s[i] := eta[i] * gamma[i];
+    let d[i] := (1 - eta[i]) * gamma[i] - r[i];
   }

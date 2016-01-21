@@ -27,8 +27,8 @@
         }
       }
     },
-    "gamma": {
-      "id": "gamma",
+    "Gamma": {
+      "id": "Gamma",
       "type": "integer"
     },
     "id_job": {
@@ -77,8 +77,8 @@
             }
           }
         },
-        "core": {
-          "id": "core",
+        "w": {
+          "id": "w",
           "type": "integer"
         },
         "deltabar": {
@@ -107,16 +107,16 @@
       "id": "numberTypeVM",
       "type": "integer"
     },
-    "n": {
-      "id": "n",
+    "eta": {
+      "id": "eta",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "r": {
-      "id": "r",
+    "R": {
+      "id": "R",
       "type": "array",
       "items": {
         "id": "1",
@@ -127,96 +127,96 @@
       "id": "numberJobs",
       "type": "integer"
     },
-    "mavg": {
-      "id": "mavg",
+    "Mavg": {
+      "id": "Mavg",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "ravg": {
-      "id": "ravg",
+    "Ravg": {
+      "id": "Ravg",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "shtypavg": {
-      "id": "shtypavg",
+    "SHtypavg": {
+      "id": "SHtypavg",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "nm": {
-      "id": "nm",
+    "NM": {
+      "id": "NM",
       "type": "array",
       "items": {
         "id": "1",
         "type": "integer"
       }
     },
-    "nr": {
-      "id": "nr",
+    "NR": {
+      "id": "NR",
       "type": "array",
       "items": {
         "id": "1",
         "type": "integer"
       }
     },
-    "d": {
-      "id": "d",
+    "D": {
+      "id": "D",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "hup": {
-      "id": "hup",
+    "HUp": {
+      "id": "HUp",
       "type": "array",
       "items": {
         "id": "1",
         "type": "integer"
       }
     },
-    "hlow": {
-      "id": "hlow",
+    "HLow": {
+      "id": "HLow",
       "type": "array",
       "items": {
         "id": "1",
         "type": "integer"
       }
     },
-    "mmax": {
-      "id": "mmax",
+    "Mmax": {
+      "id": "Mmax",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "rmax": {
-      "id": "rmax",
+    "Rmax": {
+      "id": "Rmax",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "sh1max": {
-      "id": "sh1max",
+    "SH1max": {
+      "id": "SH1max",
       "type": "array",
       "items": {
         "id": "1",
         "type": "number"
       }
     },
-    "shtypmax": {
-      "id": "shtypmax",
+    "SHtypmax": {
+      "id": "SHtypmax",
       "type": "array",
       "items": {
         "id": "1",

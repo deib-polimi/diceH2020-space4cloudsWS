@@ -7,7 +7,7 @@
 
 for {i in AM}
   {
-    let sM[i] := xiM[i] * y[i];
-    let sR[i] := xiR[i] * y[i];
-    let psi[i] := K[i] / y[i];
+    let sM[i] := xiM[i] * gamma[i];
+    let sR[i] := xiR[i] * gamma[i];
+    let psi[i] := K[i] / gamma[i];
   }

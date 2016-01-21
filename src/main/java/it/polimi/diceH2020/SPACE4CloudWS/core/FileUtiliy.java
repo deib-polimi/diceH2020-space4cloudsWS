@@ -62,7 +62,7 @@ public class FileUtiliy {
 			for (int j = 0; j < vmNumber; j++) {
 
 				builder.append("param nAM:= 1;\n");
-				builder.append("param gamma:=" + appli.getGamma() + ";\n");
+				builder.append("param Gamma:=" + appli.getGamma() + ";\n");
 				builder.append("param HUp := \n" + 1 + " " + vettHUp[i] + ";\n");
 				builder.append("param HLow := \n" + 1 + " " + b[i] + ";\n");
 				builder.append("param cM :=\n" + 1 + " " + kc[i][j] + ";\n");
@@ -72,12 +72,12 @@ public class FileUtiliy {
 				builder.append("param NR :=\n" + 1 + " " + e[i] + ";\n");
 				builder.append("param Mmax :=\n" + 1 + " " + g[j] + ";\n");
 				builder.append("param Rmax :=\n" + 1 + " " + k[j] + ";\n");
-				builder.append("param core :=\n" + 1 + " " + matrixCorePerJob.get(i).get(j) + ";\n");
+				builder.append("param w :=\n" + 1 + " " + matrixCorePerJob.get(i).get(j) + ";\n");
 				builder.append("param D :=\n" + 1 + " " + f[i] + ";\n");
 				builder.append("param SH1max :=\n" + 1 + " " + ka[j] + ";\n");
 				builder.append("param SHtypmax :=\n" + 1 + " " + kd[j] + ";\n");
 				builder.append("param R :=\n" + 1 + " " + r[j] + ";\n");
-				builder.append("param N :=\n" + 1 + " " + n[i] + ";\n");
+				builder.append("param eta :=\n" + 1 + " " + n[i] + ";\n");
 				builder.append("param Mavg :=\n" + 1 + " " + h2[j] + ";\n");
 				builder.append("param sigmabar :=\n" + 1 + " " + sigmaBar.get(j) + ";\n");
 				builder.append("param deltabar :=\n" + 1 + " " + deltaBar.get(j) + ";\n");
@@ -109,7 +109,7 @@ public class FileUtiliy {
 
 		builder.append("param nAM:=" + numJob + ";\n");
 
-		builder.append("param gamma:=" + data.getGamma() + ";\n");
+		builder.append("param Gamma:=" + data.getGamma() + ";\n");
 		builder.append("param: HUp := \n");
 		for (int i = 0; i < numJob; i++)
 			builder.append(+i + 1 + " " + data.getHUp(i) + "\n");
@@ -154,7 +154,7 @@ public class FileUtiliy {
 			builder.append(+i + 1 + " " + data.getRmax(lstIndexBest.get(i)) + "\n");
 
 		builder.append(";\n");
-		builder.append("param: core := \n");
+		builder.append("param: w := \n");
 		for (int i = 0; i < numJob; i++)
 			builder.append(+i + 1 + " " + singleCore.get(i) + "\n");
 		builder.append(";\n");
@@ -177,7 +177,7 @@ public class FileUtiliy {
 			builder.append(+i + 1 + " " + data.getR(lstIndexBest.get(i)) + "\n");
 
 		builder.append(";\n");
-		builder.append("param: N :=\n");
+		builder.append("param: eta :=\n");
 		for (int i = 0; i < numJob; i++)
 			builder.append(+i + 1 + " " + data.getN(i) + "\n");
 		builder.append(";\n");

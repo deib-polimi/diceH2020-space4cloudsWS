@@ -51,33 +51,30 @@ public class Configurator {
 	@Bean
 	@Profile("test")
 	public InstanceData applDataTest() {
-		int gamma = 1;
+		int Gamma = 1;
 		List<String> typeVm = Arrays.asList( "T1", "T2" );
 		String provider = "Amazon";
 		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
 		double[] think = { 0.5, 0.10 }; // check
 		int[][] cM = { { 3, 4 }, { 1, 2 } };
 		int[][] cR = { { 1, 2 }, { 3, 4 } };
-		double[] n = { 0.1, 0.5 };
-		int[] hUp = { 10, 10 };
-		int[] hLow = { 5, 5 };
-		int[] nM = { 2, 2 };
-		int[] nR = { 1, 1 };
-		double[] mmax = { 1.5, 2.1 };
-		double[] rmax = { 1.2, 3.2 };
-		double[] mavg = { 3.1, 0.1 };
-		double[] ravg = { 2.1, 0.2 };
-		double[] d = { 0.8, 1.2 };
-		double[] sH1max = { 1.1, 0.9 };
-		double[] sHtypmax = { 0.5, 2.1 };
-		double[] sHtypavg = { 0.7, 0.6 };
+		double[] eta = { 0.1, 0.5 };
+		int[] HUp = { 10, 10 };
+		int[] HLow = { 5, 5 };
+		int[] NM = { 2, 2 };
+		int[] NR = { 1, 1 };
+		double[] Mmax = { 1.5, 2.1 };
+		double[] Rmax = { 1.2, 3.2 };
+		double[] Mavg = { 3.1, 0.1 };
+		double[] Ravg = { 2.1, 0.2 };
+		double[] D = { 0.8, 1.2 };
+		double[] SH1max = { 1.1, 0.9 };
+		double[] SHtypmax = { 0.5, 2.1 };
+		double[] SHtypavg = { 0.7, 0.6 };
 		double[] job_penalty = { 0.2, 2.1 };
-		double[] r = { 2.2, 1.1 };
-		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR, n, hUp, hLow, nM, nR, mmax, rmax, mavg,
-				ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
+		double[] R = { 2.2, 1.1 };
+		return new InstanceData(Gamma, typeVm, provider, id_job, think, cM, cR, eta, HUp, HLow, NM, NR, Mmax, Rmax, Mavg,
+				Ravg, D, SH1max, SHtypmax, SHtypavg, job_penalty, R);
 	}
 
-	
-	
-	
 }

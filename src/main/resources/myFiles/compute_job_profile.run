@@ -16,6 +16,6 @@ for {i in AM}
     let xiR[i] := cR[i] / (1 + sqrt (A[i] * cR[i]) / sqrt (B[i] * cM[i]));
     let K[i] := - (sqrt (A[i] / cM[i]) + sqrt (B[i] / cR[i])) ^ 2 / E[i];
 
-    let yUp[i] := K[i] * HUp[i];
-    let yLow[i] := K[i] * HLow[i];
+    let gammaUp[i] := K[i] * HUp[i];
+    let gammaLow[i] := K[i] * HLow[i];
   }

@@ -1,11 +1,4 @@
 for {i in AM}
   {
-    
-
-
-        let t[i]:= (A[i]/(psi[i]*sM[i]))+(B[i]/(psi[i]*sR[i]))+ C[i];
-
-
+    let t[i]:= A[i] / (psi[i] * sM[i]) + B[i] / (psi[i] * sR[i]) + C[i];
   }
-
-
