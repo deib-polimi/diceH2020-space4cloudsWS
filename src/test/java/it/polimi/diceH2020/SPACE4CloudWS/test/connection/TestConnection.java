@@ -27,22 +27,20 @@ public class TestConnection {
 	    @Test
 	    public void testApplDataFormat() throws Exception {
 
-				List<String> res = milpSolver.clear();
+				List<String> res = milpSolver.clearWorkingDir();
 				Assert.assertTrue(res.contains("exit-status: 0"));
 				res.clear();
 				res = milpSolver.getConnector().exec("ls");
 				Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
-				res = milpSolver.getConnector().exec("mkdir AMPL");
+				String wd = milpSolver.getRemoteWorkingDirectory();
+				res = milpSolver.getConnector().exec("mkdir " + wd);
 				Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
-				res = milpSolver.getConnector().exec("cd AMPL");
+				res = milpSolver.getConnector().exec("cd " + wd);
 				Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
 				System.out.println(milpSolver.pwd());
-				res = milpSolver.getConnector().exec("cd AMPL && mkdir problems utils solve");
+				res = milpSolver.getConnector().exec("cd " + wd + " && mkdir problems utils solve");
 				Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
 				System.out.println(ClassPath.getClassPath());
-			//	milpSolver.getConnector().sendFile("src/main/resources/static/initFiles/MILPSolver/problems/centralized.run", "/home/tueguem/AMPL/centralized.run");
-				
-
 	    }
 	    
 	    @Test
@@ -53,10 +51,6 @@ public class TestConnection {
 				Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
 				res = spnSolver.getConnector().exec("mkdir ./Experiments");
 				Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
-				
-	    	
-	    	
-	    	
 	    }
 	    
 }

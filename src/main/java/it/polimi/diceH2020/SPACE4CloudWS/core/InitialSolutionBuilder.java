@@ -107,8 +107,10 @@ public class InitialSolutionBuilder {
 
 		FileUtiliy.createFullModelFile(startingSol.getIdxVmTypeSelected(), dataService.getData(), "data.dat", sigmaBar,
 				deltaBar, rhoBar, lstNumCores);
-		minlpSolver.run("data.dat", "result1.sol");
-		updateWithFinalValues(startingSol, "result1.sol");
+		String resultsFileName = "result1.sol";
+		minlpSolver.run("data.dat", resultsFileName);
+		String resultsPath = FileUtiliy.LOCAL_DYNAMIC_FOLDER + File.separator + resultsFileName;
+		updateWithFinalValues(startingSol, resultsPath);
 
 		return startingSol;
 

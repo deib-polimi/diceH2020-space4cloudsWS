@@ -138,9 +138,9 @@ public class SPNSolver {
 		} else {
 			logger.info("Clearing remote work directory tree");
 
-			connector.exec("rm -rf "+connSettings.getRemoteWorkDir());
+			connector.exec("rm -rf " + connSettings.getRemoteWorkDir());
 			logger.info("Creating new remote work directory tree");
-			connector.exec("mkdir "+connSettings.getRemoteWorkDir());
+			connector.exec("mkdir -p " + connSettings.getRemoteWorkDir());
 
 			logger.info("Done");
 		}
