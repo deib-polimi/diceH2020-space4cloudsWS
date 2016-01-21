@@ -91,10 +91,4 @@ public class ExecSSH {
 		return this.mainExec("pwd");
 	}
 
-	public List<String> removeAllFiles() throws Exception {
-		return this.mainExec("rm -rf ./*");
-	}
-
-
-
 }

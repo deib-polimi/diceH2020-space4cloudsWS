@@ -121,14 +121,17 @@ public class MINLPSolver {
 		logger.info("------------------------------------------------");
 		if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
 			logger.info("Test phase: the remote work directory tree is assumed to be ok.");
-
 		} else {
 			logger.info("Clearing remote work directory tree");
 			try {
-				connector.clear();
+				String root = connSettings.getRemoteWorkDir();
+				String cleanRemoteDirectoryTree = "rm -rf " + root;
+				connector.exec(cleanRemoteDirectoryTree);
 
 				logger.info("Creating new remote work directory tree");
-				connector.exec("mkdir AMPL && cd AMPL && mkdir problems utils solve scratch results");
+				String makeRemoteDirectoryTree =
+						"mkdir -p " + root + "/{problems,utils,solve,scratch,results}";
+				connector.exec (makeRemoteDirectoryTree);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -191,8 +194,13 @@ public class MINLPSolver {
 		return connector.pwd();
 	}
 
-	public List<String> clear() throws Exception {
-		return connector.clear();
+	public String getRemoteWorkingDirectory() {
+		return connSettings.getRemoteWorkDir();
+	}
+
+	public List<String> clearWorkingDir() throws Exception {
+		String command = "rm -rf " + connSettings.getRemoteWorkDir();
+		return connector.exec(command);
 	}
 
 	private void clearResultDir() throws Exception {

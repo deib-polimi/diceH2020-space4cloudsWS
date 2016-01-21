@@ -46,9 +46,4 @@ public class SshConnector {
 		return newExecSSH.getPWD();
 	}
 
-	public List<String> clear() throws Exception {
-		return newExecSSH.removeAllFiles();
-	}
-
-
 }
