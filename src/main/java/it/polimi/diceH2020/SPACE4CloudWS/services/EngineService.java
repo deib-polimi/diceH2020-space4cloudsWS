@@ -46,16 +46,20 @@ public class EngineService {
 
 	@Async("workExecutor")
 	@OnTransition(target = "RUNNING")
-	public void optimizationPublicCloud() throws Exception {
-		Solution sol = solBuilder.getInitialSolution();
+	public void optimizationPublicCloud() {
+		try {
+			Solution sol = solBuilder.getInitialSolution();
 
-		optimizer.init(sol);
-		optimizer.parallelLocalSearch();
+			optimizer.init(sol);
+			optimizer.parallelLocalSearch();
 
-		if (dataService.getNumberJobs() > 1)
-			optimizer.sharedCluster();
+			if (dataService.getNumberJobs() > 1)
+				optimizer.sharedCluster();
 
-		stateHandler.sendEvent(Events.MIGRATE);
+			stateHandler.sendEvent(Events.MIGRATE);
+		} catch (Exception e) {
+			stateHandler.sendEvent(Events.STOP);
+		}
 		logger.info(stateHandler.getState().getId());
 	}
 
