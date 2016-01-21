@@ -2,3 +2,6 @@
 /target/
 .idea/
 SPACE4CloudWS.iml
+TempWorkingDir/
+log.txt
+*.sta
