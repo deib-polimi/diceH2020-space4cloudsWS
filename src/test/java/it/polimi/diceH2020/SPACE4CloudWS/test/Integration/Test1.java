@@ -45,9 +45,7 @@ public class Test1 {
                 get("/appldata").
         then().
                 statusCode(HttpStatus.SC_OK).
-                body(matchesJsonSchemaInClasspath("static/applData.json"));
-       
-        
+                body(matchesJsonSchemaInClasspath("myFiles/applData.json"));
     }
 
     @Test
@@ -68,7 +66,7 @@ public class Test1 {
 		double[] rmax = {  4.797, 0.499  };
 		double[] mavg = { 17.196,  8.235 };
 		double[] ravg = { 0.605, 0.297 };
-		double[] d = { 15000, 10000 };
+		double[] d = { 900, 600 };
 		double[] sH1max = { 0, 0 };
 		double[] sHtypmax = { 18.058, 20.141 };
 		double[] sHtypavg = { 2.024, 14.721 };
@@ -90,9 +88,7 @@ public class Test1 {
     	       body(data).
     	when().
     	      post("/inputdata").then().statusCode(HttpStatus.SC_OK);
-    	
-    	
-    	
+
 	   	 RestAssured.	
 	     when().
 	             get("/state").
@@ -109,8 +105,6 @@ public class Test1 {
          then().
                  statusCode(HttpStatus.SC_OK)
                  .assertThat().body(Matchers.is("RUNNING"));
-	    
    }
 
 }
-
