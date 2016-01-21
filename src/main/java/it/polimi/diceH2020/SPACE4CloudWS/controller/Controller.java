@@ -31,7 +31,6 @@ public class Controller {
 
 		stateHandler.sendEvent(event); // if the state is running
 		engineService.optimizationPublicCloud();								// engine.greedy() is called
-		Thread.sleep(10000000);
 		return getWSstate();
 	}
 

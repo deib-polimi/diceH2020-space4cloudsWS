@@ -50,30 +50,7 @@ public class Test1 {
 
     @Test
     public void testPutInputData() {
-		int gamma = 2400; // num cores cluster
-		List<String> typeVm = Arrays.asList( "T1", "T2" );
-		String provider = "Amazon";
-		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
-		double[] think = { 0.5, 0.10 }; // check
-		int[][] cM = { { 16, 16 }, { 32, 32 } };
-		int[][] cR = { { 16, 16 }, { 16, 32 } };
-		double[] eta = { 0.1, 0.3 };
-		int[] hUp = { 10, 10 };
-		int[] hLow = { 5, 5 };
-		int[] nM = { 495, 65 };
-		int[] nR = { 575, 5 };
-		double[] mmax = { 36.016, 17.541 }; // maximum time to execute a single map
-		double[] rmax = {  4.797, 0.499  };
-		double[] mavg = { 17.196,  8.235 };
-		double[] ravg = { 0.605, 0.297 };
-		double[] d = { 900, 600 };
-		double[] sH1max = { 0, 0 };
-		double[] sHtypmax = { 18.058, 20.141 };
-		double[] sHtypavg = { 2.024, 14.721 };
-		double[] job_penalty = { 19028.2, 29562.9 };
-		double[] r = { 200, 200 };
-		InstanceData data = new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR, eta, hUp, hLow, nM, nR, mmax, rmax, mavg,
-				ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
+		InstanceData data = createTestInstanceData();
     	
 	   	 RestAssured.	
 	     when().
@@ -106,5 +83,77 @@ public class Test1 {
                  statusCode(HttpStatus.SC_OK)
                  .assertThat().body(Matchers.is("RUNNING"));
    }
+
+	@Test
+	public void testOptimizationAlgorithm() {
+		if (RestAssured.get("/state").getBody().asString().equals("IDLE")) {
+			InstanceData data = createTestInstanceData();
+
+			RestAssured.
+					given().
+					contentType("application/json; charset=UTF-16").
+					body(data).
+					when().
+					post("/inputdata").then().statusCode(HttpStatus.SC_OK);
+
+			RestAssured.
+					when().
+					get("/state").
+					then().
+					statusCode(HttpStatus.SC_OK).
+					assertThat().body(Matchers.is("CHARGED"));
+		}
+
+		if (! RestAssured.get("/state").getBody().asString().equals("RUNNING")) {
+			RestAssured.
+					given().
+					contentType("application/json; charset=UTF-16").
+					body(Events.MIGRATE, ObjectMapperType.JACKSON_2).
+					when().
+					post("/sendevent").
+					then().
+					statusCode(HttpStatus.SC_OK);
+		}
+
+		String body = "RUNNING";
+		while (body.equals("RUNNING")) {
+			body = RestAssured.get("/state").getBody().asString();
+		}
+
+		RestAssured.
+				when().
+				get("/state").
+				then().
+				statusCode(HttpStatus.SC_OK).
+				assertThat().body(Matchers.is("FINISH"));
+	}
+
+	private InstanceData createTestInstanceData() {
+		int gamma = 2400; // num cores cluster
+		List<String> typeVm = Arrays.asList( "T1", "T2" );
+		String provider = "Amazon";
+		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
+		double[] think = { 15, 5 }; // check
+		int[][] cM = { { 16, 16 }, { 32, 32 } };
+		int[][] cR = { { 16, 16 }, { 16, 32 } };
+		double[] eta = { 0.1, 0.3 };
+		int[] hUp = { 10, 10 };
+		int[] hLow = { 5, 5 };
+		int[] nM = { 495, 65 };
+		int[] nR = { 575, 5 };
+		double[] mmax = { 36.016, 17.541 }; // maximum time to execute a single map
+		double[] rmax = {  4.797, 0.499  };
+		double[] mavg = { 17.196,  8.235 };
+		double[] ravg = { 0.605, 0.297 };
+		double[] d = { 240, 60 };
+		double[] sH1max = { 0, 0 };
+		double[] sHtypmax = { 18.058, 20.141 };
+		double[] sHtypavg = { 2.024, 14.721 };
+		double[] job_penalty = { 19028.2, 29562.9 };
+		double[] r = { 200, 200 };
+		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR,
+				eta, hUp, hLow, nM, nR, mmax, rmax, mavg, ravg,
+				d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
+	}
 
 }
