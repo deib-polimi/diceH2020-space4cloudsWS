@@ -39,7 +39,7 @@ public class Evaluator {
 	}
 
 	private void calculateNumVMsPerType(SolutionPerJob solPerJob) {
-		double N = dataService.getData().getN(solPerJob.getPos());
+		double N = dataService.getData().getEta(solPerJob.getPos());
 		double R = dataService.getData().getR(solPerJob.getPos());
 		int nContainers = solPerJob.getNumberContainers();
 		double ratio = nContainers / solPerJob.getNumCores(); // TODO

@@ -54,7 +54,7 @@ public class FileUtiliy {
 		int[][] kc = appli.getcM();
 		int[][] ke = appli.getcR();
 		double[] r = appli.getR();
-		double[] n = appli.getN();
+		double[] n = appli.getEta();
 		int jobNumber = appli.getNumberJobs();
 		int vmNumber = appli.getNumberTypeVM();
 		StringBuilder builder = new StringBuilder();
@@ -179,7 +179,7 @@ public class FileUtiliy {
 		builder.append(";\n");
 		builder.append("param: eta :=\n");
 		for (int i = 0; i < numJob; i++)
-			builder.append(+i + 1 + " " + data.getN(i) + "\n");
+			builder.append(+i + 1 + " " + data.getEta(i) + "\n");
 		builder.append(";\n");
 		builder.append("param: Mavg :=\n");
 		for (int i = 0; i < numJob; i++)
