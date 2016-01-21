@@ -29,8 +29,8 @@ public class Controller {
 	@RequestMapping(method = RequestMethod.POST, value = "/sendevent")
 	public @ResponseBody String changestate(@RequestBody Events event) throws Exception {
 
-		stateHandler.sendEvent(event); // if the state is running
-		engineService.optimizationPublicCloud();								// engine.greedy() is called
+		stateHandler.sendEvent(event);
+		// if the state transitions to RUNNING Spring will call EngineService.optimizationPublicCloud
 		return getWSstate();
 	}
 
@@ -61,7 +61,6 @@ public class Controller {
 		return null;
 	}
 
-
 	@RequestMapping(value = "/state", method = RequestMethod.GET)
 	public @ResponseBody String getState() {
 		return getWSstate();
@@ -70,7 +69,5 @@ public class Controller {
 	private String getWSstate(){
 		return stateHandler.getState().getId().toString();
 	}
-	
-	
-	
+
 }
