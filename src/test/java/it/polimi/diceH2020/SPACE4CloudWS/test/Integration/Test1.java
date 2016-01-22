@@ -130,8 +130,9 @@ public class Test1 {
 		double[] sHtypavg = { 2.024, 14.721 };
 		double[] job_penalty = { 25.0, 14.99 };
 		int[] r = { 200, 200 };
-		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR, eta, hUp, hLow, nM, nR, mmax, rmax,
-				mavg, ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
+		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR,
+				eta, hUp, hLow, nM, nR, mmax, rmax, mavg, ravg,
+				d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
 	}
 
 	@BeforeTransaction
