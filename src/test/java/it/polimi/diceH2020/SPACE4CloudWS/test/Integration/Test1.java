@@ -40,6 +40,8 @@ public class Test1 {
 
     @Test
     public void testApplDataFormat() {
+		possiblyRecover();
+
         RestAssured.	
         when().
                 get("/appldata").
@@ -50,6 +52,8 @@ public class Test1 {
 
     @Test
     public void testPutInputData() {
+		possiblyRecover();
+
 		InstanceData data = createTestInstanceData();
     	
 	   	 RestAssured.	
@@ -86,6 +90,8 @@ public class Test1 {
 
 	@Test
 	public void testOptimizationAlgorithm() {
+		possiblyRecover();
+
 		if (RestAssured.get("/state").getBody().asString().equals("IDLE")) {
 			InstanceData data = createTestInstanceData();
 
@@ -159,6 +165,25 @@ public class Test1 {
 		return new InstanceData(gamma, typeVm, provider, id_job, think, cM, cR,
 				eta, hUp, hLow, nM, nR, mmax, rmax, mavg, ravg,
 				d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
+	}
+
+	private void possiblyRecover() {
+		while (! RestAssured.get("/state").getBody().asString().equals("IDLE")) {
+			RestAssured.
+					given().
+					contentType("application/json; charset=UTF-16").
+					body(Events.MIGRATE, ObjectMapperType.JACKSON_2).
+					when().
+					post("/sendevent").
+					then().
+					statusCode(HttpStatus.SC_OK);
+		}
+		RestAssured.
+				when().
+				get("/state").
+				then().
+				statusCode(HttpStatus.SC_OK).
+				assertThat().body(Matchers.is("IDLE"));
 	}
 
 }
