@@ -33,6 +33,7 @@ public class Test2 {
     public void setUp() {
         RestAssured.port = port;
     }
+
     @Test
     public void testPutJob() {
         Job jb = new Job();
@@ -42,7 +43,7 @@ public class Test2 {
     	       contentType("application/json; charset=UTF-16").
     	       body(jb, ObjectMapperType.JACKSON_2).
     	when().
-    	      post("/job").then().statusCode(HttpStatus.SC_OK).body("idjob", Matchers.is(10));
+    	      post("/job").then().statusCode(HttpStatus.SC_OK).body("idJob", Matchers.is(10));
     }
     
     @Test
