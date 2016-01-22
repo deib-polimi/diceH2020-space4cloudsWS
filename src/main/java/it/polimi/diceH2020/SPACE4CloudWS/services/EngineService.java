@@ -58,6 +58,7 @@ public class EngineService {
 
 			stateHandler.sendEvent(Events.MIGRATE);
 		} catch (Exception e) {
+			logger.error("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());
