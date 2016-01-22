@@ -1,10 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import static com.jayway.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
-
-import java.util.Arrays;
-import java.util.List;
-
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -15,19 +14,21 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import java.util.Arrays;
+import java.util.List;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import static com.jayway.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 @RunWith(SpringJUnit4ClassRunner.class)   // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class)   // 2
 @WebAppConfiguration   // 3
 @IntegrationTest("server.port:8080")   // 4
 @ActiveProfiles("test")
+@Transactional
 public class Test1 {
 
     @Value("${local.server.port}")   // 6
@@ -40,8 +41,6 @@ public class Test1 {
 
     @Test
     public void testApplDataFormat() {
-		possiblyRecover();
-
         RestAssured.	
         when().
                 get("/appldata").
@@ -52,8 +51,6 @@ public class Test1 {
 
     @Test
     public void testPutInputData() {
-		possiblyRecover();
-
 		InstanceData data = createTestInstanceData();
     	
 	   	 RestAssured.	
@@ -90,8 +87,6 @@ public class Test1 {
 
 	@Test
 	public void testOptimizationAlgorithm() {
-		possiblyRecover();
-
 		if (RestAssured.get("/state").getBody().asString().equals("IDLE")) {
 			InstanceData data = createTestInstanceData();
 
@@ -167,7 +162,8 @@ public class Test1 {
 				d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
 	}
 
-	private void possiblyRecover() {
+	@BeforeTransaction
+	public void possiblyRecover() {
 		while (! RestAssured.get("/state").getBody().asString().equals("IDLE")) {
 			RestAssured.
 					given().
@@ -178,12 +174,6 @@ public class Test1 {
 					then().
 					statusCode(HttpStatus.SC_OK);
 		}
-		RestAssured.
-				when().
-				get("/state").
-				then().
-				statusCode(HttpStatus.SC_OK).
-				assertThat().body(Matchers.is("IDLE"));
 	}
 
 }
