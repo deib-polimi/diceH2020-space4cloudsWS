@@ -7,7 +7,6 @@
 
 for {i in AM}
   {
-   
     let psiLow[i]:= 1 / HUp[i];
     let psiUp[i]:= 1 / HLow[i];
   }

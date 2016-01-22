@@ -15,7 +15,6 @@ display solve_result >> (solfile);
 printf "### Objective \n" >> (solfile);
 display centralized_obj >> (solfile);
 
-let energy_total := sum {i in AM} (r[i] * rhobar[i]) ;
 printf "energy_total = %g \n\n", energy_total >> (solfile);
 display t >> (solfile);
 

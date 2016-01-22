@@ -1,6 +1,2 @@
 param outfile symbolic default "default";
-param auxfile symbolic default "aux";
-var energy_total >=0 default Infinity;
-param datafile symbolic default "data.dat";
 param solfile symbolic default "solution.sol";
-param slsfile symbolic default "sls.dat";

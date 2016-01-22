@@ -1,0 +1,5 @@
+param t {i in AM} >=0 default 0;
+var energy_total >=0 default Infinity;
+
+let energy_total := sum {i in AM} (r[i] * rhobar[i] + d[i] * deltabar[i] + s[i] * sigmabar[i]) ;
+let {i in AM} t[i] := A[i] / (psi[i] * sM[i]) + B[i] / (psi[i] * sR[i]) + C[i];

@@ -26,7 +26,7 @@ public class MINLPSolver {
 
 	private static final String MY_FILES = "/myFiles";
 
-	private static final String RESULTS_RISULTATO_HEURISTIC_SOL = "/results/risultato.heuristic.sol";
+	private static final String RESULTS_SOLFILE = "/results/solution.sol";
 
 	private static final String REMOTE_SCRATCH = "/scratch";
 	private static final String REMOTE_RESULTS = "/results";
@@ -76,7 +76,7 @@ public class MINLPSolver {
 
 		fullLocalPath = FileUtiliy.createLocalSolFile(nameSolFile);
 
-		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_RISULTATO_HEURISTIC_SOL;
+		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 
 		logger.info("Solution file has been created");
 		connector.receiveFile(fullLocalPath, fullRemotePath);
@@ -137,44 +137,35 @@ public class MINLPSolver {
 				e.printStackTrace();
 			}
 
-			logger.info("- Sending work files");
-			System.out.print("[#              ]- Sending work files\r");
-			sendFile(localPath + "/models1.mod", connSettings.getRemoteWorkDir() + "/problems/models1.mod");
-			System.out.print("[##             ]- Sending work files\r");
+			logger.info("Sending AMPL files");
+			System.out.print("[#           ] Sending work files\r");
+			sendFile(localPath + "/model.mod", connSettings.getRemoteWorkDir() + "/problems/model.mod");
+			System.out.print("[##          ] Sending work files\r");
 			sendFile(localPath + "/compute_psi.run", connSettings.getRemoteWorkDir() + "/utils/compute_psi.run");
-			System.out.print("[###            ]- Sending work files\r");
+			System.out.print("[###         ] Sending work files\r");
 			sendFile(localPath + "/compute_job_profile.run",
 					connSettings.getRemoteWorkDir() + "/utils/compute_job_profile.run");
-			System.out.print("[####           ]- Sending work files\r");
+			System.out.print("[####        ] Sending work files\r");
 			sendFile(localPath + "/compute_penalties.run",
 					connSettings.getRemoteWorkDir() + "/utils/compute_penalties.run");
-			System.out.print("[#####          ]- Sending work files\r");
+			System.out.print("[#####       ] Sending work files\r");
 			sendFile(localPath + "/save_aux.run", connSettings.getRemoteWorkDir() + "/utils/save_aux.run");
-			System.out.print("[######         ]- Sending work files\r");
+			System.out.print("[######      ] Sending work files\r");
 			sendFile(localPath + "/centralized.run", connSettings.getRemoteWorkDir() + "/problems/centralized.run");
-			System.out.print("[#######        ]- Sending work files\r");
-			sendFile(localPath + "/params_for_heuristic.run",
-					connSettings.getRemoteWorkDir() + "/utils/params_for_heuristic.run");
-			System.out.print("[########       ]- Sending work files\r");
+			System.out.print("[#######     ] Sending work files\r");
 			sendFile(localPath + "/save_centralized.run",
 					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
-			System.out.print("[#########      ]- Sending work files\r");
-			sendFile(localPath + "/calculedsd.run", connSettings.getRemoteWorkDir() + "/utils/calculedsd.run");
-			System.out.print("[##########     ]- Sending work files\r");
+			System.out.print("[########    ] Sending work files\r");
+			sendFile(localPath + "/compute_s_d.run", connSettings.getRemoteWorkDir() + "/utils/compute_s_d.run");
+			System.out.print("[#########   ] Sending work files\r");
 			sendFile(localPath + "/AM_closed_form.run", connSettings.getRemoteWorkDir() + "/solve/AM_closed_form.run");
-			System.out.print("[###########    ]- Sending work files\r");
-			sendFile(localPath + "/simulated_time.run", connSettings.getRemoteWorkDir() + "/utils/simulated_time.run");
-			System.out.print("[############   ]- Sending work files\r");
+			System.out.print("[##########  ] Sending work files\r");
+			sendFile(localPath + "/post_processing.run", connSettings.getRemoteWorkDir() + "/utils/post_processing.run");
+			System.out.print("[########### ] Sending work files\r");
 			sendFile(localPath + "/save_centralized.run",
 					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
-			System.out.print("[#############  ]- Sending work files\r");
-			sendFile(localPath + "/make_integer.run", connSettings.getRemoteWorkDir() + "/utils/make_integer.run");
-			System.out.print("[############## ]- Sending work files\r");
-			sendFile(localPath + "/save_centralized.run",
-					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
-			System.out.print("[###############]- Sending work files\r");
-			sendFile(localPath + "/order_AMs.run", connSettings.getRemoteWorkDir() + "/utils/order_AMs.run");
-			logger.info("Done");
+			System.out.print("[############] Sending work files\r");
+			logger.info("AMPL files sent");
 		}
 	}
 

@@ -18,7 +18,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 
 public class FileUtiliy {
 
-	private static final String RESULTS_RISULTATO = "../results/risultato";
+	private static final String RESULTS_SOLUTION = "../results/solution";
 	private static final String SCRATCH_DATA_DAT = "../scratch/data.dat";
 	public static final String LOCAL_DYNAMIC_FOLDER = "TempWorkingDir";
 	private static Logger logger = Logger.getLogger(FileUtiliy.class.getName());
@@ -231,14 +231,14 @@ public class FileUtiliy {
 	public static String generateRunFile(String solverPath) {
 
 		String data = SCRATCH_DATA_DAT;
-		String result = RESULTS_RISULTATO;
+		String result = RESULTS_SOLUTION;
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("reset;\n");
 
 		builder.append("option solver \"" + solverPath + "\";\n");
 
-		builder.append("model ../problems/models1.mod;\n");
+		builder.append("model ../problems/model.mod;\n");
 		builder.append("data " + data + ";\n");
 
 		builder.append("option randseed 1;\n");
@@ -250,25 +250,13 @@ public class FileUtiliy {
 		builder.append("let outfile := \"" + result + "\";\n");
 
 		builder.append("include ../problems/centralized.run;\n");
-
 		builder.append("solve centralized_prob;\n");
-		builder.append("include ../utils/params_for_heuristic.run;\n");
-		builder.append("include ../utils/save_centralized.run;\n");
-		builder.append("include ../utils/calculedsd.run;\n");
 
+		builder.append("include ../utils/compute_s_d.run;\n");
 		builder.append("include ../solve/AM_closed_form.run;\n");
+		builder.append("include ../utils/post_processing.run;\n");
 
-		builder.append("include ../utils/simulated_time.run;\n");
 		builder.append("include ../utils/save_centralized.run;\n");
-
-		builder.append("if (solve_result_num < 200) then\n");
-		builder.append("{\n");
-
-		builder.append("include ../utils/make_integer.run;\n");
-
-		builder.append("let outfile := (outfile & \".heuristic\");\n");
-		builder.append("include ../utils/save_centralized.run;\n");
-		builder.append("}\n");
 
 		String filename = LOCAL_DYNAMIC_FOLDER +File.separator+ "dat.run";
 		File file = new File(filename);

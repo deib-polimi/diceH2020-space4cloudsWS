@@ -69,7 +69,6 @@ s.t. reserved_capacity {i in AM}: r[i] <= R[i];
 s.t. capacity: sum {i in AM} (w[i] * gamma[i]) <= Gamma;
 
 s.t. reserved_bound {i in AM}: r[i] <= (1 - eta[i]) * gamma[i];
-s.t. other {i in AM}: s[i] <= (eta[i] / (1 - eta[i])) * (r[i] + d[i]);
 
 ### Objectives
 minimize centralized_obj: sum {i in AM} (rhobar[i] * r[i] + deltabar[i] * ((1 - eta[i]) * gamma[i] - r[i]) + sigmabar[i] * eta[i] * gamma[i] + alpha[i] * K[i] / gamma[i] - beta[i]);
