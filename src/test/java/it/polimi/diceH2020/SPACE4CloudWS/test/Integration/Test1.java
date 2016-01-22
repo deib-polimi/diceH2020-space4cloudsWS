@@ -117,6 +117,11 @@ public class Test1 {
 
 		String body = "RUNNING";
 		while (body.equals("RUNNING")) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			body = RestAssured.get("/state").getBody().asString();
 		}
 
