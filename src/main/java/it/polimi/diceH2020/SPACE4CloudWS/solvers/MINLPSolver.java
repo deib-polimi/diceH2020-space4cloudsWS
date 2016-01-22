@@ -56,16 +56,15 @@ public class MINLPSolver {
 		connector = new SshConnector(connSettings);
 	}
 
-	public Float run(String nameDatFile, String nameSolFile) throws Exception {
+	public Float run(String dataFilePath, String nameSolFile) throws Exception {
 		float objFunctionValue = 0;
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
-		String fullLocalPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + nameDatFile;
-		connector.sendFile(fullLocalPath, fullRemotePath);
-		logger.info("file " + nameDatFile + " has been sent");
+		connector.sendFile(dataFilePath, fullRemotePath);
+		logger.info("file " + dataFilePath + " has been sent");
 
 		String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 		String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
-		fullLocalPath = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
+		String fullLocalPath = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
 				.setSolverPath(connSettings.getSolverPath())
 				.setSolutionFile(remoteRelativeSolutionPath).build();
 
