@@ -74,7 +74,7 @@ public class EngineService {
 		logger.info(stateHandler.getState().getId());
 	}
 
-	public void setAccuracyAncCycles(Settings settings) {
+	public void setAccuracyAndCycles(Settings settings) {
 		optimizer.extractAccuracyAndCycle(settings);
 	}
 
@@ -87,7 +87,7 @@ public class EngineService {
 	}
 
 	// this is called from a debug endpoint
-	public void optimizationScharedCluster() throws Exception {
+	public void optimizationSharedCluster() throws Exception {
 		Solution sol = solBuilder.getInitialSolution();
 		optimizer.init(sol);
 		List<Double> lstResults = optimizer.sharedCluster();

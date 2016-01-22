@@ -7,7 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtiliy;
+import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
@@ -33,7 +33,7 @@ public class Initializator {
 		logger.info("State machine initialized");
 		try {
 
-			FileUtiliy.createWorkingDir();
+			FileUtility.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
 			SPNSolver.initRemoteEnvironment();
 

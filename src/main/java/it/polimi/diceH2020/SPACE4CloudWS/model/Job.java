@@ -8,27 +8,27 @@ import javax.persistence.Id;
 public class Job {
 
 	@Id
-	private int idjob;
+	private int idJob;
 
 	/*
 	 * @OneToMany(cascade = CascadeType.ALL, mappedBy = "job") private
 	 * List<SpedFind> spedf;
 	 */
 
-	public int getIdjob() {
-		return idjob;
+	public int getIdJob() {
+		return idJob;
 	}
 
-	public void setIdjob(int idjob) {
-		this.idjob = idjob;
+	public void setIdJob(int idJob) {
+		this.idJob = idJob;
 	}
 
 	public Job() {
 	}
 
-	public Job(int idjob) {
+	public Job(int idJob) {
 		super();
-		this.idjob = idjob;
+		this.idJob = idJob;
 	}
 
 }

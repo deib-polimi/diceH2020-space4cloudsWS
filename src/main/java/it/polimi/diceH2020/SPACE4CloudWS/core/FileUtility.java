@@ -16,12 +16,12 @@ import org.apache.log4j.Logger;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 
-public class FileUtiliy {
+public class FileUtility {
 
 	private static final String RESULTS_SOLUTION = "../results/solution";
 	private static final String SCRATCH_DATA_DAT = "../scratch/data.dat";
 	public static final String LOCAL_DYNAMIC_FOLDER = "TempWorkingDir";
-	private static Logger logger = Logger.getLogger(FileUtiliy.class.getName());
+	private static Logger logger = Logger.getLogger(FileUtility.class.getName());
 
 	public static void createWorkingDir() throws IOException {
 
@@ -35,8 +35,8 @@ public class FileUtiliy {
 		Files.deleteIfExists(folder);
 	}
 
-	public static void contructFile(InstanceData appli, List<List<String>> matrixNamesDatFiles, List<Double> sigmaBar,
-			List<Double> deltaBar, List<Double> rhoBar, List<List<Integer>> matrixCorePerJob) throws IOException {
+	public static void constructFile(InstanceData appli, List<List<String>> matrixNamesDatFiles, List<Double> sigmaBar,
+									 List<Double> deltaBar, List<Double> rhoBar, List<List<Integer>> matrixCorePerJob) throws IOException {
 
 		int[] vettHUp = appli.getHUp();
 		int[] b = appli.getHLow();
@@ -275,7 +275,7 @@ public class FileUtiliy {
 	
 	
 	
-	public static void create_SWN_ProfileR_Nef_File(int numContainers, double b, double c, double d, int i) {
+	public static void createPNNetFile(int numContainers, double b, double c, double d, int i) {
 
 		String oldFileName = LOCAL_DYNAMIC_FOLDER+File.separator+"SWN_ProfileR.net";
 		// this is the reference file. It has a set of placeholders that must be
@@ -319,7 +319,7 @@ public class FileUtiliy {
 
 	}
 
-	public static void create_SWN_ProfileR_Def_File(int param1, int param2, int param3, int i) {
+	public static void createPNDefFile(int param1, int param2, int param3, int i) {
 		String oldFileName = LOCAL_DYNAMIC_FOLDER+File.separator+"SWN_ProfileR.def";
 		String tmpFileName = LOCAL_DYNAMIC_FOLDER+File.separator+"SWN_ProfileR" + i + ".def";
 
@@ -358,7 +358,7 @@ public class FileUtiliy {
 	}
 
 	public static String createLocalSolFile(String nameSolFile) throws IOException {
-		String solFilePath = FileUtiliy.LOCAL_DYNAMIC_FOLDER+"/"+nameSolFile;
+		String solFilePath = FileUtility.LOCAL_DYNAMIC_FOLDER+"/"+nameSolFile;
 		File file = new File(solFilePath);
 		if (!file.exists())
 			file.createNewFile();

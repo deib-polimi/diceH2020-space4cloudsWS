@@ -105,11 +105,11 @@ public class InitialSolutionBuilder {
 
 		// Phase 2
 
-		FileUtiliy.createFullModelFile(startingSol.getIdxVmTypeSelected(), dataService.getData(), "data.dat", sigmaBar,
+		FileUtility.createFullModelFile(startingSol.getIdxVmTypeSelected(), dataService.getData(), "data.dat", sigmaBar,
 				deltaBar, rhoBar, lstNumCores);
 		String resultsFileName = "result1.sol";
 		minlpSolver.run("data.dat", resultsFileName);
-		String resultsPath = FileUtiliy.LOCAL_DYNAMIC_FOLDER + File.separator + resultsFileName;
+		String resultsPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + resultsFileName;
 		updateWithFinalValues(startingSol, resultsPath);
 
 		return startingSol;
@@ -124,7 +124,7 @@ public class InitialSolutionBuilder {
 		sigmaBar = dataService.getLstSigmaBar();
 		deltaBar = dataService.getLstDeltaBar();
 		rhoBar = dataService.getLstRhoBar();
-		FileUtiliy.contructFile(dataService.getData(), matrixNamesDatFiles, sigmaBar, deltaBar, rhoBar,
+		FileUtility.constructFile(dataService.getData(), matrixNamesDatFiles, sigmaBar, deltaBar, rhoBar,
 				dataService.getMatrixJobCores());
 	}
 

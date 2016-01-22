@@ -19,7 +19,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtiliy;
+import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtility;
 
 @Component
 public class MINLPSolver {
@@ -58,13 +58,13 @@ public class MINLPSolver {
 	public Float run(String nameDatFile, String nameSolFile) throws Exception {
 		float objFunctionValue = 0;
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
-		String fullLocalPath = FileUtiliy.LOCAL_DYNAMIC_FOLDER + File.separator + nameDatFile;
+		String fullLocalPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + nameDatFile;
 		connector.sendFile(fullLocalPath, fullRemotePath);
 		logger.info("file " + nameDatFile + " has been sent");
-		String nameRunFile = FileUtiliy.generateRunFile(connSettings.getSolverPath());
+		String nameRunFile = FileUtility.generateRunFile(connSettings.getSolverPath());
 
 		fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
-		fullLocalPath = FileUtiliy.LOCAL_DYNAMIC_FOLDER + File.separator + nameRunFile;
+		fullLocalPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + nameRunFile;
 		connector.sendFile(fullLocalPath, fullRemotePath);
 		logger.info("File " + nameRunFile + " file has been sent");
 
@@ -74,7 +74,7 @@ public class MINLPSolver {
 				+ connSettings.getAmplDirectory() + " " + REMOTEPATH_DATA_RUN;
 		logger.info("Remote exit status: " + connector.exec(command));
 
-		fullLocalPath = FileUtiliy.createLocalSolFile(nameSolFile);
+		fullLocalPath = FileUtility.createLocalSolFile(nameSolFile);
 
 		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 

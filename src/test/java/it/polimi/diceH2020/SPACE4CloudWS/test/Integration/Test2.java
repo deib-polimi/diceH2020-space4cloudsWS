@@ -36,7 +36,7 @@ public class Test2 {
     @Test
     public void testPutJob() {
         Job jb = new Job();
-        jb.setIdjob(10); 
+        jb.setIdJob(10);
     	RestAssured.
     	given().
     	       contentType("application/json; charset=UTF-16").

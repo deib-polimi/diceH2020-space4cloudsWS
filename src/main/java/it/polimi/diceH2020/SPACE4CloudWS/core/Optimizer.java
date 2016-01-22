@@ -59,8 +59,8 @@ public class Optimizer {
 		this.fileSharedNet = new File("MR-Yarn2P.net");
 	}
 
-	public static double calculateResponseTime(double throughput, int numServers, double thinktime) {
-		return (double) numServers / throughput - thinktime;
+	public static double calculateResponseTime(double throughput, int numServers, double thinkTime) {
+		return (double) numServers / throughput - thinkTime;
 	}
 
 	// read an input file and type value of accuracy and cycles

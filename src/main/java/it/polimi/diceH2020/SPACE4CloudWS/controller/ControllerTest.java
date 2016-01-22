@@ -23,7 +23,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 
 @RestController
 @Profile("test")
-public class ControlleTest {
+public class ControllerTest {
 
 	@Autowired
 	DataService dataService;
@@ -38,7 +38,7 @@ public class ControlleTest {
 
 	@RequestMapping(method = RequestMethod.GET, value = "appldata")
 	@Profile("test")
-	public @ResponseBody InstanceData appldata(){
+	public @ResponseBody InstanceData applData(){
 		return dataService.getData();
 	}
 	
@@ -46,7 +46,7 @@ public class ControlleTest {
 	@Profile("test")
 	public @ResponseBody Job postJob(@RequestBody Job jb){
 		jobRepository.saveAndFlush(jb);
-		Job job = jobRepository.findOne(jb.getIdjob());
+		Job job = jobRepository.findOne(jb.getIdJob());
 		return job;
 	}
 	@RequestMapping(method = RequestMethod.POST, value = "typeVM")

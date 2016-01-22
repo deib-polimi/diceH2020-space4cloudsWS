@@ -27,22 +27,22 @@ public class Controller {
 	private StateMachine<States, Events> stateHandler;
 
 	@RequestMapping(method = RequestMethod.POST, value = "/sendevent")
-	public @ResponseBody String changestate(@RequestBody Events event) throws Exception {
+	public @ResponseBody String changeState(@RequestBody Events event) throws Exception {
 
 		stateHandler.sendEvent(event);
 		// if the state transitions to RUNNING Spring will call EngineService.optimizationPublicCloud
-		return getWSstate();
+		return getWebServiceState();
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "/sendsettings")
-	public @ResponseBody String changestate(@RequestBody Settings settings) {
-		engineService.setAccuracyAncCycles(settings);
-		return getWSstate();
+	public @ResponseBody String changeState(@RequestBody Settings settings) {
+		engineService.setAccuracyAndCycles(settings);
+		return getWebServiceState();
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "app/debug")
 	public void debug() throws Exception {
-		engineService.optimizationScharedCluster();
+		engineService.optimizationSharedCluster();
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "inputdata")
@@ -50,7 +50,7 @@ public class Controller {
 	public String endpointInputData(@RequestBody InstanceData inputData) throws Exception {
 		engineService.setInstanceData(inputData);
 		stateHandler.sendEvent(Events.MIGRATE);
-		return getWSstate();
+		return getWebServiceState();
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "solution")
@@ -63,10 +63,10 @@ public class Controller {
 
 	@RequestMapping(value = "/state", method = RequestMethod.GET)
 	public @ResponseBody String getState() {
-		return getWSstate();
+		return getWebServiceState();
 	}
 	
-	private String getWSstate(){
+	private String getWebServiceState(){
 		return stateHandler.getState().getId().toString();
 	}
 

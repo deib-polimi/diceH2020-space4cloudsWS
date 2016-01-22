@@ -39,8 +39,8 @@ public class LocalSearch {
 		int nContainers = solPerJob.getNumberContainers();
 		int hUp = dataService.getData().getHUp(i);
 
-		FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-		FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+		FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+		FileUtility.createPNDefFile(nUsers, NM, NR, i);
 
 		throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 
@@ -51,8 +51,8 @@ public class LocalSearch {
 			while (responseTime < deadline && nUsers < hUp && iter <= maxIter) {
 				tempResponseTime = responseTime;
 				nUsers++;
-				FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+				FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+				FileUtility.createPNDefFile(nUsers, NM, NR, i);
 				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 				iter++;
@@ -63,8 +63,8 @@ public class LocalSearch {
 				// TODO aggiungere vm invece che gli slot.
 
 				nContainers++;
-				FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+				FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+				FileUtility.createPNDefFile(nUsers, NM, NR, i);
 
 				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
@@ -76,8 +76,8 @@ public class LocalSearch {
 			while (responseTime > deadline) {
 
 				nContainers++;
-				FileUtiliy.create_SWN_ProfileR_Nef_File(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileUtiliy.create_SWN_ProfileR_Def_File(nUsers, NM, NR, i);
+				FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
+				FileUtility.createPNDefFile(nUsers, NM, NR, i);
 
 				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
 
