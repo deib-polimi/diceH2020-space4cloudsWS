@@ -1,0 +1,24 @@
+reset;
+
+option solver "@@SOLVER_PATH@@";
+
+model ../problems/model.mod;
+data @@DATA_FILE_PATH@@;
+
+option randseed 1;
+
+include ../utils/compute_psi.run;
+include ../utils/compute_job_profile.run;
+include ../utils/compute_penalties.run;
+
+include ../utils/save_aux.run;
+let solfile := "@@OUTPUT_PATH@@";
+
+include ../problems/centralized.run;
+solve centralized_prob;
+
+include ../utils/compute_s_d.run;
+include ../solve/AM_closed_form.run;
+include ../utils/post_processing.run;
+
+include ../utils/save_centralized.run;

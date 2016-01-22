@@ -2,6 +2,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import java.util.concurrent.Future;
 
+import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -93,6 +94,5 @@ public class LocalSearch {
 																		// check.
 		return new AsyncResult<Float>((float) tempResponseTime);
 	}
-	
-	
+
 }

@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.core;
+package it.polimi.diceH2020.SPACE4CloudWS.fs;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -227,54 +227,6 @@ public class FileUtility {
 
 	}
 
-	
-	public static String generateRunFile(String solverPath) {
-
-		String data = SCRATCH_DATA_DAT;
-		String result = RESULTS_SOLUTION;
-
-		StringBuilder builder = new StringBuilder();
-		builder.append("reset;\n");
-
-		builder.append("option solver \"" + solverPath + "\";\n");
-
-		builder.append("model ../problems/model.mod;\n");
-		builder.append("data " + data + ";\n");
-
-		builder.append("option randseed 1;\n");
-		builder.append("include ../utils/compute_psi.run;\n");
-		builder.append("include ../utils/compute_job_profile.run;\n");
-		builder.append("include ../utils/compute_penalties.run;\n");
-
-		builder.append("include ../utils/save_aux.run;\n");
-		builder.append("let outfile := \"" + result + "\";\n");
-
-		builder.append("include ../problems/centralized.run;\n");
-		builder.append("solve centralized_prob;\n");
-
-		builder.append("include ../utils/compute_s_d.run;\n");
-		builder.append("include ../solve/AM_closed_form.run;\n");
-		builder.append("include ../utils/post_processing.run;\n");
-
-		builder.append("include ../utils/save_centralized.run;\n");
-
-		String filename = LOCAL_DYNAMIC_FOLDER +File.separator+ "dat.run";
-		File file = new File(filename);
-
-		// generating the file
-		try (PrintWriter out = new PrintWriter(file)) {
-			out.println(builder.toString());
-			out.flush();
-			logger.info("File dat.run has been created");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return "dat.run";
-	}
-	
-	
-	
 	public static void createPNNetFile(int numContainers, double b, double c, double d, int i) {
 
 		String oldFileName = LOCAL_DYNAMIC_FOLDER+File.separator+"SWN_ProfileR.net";

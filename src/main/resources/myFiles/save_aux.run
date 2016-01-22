@@ -1,2 +1,1 @@
-param outfile symbolic default "default";
 param solfile symbolic default "solution.sol";

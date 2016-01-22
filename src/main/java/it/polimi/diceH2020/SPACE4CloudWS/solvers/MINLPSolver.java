@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import it.polimi.diceH2020.SPACE4CloudWS.fs.AMPLRunFileBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -19,7 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.core.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
 
 @Component
 public class MINLPSolver {
@@ -61,12 +62,16 @@ public class MINLPSolver {
 		String fullLocalPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + nameDatFile;
 		connector.sendFile(fullLocalPath, fullRemotePath);
 		logger.info("file " + nameDatFile + " has been sent");
-		String nameRunFile = FileUtility.generateRunFile(connSettings.getSolverPath());
+
+		String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
+		String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
+		fullLocalPath = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
+				.setSolverPath(connSettings.getSolverPath())
+				.setSolutionFile(remoteRelativeSolutionPath).build();
 
 		fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
-		fullLocalPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + nameRunFile;
 		connector.sendFile(fullLocalPath, fullRemotePath);
-		logger.info("File " + nameRunFile + " file has been sent");
+		logger.info("AMPL .run file sent");
 
 		logger.info("Processing execution...");
 		clearResultDir();
