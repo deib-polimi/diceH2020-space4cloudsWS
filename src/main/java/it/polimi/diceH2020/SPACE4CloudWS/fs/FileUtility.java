@@ -5,15 +5,16 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Component
 public class FileUtility {
 
-	public static final String LOCAL_DYNAMIC_FOLDER = "TempWorkingDir";
+	private static final File LOCAL_DYNAMIC_FOLDER = new File("TempWorkingDir");
 	private static Logger logger = Logger.getLogger(FileUtility.class.getName());
 
 	@Autowired
@@ -23,16 +24,27 @@ public class FileUtility {
 		return policy.delete(file);
 	}
 
-	public static void createWorkingDir() throws IOException {
+	public File provideTemporaryFile(@Nonnull String prefix, @Nullable String suffix) throws IOException {
+		return File.createTempFile(prefix, suffix, LOCAL_DYNAMIC_FOLDER);
+	}
 
-		Path folder = Paths.get(LOCAL_DYNAMIC_FOLDER);
+	public void writeContentToFile(@Nonnull String content, @Nonnull File file) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		writer.write(content);
+		writer.close();
+	}
+
+	public static void createWorkingDir() throws IOException {
+		Path folder = LOCAL_DYNAMIC_FOLDER.toPath();
 		Files.createDirectories(folder);
-		logger.info(LOCAL_DYNAMIC_FOLDER+" created.");
+		logger.info(LOCAL_DYNAMIC_FOLDER + " created.");
 	}
 	
 	public static void destroyWorkingDir() throws IOException{
-		Path folder = Paths.get(LOCAL_DYNAMIC_FOLDER);
-		Files.deleteIfExists(folder);
+		Path folder = LOCAL_DYNAMIC_FOLDER.toPath();
+		if (Files.deleteIfExists(folder)) {
+			logger.info(LOCAL_DYNAMIC_FOLDER+ " deleted.");
+		}
 	}
 
 	public static void createPNNetFile(int numContainers, double b, double c, double d, int i) {
@@ -115,14 +127,6 @@ public class FileUtility {
 			}
 		}
 
-	}
-
-	public static String createLocalSolFile(String nameSolFile) throws IOException {
-		String solFilePath = FileUtility.LOCAL_DYNAMIC_FOLDER+"/"+nameSolFile;
-		File file = new File(solFilePath);
-		if (!file.exists())
-			file.createNewFile();
-		return solFilePath;
 	}
 
 }

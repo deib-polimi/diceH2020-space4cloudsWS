@@ -1,6 +1,11 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fs;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.List;
 
 public class AMPLRunFileBuilder {
     private String dataFile;
@@ -25,17 +30,15 @@ public class AMPLRunFileBuilder {
     public String build() throws IOException {
         InputStream runTemplate = getResourceFileStream("/myFiles/main.run.template");
         BufferedReader reader = new BufferedReader(new InputStreamReader(runTemplate));
-        File file = File.createTempFile("S4C-run-", ".run", new File(FileUtility.LOCAL_DYNAMIC_FOLDER));
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
         String line;
+        List<String> outputLines = new LinkedList<>();
         while ((line = reader.readLine()) != null) {
             String outputLine = line.replace("@@SOLVER_PATH@@", solverPath)
                     .replace("@@DATA_FILE_PATH@@", dataFile)
                     .replace("@@OUTPUT_PATH@@", solutionFile);
-            writer.write(outputLine.concat("\n"));
+            outputLines.add(outputLine);
         }
-        writer.close();
-        return file.getAbsolutePath();
+        return String.join("\n", outputLines);
     }
 
     private InputStream getResourceFileStream(String resourceFilePath) throws IOException {

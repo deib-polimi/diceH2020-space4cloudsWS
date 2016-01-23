@@ -63,11 +63,15 @@ public class InitialSolutionBuilder {
 				builder.setArrayParameter("sigmabar", Doubles.asList(sigmaBar.get(j)));
 				builder.setArrayParameter("deltabar", Doubles.asList(deltaBar.get(j)));
 				builder.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
-				String dataFilePath = builder.build();
-				String resultsFileName = String.format("partial_class%d_vm%d.sol", i, j);
-				float result = minlpSolver.run(dataFilePath, resultsFileName);
-				if (fileUtility.delete(new File(dataFilePath))) {
-					logger.debug(dataFilePath + " deleted");
+				File dataFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j), ".dat");
+				fileUtility.writeContentToFile(builder.build(), dataFile);
+				File resultsFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j), ".sol");
+				float result = minlpSolver.run(dataFile, resultsFile);
+				if (fileUtility.delete(dataFile)) {
+					logger.debug(dataFile + " deleted");
+				}
+				if (fileUtility.delete(resultsFile)) {
+					logger.debug(resultsFile + " deleted");
 				}
 				listResults.add(result);
 			}
@@ -90,14 +94,17 @@ public class InitialSolutionBuilder {
 		AMPLDataFileBuilder builder = AMPLDataFileUtils.multiClassBuilder(instanceData);
 		builder.setArrayParameter("w", lstNumCores);
 		filterAndAddParameters(builder, startingSol.getIdxVmTypeSelected());
-		String dataFilePath = builder.build();
-		String resultsFileName = "multi_class_results.sol";
-		minlpSolver.run(dataFilePath, resultsFileName);
-		if (fileUtility.delete(new File(dataFilePath))) {
-			logger.debug(dataFilePath + " deleted");
+		File dataFile = fileUtility.provideTemporaryFile("S4C-multi-class-", ".dat");
+		fileUtility.writeContentToFile(builder.build(), dataFile);
+		File resultsFile = fileUtility.provideTemporaryFile("S4C-multi-class-", ".sol");
+		minlpSolver.run(dataFile, resultsFile);
+		if (fileUtility.delete(dataFile)) {
+			logger.debug(dataFile + " deleted");
 		}
-		String resultsPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + resultsFileName;
-		updateWithFinalValues(startingSol, resultsPath);
+		updateWithFinalValues(startingSol, resultsFile);
+		if (fileUtility.delete(resultsFile)) {
+			logger.debug(resultsFile + " deleted");
+		}
 
 		return startingSol;
 	}
@@ -134,13 +141,12 @@ public class InitialSolutionBuilder {
 		matrixJobCores = dataService.getMatrixJobCores();
 	}
 
-	private void updateWithFinalValues(Solution sol, String nameSolFile) throws IOException {
+	private void updateWithFinalValues(Solution sol, File solutionFile) throws IOException {
 		int ncontainers = 0;
 		int nusers;
 		List<Integer> numCores = dataService.getNumCores(sol.getTypeVMSelected());
 
-		File file = new File(nameSolFile);
-		BufferedReader reader = new BufferedReader(new FileReader(file));
+		BufferedReader reader = new BufferedReader(new FileReader(solutionFile));
 
 		String line = reader.readLine();
 		String[] bufferStr = new String[7];

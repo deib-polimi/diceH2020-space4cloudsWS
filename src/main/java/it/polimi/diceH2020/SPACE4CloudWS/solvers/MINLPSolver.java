@@ -56,24 +56,24 @@ public class MINLPSolver {
 		connector = new SshConnector(connSettings);
 	}
 
-	public Float run(String dataFilePath, String nameSolFile) throws Exception {
-		float objFunctionValue = 0;
+	public Float run(File dataFile, File solutionFile) throws Exception {
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
-		connector.sendFile(dataFilePath, fullRemotePath);
+		connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath);
 		logger.info("AMPL .data file sent");
 
 		String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 		String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
-		String fullLocalPath = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
+		File runFile = fileUtility.provideTemporaryFile("S4C-run-", ".run");
+		String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
 				.setSolverPath(connSettings.getSolverPath())
 				.setSolutionFile(remoteRelativeSolutionPath).build();
+		fileUtility.writeContentToFile(runFileContent, runFile);
 
 		fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
-		connector.sendFile(fullLocalPath, fullRemotePath);
+		connector.sendFile(runFile.getAbsolutePath(), fullRemotePath);
 		logger.info("AMPL .run file sent");
-
-		if (fileUtility.delete(new File(fullLocalPath))) {
-			logger.debug(fullLocalPath + "deleted");
+		if (fileUtility.delete(runFile)) {
+			logger.debug(runFile + " deleted");
 		}
 
 		logger.info("Processing execution...");
@@ -82,14 +82,10 @@ public class MINLPSolver {
 				+ connSettings.getAmplDirectory() + " " + REMOTEPATH_DATA_RUN;
 		logger.info("Remote exit status: " + connector.exec(command));
 
-		fullLocalPath = FileUtility.createLocalSolFile(nameSolFile);
-
 		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
+		connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath);
 
-		logger.info("Solution file has been created");
-		connector.receiveFile(fullLocalPath, fullRemotePath);
-
-		objFunctionValue = this.analyzeSolution(fullLocalPath);
+		float objFunctionValue = analyzeSolution(solutionFile);
 
 		logger.info("The value of the objective function is: " + objFunctionValue);
 
@@ -98,11 +94,8 @@ public class MINLPSolver {
 		return objFunctionValue;
 	}
 
-	private float analyzeSolution(String solFilePath) throws IOException {
-		File file = new File(solFilePath);
-		if (!file.exists())
-			file.createNewFile();
-		String fileToString = FileUtils.readFileToString(file);
+	private float analyzeSolution(File solFile) throws IOException {
+		String fileToString = FileUtils.readFileToString(solFile);
 		String centralized = "centralized_obj = ";
 		int startPos = fileToString.indexOf(centralized);
 		int endPos = fileToString.indexOf('\n', startPos);
@@ -180,12 +173,12 @@ public class MINLPSolver {
 	private void sendFile(String localPath, String remotePath) throws Exception {
 
 		InputStream in = this.getClass().getResourceAsStream(localPath);
-		File tempFile = File.createTempFile("S4C-temp", "tmp");
+		File tempFile = fileUtility.provideTemporaryFile("S4C-temp", null);
 		FileOutputStream out = new FileOutputStream(tempFile);
 		IOUtils.copy(in, out);
 		connector.sendFile(tempFile.getAbsolutePath(), remotePath);
 		if (fileUtility.delete(tempFile)) {
-			logger.debug(tempFile.toString() + " deleted");
+			logger.debug(tempFile + " deleted");
 		}
 	}
 

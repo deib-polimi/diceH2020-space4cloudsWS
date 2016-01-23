@@ -1,8 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fs;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,12 +44,7 @@ public class AMPLDataFileBuilder {
 
     public String build() throws IOException {
         addFooter();
-        String fileContent = String.join("\n", lines);
-        File file = File.createTempFile("S4C-data-", ".dat", new File(FileUtility.LOCAL_DYNAMIC_FOLDER));
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        writer.write(fileContent);
-        writer.close();
-        return file.getAbsolutePath();
+        return String.join("\n", lines);
     }
 
 }
