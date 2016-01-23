@@ -33,6 +33,9 @@ public class InitialSolutionBuilder {
 	@Autowired
 	private MINLPSolver minlpSolver;
 
+	@Autowired
+	private FileUtility fileUtility;
+
 	private InstanceData instanceData;
 
 	private List<Double> deltaBar;
@@ -61,9 +64,11 @@ public class InitialSolutionBuilder {
 				builder.setArrayParameter("deltabar", Doubles.asList(deltaBar.get(j)));
 				builder.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
 				String dataFilePath = builder.build();
-				logger.debug(dataFilePath);
 				String resultsFileName = String.format("partial_class%d_vm%d.sol", i, j);
 				float result = minlpSolver.run(dataFilePath, resultsFileName);
+				if (fileUtility.delete(new File(dataFilePath))) {
+					logger.debug(dataFilePath + " deleted");
+				}
 				listResults.add(result);
 			}
 			int minIndex = listResults.indexOf(Collections.min(listResults));
@@ -86,9 +91,11 @@ public class InitialSolutionBuilder {
 		builder.setArrayParameter("w", lstNumCores);
 		filterAndAddParameters(builder, startingSol.getIdxVmTypeSelected());
 		String dataFilePath = builder.build();
-		logger.debug(dataFilePath);
 		String resultsFileName = "multi_class_results.sol";
 		minlpSolver.run(dataFilePath, resultsFileName);
+		if (fileUtility.delete(new File(dataFilePath))) {
+			logger.debug(dataFilePath + " deleted");
+		}
 		String resultsPath = FileUtility.LOCAL_DYNAMIC_FOLDER + File.separator + resultsFileName;
 		updateWithFinalValues(startingSol, resultsPath);
 

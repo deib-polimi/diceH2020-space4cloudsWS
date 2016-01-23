@@ -1,16 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
+import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fs.AMPLRunFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -19,8 +11,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class MINLPSolver {
@@ -47,6 +45,8 @@ public class MINLPSolver {
 	private Environment environment; // this is to check which is the active
 										// profile at runtime
 
+	@Autowired
+	private FileUtility fileUtility;
 
 	public MINLPSolver() {
 	}
@@ -60,7 +60,7 @@ public class MINLPSolver {
 		float objFunctionValue = 0;
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
 		connector.sendFile(dataFilePath, fullRemotePath);
-		logger.info("file " + dataFilePath + " has been sent");
+		logger.info("AMPL .data file sent");
 
 		String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 		String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
@@ -71,6 +71,10 @@ public class MINLPSolver {
 		fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
 		connector.sendFile(fullLocalPath, fullRemotePath);
 		logger.info("AMPL .run file sent");
+
+		if (fileUtility.delete(new File(fullLocalPath))) {
+			logger.debug(fullLocalPath + "deleted");
+		}
 
 		logger.info("Processing execution...");
 		clearResultDir();
@@ -176,13 +180,13 @@ public class MINLPSolver {
 	private void sendFile(String localPath, String remotePath) throws Exception {
 
 		InputStream in = this.getClass().getResourceAsStream(localPath);
-		FileOutputStream out = null;
-		File tempFile = null;
-		tempFile = File.createTempFile("S4C-temp", "tmp");
-		tempFile.deleteOnExit();
-		out = new FileOutputStream(tempFile);
+		File tempFile = File.createTempFile("S4C-temp", "tmp");
+		FileOutputStream out = new FileOutputStream(tempFile);
 		IOUtils.copy(in, out);
 		connector.sendFile(tempFile.getAbsolutePath(), remotePath);
+		if (fileUtility.delete(tempFile)) {
+			logger.debug(tempFile.toString() + " deleted");
+		}
 	}
 
 	public List<String> pwd() throws Exception {

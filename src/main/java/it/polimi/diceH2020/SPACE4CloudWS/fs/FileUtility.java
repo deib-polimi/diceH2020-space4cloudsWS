@@ -1,16 +1,27 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fs;
 
+import it.polimi.diceH2020.SPACE4CloudWS.fs.policy.DeletionPolicy;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Component
 public class FileUtility {
 
 	public static final String LOCAL_DYNAMIC_FOLDER = "TempWorkingDir";
 	private static Logger logger = Logger.getLogger(FileUtility.class.getName());
+
+	@Autowired
+	private DeletionPolicy policy;
+
+	public boolean delete(File file) {
+		return policy.delete(file);
+	}
 
 	public static void createWorkingDir() throws IOException {
 
