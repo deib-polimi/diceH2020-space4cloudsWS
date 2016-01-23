@@ -32,7 +32,7 @@ public class AMPLRunFileBuilder {
             String outputLine = line.replace("@@SOLVER_PATH@@", solverPath)
                     .replace("@@DATA_FILE_PATH@@", dataFile)
                     .replace("@@OUTPUT_PATH@@", solutionFile);
-            writer.write(outputLine);
+            writer.write(outputLine.concat("\n"));
         }
         writer.close();
         return file.getAbsolutePath();
