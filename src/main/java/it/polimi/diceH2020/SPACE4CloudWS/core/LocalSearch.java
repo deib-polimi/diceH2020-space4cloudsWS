@@ -1,31 +1,37 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import java.util.concurrent.Future;
-
+import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fs.PNDefFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fs.PNNetFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
+import java.io.File;
+import java.util.concurrent.Future;
 
 @Component
 public class LocalSearch {
+	private final static Logger logger = Logger.getLogger(LocalSearch.class.getName());
+
 	@Autowired
 	private DataService dataService;
 	
 	@Autowired
 	private SPNSolver SPNSolver;
-	
+
+	@Autowired
+	private FileUtility fileUtility;
 	
 	@Async
 	public Future<Float> execute(SolutionPerJob solPerJob, int cycles) throws Exception {
 		double tempResponseTime = 0;
-		double throughput = 0;
-		int maxIter = (int) Math.ceil((double) cycles / 2.0);
+		int maxIterations = (int) Math.ceil((double) cycles / 2.0);
 		int i = solPerJob.getPos();
 		double deadline = dataService.getData().getD(i);
 		int index = solPerJob.getIdxVmTypeSelected();
@@ -40,58 +46,86 @@ public class LocalSearch {
 		int nContainers = solPerJob.getNumberContainers();
 		int hUp = dataService.getData().getHUp(i);
 
-		FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-		FileUtility.createPNDefFile(nUsers, NM, NR, i);
+		String netFileContent = new PNNetFileBuilder().setCores(nContainers)
+				.setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg))
+				.setThinkRate(1 / think).build();
+		File netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", i), ".net");
+		fileUtility.writeContentToFile(netFileContent, netFile);
+		String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
+				.setNumberOfReduceTasks(NR).build();
+		File defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", i), ".def");
+		fileUtility.writeContentToFile(defFileContent, defFile);
 
-		throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
+		double throughput = SPNSolver.run(netFile, defFile, "class" + i);
 
 		double responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 
 		if (responseTime < deadline) {
-			int iter = 0;
-			while (responseTime < deadline && nUsers < hUp && iter <= maxIter) {
+			for (int iteration = 0; responseTime < deadline && nUsers < hUp && iteration <= maxIterations; ++iteration) {
 				tempResponseTime = responseTime;
-				nUsers++;
-				FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileUtility.createPNDefFile(nUsers, NM, NR, i);
-				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
+				++nUsers;
+
+				if (fileUtility.delete(defFile)) {
+					logger.debug(defFile + " deleted");
+				}
+				defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
+						.setNumberOfReduceTasks(NR).build();
+				defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", i, iteration), ".def");
+				fileUtility.writeContentToFile(defFileContent, defFile);
+
+				throughput = SPNSolver.run(netFile, defFile, String.format("class%d_iter%d", i, iteration));
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
-				iter++;
 			}
-			iter = 0;
-			while (responseTime < deadline && iter <= maxIter && nContainers > 1) {
+			for (int iteration = 0; responseTime < deadline && iteration <= maxIterations && nContainers > 1; ++iteration) {
 				tempResponseTime = responseTime;
 				// TODO aggiungere vm invece che gli slot.
+				++nContainers;
 
-				nContainers++;
-				FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileUtility.createPNDefFile(nUsers, NM, NR, i);
+				if (fileUtility.delete(netFile)) {
+					logger.debug(netFile + " deleted");
+				}
+				netFileContent = new PNNetFileBuilder().setCores(nContainers)
+						.setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg))
+						.setThinkRate(1 / think).build();
+				netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", i, iteration), ".net");
+				fileUtility.writeContentToFile(netFileContent, netFile);
 
-				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
+				throughput = SPNSolver.run(netFile, defFile, String.format("class%d_iter%d", i, iteration));
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
-				iter++;
 			}
 
 		} else {
 			// TODO: check on this.
 			while (responseTime > deadline) {
+				++nContainers;
 
-				nContainers++;
-				FileUtility.createPNNetFile(nContainers, 1 / mAvg, 1 / (rAvg + shTypAvg), 1 / think, i);
-				FileUtility.createPNDefFile(nUsers, NM, NR, i);
+				if (fileUtility.delete(netFile)) {
+					logger.debug(netFile + " deleted");
+				}
+				netFileContent = new PNNetFileBuilder().setCores(nContainers)
+						.setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg))
+						.setThinkRate(1 / think).build();
+				netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", i), ".net");
+				fileUtility.writeContentToFile(netFileContent, netFile);
 
-				throughput = SPNSolver.run("SWN_ProfileR" + i, "fil" + i + ".sta");
-
+				throughput = SPNSolver.run(netFile, defFile, String.format("class%d", i));
 				responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 				tempResponseTime = responseTime;
 			}
 		}
+
+		if (fileUtility.delete(netFile)) {
+			logger.debug(netFile + " deleted");
+		}
+		if (fileUtility.delete(defFile)) {
+			logger.debug(defFile + " deleted");
+		}
+
 		Thread.sleep(1000L);
 		solPerJob.setSimulatedTime(tempResponseTime);
 		solPerJob.setNumberUsers(nUsers);
 		solPerJob.setNumberContainers(nContainers);
-		solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO
-																		// check.
+		solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO check.
 		return new AsyncResult<Float>((float) tempResponseTime);
 	}
 
