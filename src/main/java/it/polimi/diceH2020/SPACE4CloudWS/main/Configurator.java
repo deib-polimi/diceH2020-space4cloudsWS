@@ -51,30 +51,31 @@ public class Configurator {
 	@Bean
 	@Profile("test")
 	public InstanceData applDataTest() {
-		int Gamma = 1;
-		List<String> typeVm = Arrays.asList( "T1", "T2" );
+		int Gamma = 2400; // num cores cluster
+		List<String> typeVm = Arrays.asList("T1", "T2");
 		String provider = "Amazon";
-		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
-		double[] think = { 0.5, 0.10 }; // check
-		int[][] cM = { { 3, 4 }, { 1, 2 } };
-		int[][] cR = { { 1, 2 }, { 3, 4 } };
-		double[] eta = { 0.1, 0.5 };
-		int[] HUp = { 10, 10 };
-		int[] HLow = { 5, 5 };
-		int[] NM = { 2, 2 };
-		int[] NR = { 1, 1 };
-		double[] Mmax = { 1.5, 2.1 };
-		double[] Rmax = { 1.2, 3.2 };
-		double[] Mavg = { 3.1, 0.1 };
-		double[] Ravg = { 2.1, 0.2 };
-		double[] D = { 0.8, 1.2 };
-		double[] SH1max = { 1.1, 0.9 };
-		double[] SHtypmax = { 0.5, 2.1 };
-		double[] SHtypavg = { 0.7, 0.6 };
-		double[] job_penalty = { 0.2, 2.1 };
-		double[] R = { 2.2, 1.1 };
-		return new InstanceData(Gamma, typeVm, provider, id_job, think, cM, cR, eta, HUp, HLow, NM, NR, Mmax, Rmax, Mavg,
-				Ravg, D, SH1max, SHtypmax, SHtypavg, job_penalty, R);
+		List<Integer> id_job = Arrays.asList(10, 11); // numJobs = 2
+		double[] think = { 15, 5 }; // check
+		int[][] cM = { { 8, 8 }, { 8, 8 } };
+		int[][] cR = { { 8, 8 }, { 8, 8 } };
+		double[] eta = { 0.1, 0.3 };
+		int[] hUp = { 10, 10 };
+		int[] hLow = { 5, 5 };
+		int[] nM = { 495, 65 };
+		int[] nR = { 575, 5 };
+		double[] mmax = { 36.016, 17.541 }; // maximum time to execute a single
+											// map
+		double[] rmax = { 4.797, 0.499 };
+		double[] mavg = { 17.196, 8.235 };
+		double[] ravg = { 0.605, 0.297 };
+		double[] d = { 300, 240 };
+		double[] sH1max = { 0, 0 };
+		double[] sHtypmax = { 18.058, 20.141 };
+		double[] sHtypavg = { 2.024, 14.721 };
+		double[] job_penalty = { 25.0, 14.99 };
+		int[] r = { 200, 200 };
+		return new InstanceData(Gamma, typeVm, provider, id_job, think, cM, cR, eta, hUp, hLow, nM, nR, mmax, rmax,
+				mavg, ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
 	}
 
 }

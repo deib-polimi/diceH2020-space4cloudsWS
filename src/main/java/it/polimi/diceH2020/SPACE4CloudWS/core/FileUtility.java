@@ -53,7 +53,7 @@ public class FileUtility {
 		double[] h3 = appli.getRavg();
 		int[][] kc = appli.getcM();
 		int[][] ke = appli.getcR();
-		double[] r = appli.getR();
+		int[] r = appli.getR();
 		double[] n = appli.getEta();
 		int jobNumber = appli.getNumberJobs();
 		int vmNumber = appli.getNumberTypeVM();
