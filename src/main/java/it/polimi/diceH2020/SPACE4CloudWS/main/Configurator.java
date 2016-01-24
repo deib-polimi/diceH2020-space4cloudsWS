@@ -1,8 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
-import java.util.Arrays;
-import java.util.List;
-
+import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +10,8 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class Configurator {
@@ -31,7 +30,7 @@ public class Configurator {
 		taskExecutor.afterPropertiesSet();
 		return taskExecutor;
 	}
-	
+
 	@Bean
 	public States state() {
 		return States.IDLE;
@@ -51,30 +50,31 @@ public class Configurator {
 	@Bean
 	@Profile("test")
 	public InstanceData applDataTest() {
-		int Gamma = 2400; // num cores cluster
+		int Gamma = 240; // num cores cluster
 		List<String> typeVm = Arrays.asList("T1", "T2");
 		String provider = "Amazon";
-		List<Integer> id_job = Arrays.asList( 10, 11 ); // numJobs = 2
-		double[] think = { 0.5, 0.10 }; // check
-		int[][] cM = { { 3, 4 }, { 1, 2 } };
-		int[][] cR = { { 1, 2 }, { 3, 4 } };
-		double[] eta = { 0.1, 0.5 };
-		int[] HUp = { 10, 10 };
-		int[] HLow = { 5, 5 };
-		int[] NM = { 2, 2 };
-		int[] NR = { 1, 1 };
-		double[] Mmax = { 1.5, 2.1 };
-		double[] Rmax = { 1.2, 3.2 };
-		double[] Mavg = { 3.1, 0.1 };
-		double[] Ravg = { 2.1, 0.2 };
-		double[] D = { 0.8, 1.2 };
-		double[] SH1max = { 1.1, 0.9 };
-		double[] SHtypmax = { 0.5, 2.1 };
-		double[] SHtypavg = { 0.7, 0.6 };
-		double[] job_penalty = { 0.2, 2.1 };
-		int[] R = { 22, 11 };
-		return new InstanceData(Gamma, typeVm, provider, id_job, think, cM, cR, eta, HUp, HLow, NM, NR, Mmax, Rmax, Mavg,
-				Ravg, D, SH1max, SHtypmax, SHtypavg, job_penalty, R);
+		List<Integer> id_job = Arrays.asList(5, 2); // numJobs = 2
+		double[] think = { 10, 5 }; // check
+		int[][] cM = { { 4, 8 }, { 4, 8 } };
+		int[][] cR = { { 4, 8 }, { 4, 8 } };
+		double[] eta = { 0.1, 0.3 };
+		int[] hUp = { 10, 10 };
+		int[] hLow = { 5, 5 };
+		int[] nM = { 65, 65 };
+		int[] nR = { 15, 5 };
+		double[] mmax = { 9.128, 17.541 }; // maximum time to execute a single map
+		double[] mavg = { 4.103, 8.235 };
+		double[] rmax = { 0.592, 0.499 };
+		double[] ravg = { 0.327, 0.297 };
+		double[] d = { 180, 150 };
+		double[] sH1max = { 0, 0 };
+		double[] sHtypmax = { 7.942, 20.141 };
+		double[] sHtypavg = { 4.831, 14.721 };
+		double[] job_penalty = { 25.0, 14.99 };
+		int[] r = { 30, 25 };
+
+		return new InstanceData(Gamma, typeVm, provider, id_job, think, cM, cR, eta, hUp, hLow, nM, nR, mmax, rmax,
+				mavg, ravg, d, sH1max, sHtypmax, sHtypavg, job_penalty, r);
 	}
 
 }
