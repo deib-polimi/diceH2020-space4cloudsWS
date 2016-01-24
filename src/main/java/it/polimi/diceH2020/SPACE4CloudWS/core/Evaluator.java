@@ -1,34 +1,30 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 
 @Component
-public class Evaluator {
+public class Evaluator implements IEvaluator {
 
-	@Autowired
-	private DataService dataService;
-
-	public double evaluate(Solution sol) {
-		double cost = 0;
-		
-		for (SolutionPerJob solPerJob : sol.getLstSolutions()) {
-			calculateNumVMsPerType(solPerJob);
-			cost = cost + calculateCostPerJob(solPerJob);
-		}
-		sol.setCost(cost);
-		return cost;
+	private static final IEvaluator instance = new Evaluator();
+	
+	public static double evaluate(Solution sol) {
+		IEvaluator ev = sol.getEvaluator();
+		if (ev == null || ev instanceof Evaluator == false)
+			sol.setEvaluator(instance);
+		return sol.evaluate();
 	}
+	
 
-	private double calculateCostPerJob(SolutionPerJob solPerJob) {
-		String selectedVMtype = solPerJob.getTypeVMselected();
-		double deltaBar = dataService.getDeltaBar(selectedVMtype);
-		double rhoBar = dataService.getRhoBar(selectedVMtype);
-		double sigmaBar = dataService.getSigmaBar(selectedVMtype);
+
+	@Override
+	public  double calculateCostPerJob(SolutionPerJob solPerJob) {
+		double deltaBar = solPerJob.getDeltaBar();
+		double rhoBar = solPerJob.getRhoBar();;
+		double sigmaBar = solPerJob.getSigmaBar();
 		double alfa = solPerJob.getAlfa();
 		double numberOfUsers = solPerJob.getNumberUsers();
 		double beta = solPerJob.getBeta();
@@ -39,19 +35,19 @@ public class Evaluator {
 	}
 
 	private void calculateNumVMsPerType(SolutionPerJob solPerJob) {
-		double N = dataService.getData().getEta(solPerJob.getPos());
-		double R = dataService.getData().getR(solPerJob.getPos());
+		double eta = solPerJob.getEta();
+		double R = solPerJob.getR();
 		int nContainers = solPerJob.getNumberContainers();
 		double ratio = nContainers / solPerJob.getNumCores(); // TODO
-																					// //
-																					// Check
-																					// this
-		double numSpotVM = N * ratio;
-		double numReservedVM = Math.min(R, (ratio) * (1 - N));
+																// //
+																// Check
+																// this
+		double numSpotVM = eta * ratio;
+		double numReservedVM = Math.min(R, (ratio) * (1 - eta));
 		double numOnDemandVM = Math.max(0, ratio - numSpotVM - numReservedVM);
 		solPerJob.setNumSpotVM(numSpotVM);
 		solPerJob.setNumReservedVM(numReservedVM);
-		solPerJob.setNumOnDemandVM(numOnDemandVM);		
+		solPerJob.setNumOnDemandVM(numOnDemandVM);
 
 	}
 }

@@ -41,7 +41,6 @@ public class InitialSolutionBuilder {
 	private List<Double> deltaBar;
 	private List<Double> rhoBar;
 	private List<Double> sigmaBar;
-
 	private List<List<Integer>> matrixJobCores;
 
 	private int numJobs;
@@ -65,7 +64,8 @@ public class InitialSolutionBuilder {
 				builder.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
 				File dataFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j), ".dat");
 				fileUtility.writeContentToFile(builder.build(), dataFile);
-				File resultsFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j), ".sol");
+				File resultsFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j),
+						".sol");
 				float result = minlpSolver.run(dataFile, resultsFile);
 				if (fileUtility.delete(dataFile)) {
 					logger.debug(dataFile + " deleted");
@@ -84,6 +84,14 @@ public class InitialSolutionBuilder {
 			int numCores = dataService.getNumCores(vmType);
 			solPerJob.setNumCores(numCores);
 			lstNumCores.add(numCores);
+
+			solPerJob.setDeltaBar(dataService.getDeltaBar(vmType));
+			solPerJob.setRhoBar(dataService.getRhoBar(vmType));
+			solPerJob.setSigmaBar(dataService.getSigmaBar(vmType));
+			solPerJob.setEta(dataService.getData().getEta(minIndex));
+			solPerJob.setR(dataService.getData().getR(minIndex));
+			solPerJob.setD(dataService.getData().getD(minIndex));
+
 			int jobId = dataService.getData().getId_job(i);
 			logger.info("For job class " + jobId + " has been selected the machine " + vmType);
 			listResults.clear();

@@ -32,8 +32,6 @@ public class Optimizer {
 	@Value("${settings.cycles:100}")
 	private int cycles;
 
-	@Autowired
-	private Evaluator evaluator;
 
 	@Autowired
 	private LocalSearch localSearch;
@@ -142,7 +140,7 @@ public class Optimizer {
 		List<Double> arrayResponseTime = new ArrayList<>();
 		int countIter = 0;
 
-		double cost = evaluator.evaluate(solution);
+		double cost = solution.evaluate();
 
 		FileUtils.copyFile(fileSharedNet, fileShared2);
 		FileUtils.copyFile(fileSharedDef, fileShared1);
@@ -165,7 +163,7 @@ public class Optimizer {
 		}
 
 		logger.info("The initial runtime time is :" + runTime);
-		cost = evaluator.evaluate(solution);
+		cost = Evaluator.evaluate(solution);
 
 		logger.info("il costo  iniziale 2  e:" + cost);
 		Collections.copy(tempArray, arrayResponseTime);
@@ -194,7 +192,7 @@ public class Optimizer {
 						arrayResponseTime.add(calculateResponseTime(arrayThroughput.get(j), nUsers, think));
 					}
 					Collections.copy(tempArray, arrayResponseTime);
-					cost = evaluator.evaluate(solution);
+					cost = Evaluator.evaluate(solution);
 					logger.info("the cost of iteration " + countIter + "  is: " + cost);
 					countIter = countIter + 1;
 				}

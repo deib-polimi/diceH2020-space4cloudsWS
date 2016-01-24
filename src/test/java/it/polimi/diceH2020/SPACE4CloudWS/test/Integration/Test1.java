@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -24,13 +25,10 @@ import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
 @RunWith(SpringJUnit4ClassRunner.class) // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class) // 2
 @WebAppConfiguration // 3
-// @IntegrationTest("server.port:8080") // 4
-//@ActiveProfiles("test")
+@ActiveProfiles("test")
 @Transactional
 public class Test1 {
 
-	// @Value("${local.server.port}") // 6
-	// int port;
 
 	@Autowired
 	private InstanceData data;
