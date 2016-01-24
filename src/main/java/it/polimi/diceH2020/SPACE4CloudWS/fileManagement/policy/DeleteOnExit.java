@@ -13,4 +13,9 @@ public class DeleteOnExit implements DeletionPolicy {
         file.deleteOnExit();
         return false;
     }
+
+    @Override
+    public void markForDeletion(File file) {
+        file.deleteOnExit();
+    }
 }

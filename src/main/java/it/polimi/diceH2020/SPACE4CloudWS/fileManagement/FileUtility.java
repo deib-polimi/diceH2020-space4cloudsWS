@@ -29,7 +29,9 @@ public class FileUtility {
 	}
 
 	public File provideTemporaryFile(@Nonnull String prefix, @Nullable String suffix) throws IOException {
-		return File.createTempFile(prefix, suffix, LOCAL_DYNAMIC_FOLDER);
+		File file = File.createTempFile(prefix, suffix, LOCAL_DYNAMIC_FOLDER);
+		policy.markForDeletion(file);
+		return file;
 	}
 
 	public void writeContentToFile(@Nonnull String content, @Nonnull File file) throws IOException {

@@ -9,4 +9,6 @@ public interface DeletionPolicy {
      * @return {@code true} if the file was actually deleted
      */
     boolean delete(File file);
+
+    void markForDeletion(File file);
 }

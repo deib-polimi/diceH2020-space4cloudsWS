@@ -12,4 +12,9 @@ public class Delete implements DeletionPolicy {
     public boolean delete(File file) {
         return file.delete();
     }
+
+    @Override
+    public void markForDeletion(File file) {
+        file.deleteOnExit();
+    }
 }

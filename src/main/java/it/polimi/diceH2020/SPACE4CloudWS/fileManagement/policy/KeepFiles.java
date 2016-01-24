@@ -12,4 +12,9 @@ public class KeepFiles implements DeletionPolicy {
     public boolean delete(File file) {
         return false;
     }
+
+    @Override
+    public void markForDeletion(File file) {
+        // This is a no-op for choice
+    }
 }
