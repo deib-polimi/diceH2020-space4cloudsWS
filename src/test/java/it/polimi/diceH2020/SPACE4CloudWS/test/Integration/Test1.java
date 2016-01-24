@@ -53,7 +53,7 @@ public class Test1 {
 	public void testApplDataFormat() {
 
 		when().get("/appldata").then().statusCode(HttpStatus.SC_OK)
-				.body(matchesJsonSchemaInClasspath("myFiles/applData.json"));
+				.body(matchesJsonSchemaInClasspath("AMPL/applData.json"));
 	}
 
 	@Test

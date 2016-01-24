@@ -24,7 +24,7 @@ import java.util.List;
 @Component
 public class MINLPSolver {
 
-	private static final String MY_FILES = "/myFiles";
+	private static final String AMPL_FILES = "/AMPL";
 
 	private static final String RESULTS_SOLFILE = "/results/solution.sol";
 
@@ -109,7 +109,7 @@ public class MINLPSolver {
 	}
 
 	public void test() throws IOException {
-		String path = "/myFiles/centralized.run";
+		String path = "/AMPL/centralized.run";
 		InputStream res = getClass().getResourceAsStream(path);
 		String theString = IOUtils.toString(res, Charset.defaultCharset());
 		logger.info(theString);
@@ -117,7 +117,7 @@ public class MINLPSolver {
 
 	public void initRemoteEnvironment() throws Exception {
 		List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
-		String localPath = MY_FILES;
+		String localPath = AMPL_FILES;
 		logger.info("------------------------------------------------");
 		logger.info("Starting math solver service initialization phase");
 		logger.info("------------------------------------------------");

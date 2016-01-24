@@ -4,7 +4,6 @@ import com.jcraft.jsch.HostKey;
 import com.jcraft.jsch.HostKeyRepository;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 
 public class ConnectionCreator {
@@ -13,11 +12,11 @@ public class ConnectionCreator {
 	public ConnectionCreator(ConnectionSettings settings) {
 		this.settings = settings;
 	}
-	
+
 	public Session createSession() throws Exception {
 		JSch jsch = new JSch();
 		jsch.addIdentity(settings.getPubKeyFile(), settings.getPassword());
-		jsch.setKnownHosts(settings.getSetKnownHosts());
+		jsch.setKnownHosts(settings.getKnownHosts());
 
 		Session session = jsch.getSession(settings.getUsername(), settings.getAddress(), settings.getPort());
 
@@ -37,6 +36,5 @@ public class ConnectionCreator {
 		}
 		return session;
 	}
-	
-	
+
 }

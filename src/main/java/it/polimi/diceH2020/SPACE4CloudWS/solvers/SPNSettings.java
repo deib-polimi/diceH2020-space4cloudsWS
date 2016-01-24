@@ -8,21 +8,21 @@ import org.springframework.stereotype.Component;
 public class SPNSettings implements ConnectionSettings {
 
 	private String address;
-	
+
 	private int port = 22; //default value
-	
+
 	private String username;
-	
+
 	private String password;
-	
+
 	private String solverPath;
-	
+
 	private String remoteWorkDir;
-	
+
 	private String pubKeyFile;
 
-	private String setKnownHosts;
-	
+	private String knownHosts;
+
 	private boolean forceClean;
 
 	public String getPubKeyFile() {
@@ -33,12 +33,12 @@ public class SPNSettings implements ConnectionSettings {
 		this.pubKeyFile = pubKeyFile;
 	}
 
-	public String getSetKnownHosts() {
-		return setKnownHosts;
+	public String getKnownHosts() {
+		return knownHosts;
 	}
 
-	public void setSetKnownHosts(String setKnownHosts) {
-		this.setKnownHosts = setKnownHosts;
+	public void setKnownHosts(String knownHosts) {
+		this.knownHosts = knownHosts;
 	}
 
 	private double accuracy= 0.1; //default value
@@ -149,5 +149,4 @@ public class SPNSettings implements ConnectionSettings {
 		this.forceClean = forceClean;
 	}
 
-	
 }

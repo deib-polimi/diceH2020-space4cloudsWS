@@ -28,7 +28,7 @@ public class AMPLRunFileBuilder {
     }
 
     public String build() throws IOException {
-        InputStream runTemplate = getResourceFileStream("/myFiles/main.run.template");
+        InputStream runTemplate = getResourceFileStream("/AMPL/main.run.template");
         BufferedReader reader = new BufferedReader(new InputStreamReader(runTemplate));
         String line;
         List<String> outputLines = new LinkedList<>();

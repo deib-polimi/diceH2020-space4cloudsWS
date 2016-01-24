@@ -22,10 +22,9 @@ public class MINLPSettings implements ConnectionSettings {
 
 	private String pubKeyFile;
 
-	private String setKnownHosts;
-	
+	private String knownHosts;
+
 	private boolean forceClean;
-	
 
 	public String getAddress() {
 		return address;
@@ -120,12 +119,12 @@ public class MINLPSettings implements ConnectionSettings {
 		this.pubKeyFile = pubKeyFile;
 	}
 
-	public String getSetKnownHosts() {
-		return setKnownHosts;
+	public String getKnownHosts() {
+		return knownHosts;
 	}
 
-	public void setSetKnownHosts(String setKnownHosts) {
-		this.setKnownHosts = setKnownHosts;
+	public void setKnownHosts(String knownHosts) {
+		this.knownHosts = knownHosts;
 	}
 
 	public boolean isForceClean() {
