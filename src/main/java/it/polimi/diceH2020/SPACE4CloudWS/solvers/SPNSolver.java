@@ -1,7 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

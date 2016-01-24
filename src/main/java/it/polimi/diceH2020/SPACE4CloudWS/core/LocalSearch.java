@@ -1,9 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.PNDefFileBuilder;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.PNNetFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.PNDefFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.PNNetFileBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 import org.apache.log4j.Logger;

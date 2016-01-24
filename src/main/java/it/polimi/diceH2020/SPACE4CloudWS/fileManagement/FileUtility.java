@@ -1,9 +1,10 @@
-package it.polimi.diceH2020.SPACE4CloudWS.fs;
+package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
-import it.polimi.diceH2020.SPACE4CloudWS.fs.policy.DeletionPolicy;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

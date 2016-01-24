@@ -1,6 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
-import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;

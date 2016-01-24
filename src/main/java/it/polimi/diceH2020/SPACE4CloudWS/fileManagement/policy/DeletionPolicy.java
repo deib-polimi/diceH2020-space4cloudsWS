@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.fs.policy;
+package it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy;
 
 import java.io.File;
 

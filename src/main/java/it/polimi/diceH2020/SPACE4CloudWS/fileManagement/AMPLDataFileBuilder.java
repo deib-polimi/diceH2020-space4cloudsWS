@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.fs;
+package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
 import java.io.IOException;
 import java.util.LinkedList;

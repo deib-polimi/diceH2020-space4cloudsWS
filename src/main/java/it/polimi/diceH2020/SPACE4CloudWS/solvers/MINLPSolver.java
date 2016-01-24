@@ -1,8 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.AMPLRunFileBuilder;
-import it.polimi.diceH2020.SPACE4CloudWS.fs.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLRunFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
