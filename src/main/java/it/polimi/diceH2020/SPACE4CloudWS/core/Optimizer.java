@@ -204,7 +204,7 @@ public class Optimizer {
 
 		}
 		for (int j = 0; j < numJobs; j++)
-			solution.getLstSolutions().get(j).setSimulatedTime(tempArray.get(j));
+			solution.getLstSolutions().get(j).setDuration(tempArray.get(j));
 
 		return tempArray;
 	}

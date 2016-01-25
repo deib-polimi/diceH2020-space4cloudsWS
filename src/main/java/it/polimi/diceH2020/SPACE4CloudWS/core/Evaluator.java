@@ -34,20 +34,4 @@ public class Evaluator implements IEvaluator {
 		return cost;
 	}
 
-	private void calculateNumVMsPerType(SolutionPerJob solPerJob) {
-		double eta = solPerJob.getEta();
-		double R = solPerJob.getR();
-		int nContainers = solPerJob.getNumberContainers();
-		double ratio = nContainers / solPerJob.getNumCores(); // TODO
-																// //
-																// Check
-																// this
-		double numSpotVM = eta * ratio;
-		double numReservedVM = Math.min(R, (ratio) * (1 - eta));
-		double numOnDemandVM = Math.max(0, ratio - numSpotVM - numReservedVM);
-		solPerJob.setNumSpotVM(numSpotVM);
-		solPerJob.setNumReservedVM(numReservedVM);
-		solPerJob.setNumOnDemandVM(numOnDemandVM);
-
-	}
 }

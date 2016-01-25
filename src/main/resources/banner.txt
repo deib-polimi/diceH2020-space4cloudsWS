@@ -1,0 +1,7 @@
+${AnsiColor.BRIGHT_GREEN}   _____   __ __   ______        _       __   _____
+${AnsiColor.BRIGHT_GREEN}  / ___/  / // /  / ____/       | |     / /  / ___/
+${AnsiColor.BRIGHT_GREEN}  \__ \  / // /_ / /      ______| | /| / /   \__ \ 
+${AnsiColor.BRIGHT_GREEN} ___/ / /__  __// /___   /_____/| |/ |/ /   ___/ / 
+${AnsiColor.BRIGHT_GREEN}/____/    /_/   \____/          |__/|__/   /____/  
+${AnsiColor.BRIGHT_GREEN}----------------------------------------------------------
+${AnsiColor.BRIGHT_BLUE}H2020 DICE project - ${application.title} ${application.version} -> Polimi 2016${AnsiColor.WHITE}

@@ -42,7 +42,7 @@ public class MINLPSolver {
 	@Autowired
 	private MINLPSettings connSettings;
 
-	@Autowired
+	@Autowired	
 	private Environment environment; // this is to check which is the active
 										// profile at runtime
 

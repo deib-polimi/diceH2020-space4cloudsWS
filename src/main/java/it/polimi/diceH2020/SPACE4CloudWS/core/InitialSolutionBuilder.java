@@ -58,10 +58,10 @@ public class InitialSolutionBuilder {
 		for (int i = 0; i < numJobs; ++i) {
 			for (int j = 0; j < numTypeVM; ++j) {
 				AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(instanceData, i, j);
-				builder.setArrayParameter("w", Ints.asList(matrixJobCores.get(i).get(j)));
-				builder.setArrayParameter("sigmabar", Doubles.asList(sigmaBar.get(j)));
-				builder.setArrayParameter("deltabar", Doubles.asList(deltaBar.get(j)));
-				builder.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
+				builder.setArrayParameter("w", Ints.asList(matrixJobCores.get(i).get(j)))
+				.setArrayParameter("sigmabar", Doubles.asList(sigmaBar.get(j)))
+				.setArrayParameter("deltabar", Doubles.asList(deltaBar.get(j)))
+				.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
 				File dataFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j), ".dat");
 				fileUtility.writeContentToFile(builder.build(), dataFile);
 				File resultsFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j),
@@ -113,7 +113,7 @@ public class InitialSolutionBuilder {
 		if (fileUtility.delete(resultsFile)) {
 			logger.debug(resultsFile + " deleted");
 		}
-
+		Evaluator.evaluate(startingSol);
 		return startingSol;
 	}
 
@@ -181,7 +181,7 @@ public class InitialSolutionBuilder {
 			bufferStr = line.split("\\s+");
 			System.out.println(bufferStr[1]);
 			String localStr = bufferStr[1].replaceAll("\\s+", "");
-			sol.getLstSolutions().get(i).setSimulatedTime(Double.parseDouble(localStr));
+			sol.getLstSolutions().get(i).setDuration(Double.parseDouble(localStr));
 		}
 		while (!line.contains("Variables")) {
 			line = reader.readLine();
@@ -198,7 +198,6 @@ public class InitialSolutionBuilder {
 		for (int i = 0; i < numJobs; i++) {
 			bufferStr = line.split("\\s+");
 			String x = bufferStr[2].replaceAll("\\s+", "");
-			// TODO check rounding
 			ncontainers = Math.round(Float.parseFloat(x));
 			SolutionPerJob solPerJob = sol.getSolutionPerJob(i);
 			solPerJob.setNumberVM(ncontainers * numCores.get(i));

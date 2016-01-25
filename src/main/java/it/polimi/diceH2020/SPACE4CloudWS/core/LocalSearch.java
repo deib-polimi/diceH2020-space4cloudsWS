@@ -122,7 +122,7 @@ public class LocalSearch {
 		}
 
 		Thread.sleep(1000L);
-		solPerJob.setSimulatedTime(tempResponseTime);
+		solPerJob.setDuration(tempResponseTime);
 		solPerJob.setNumberUsers(nUsers);
 		solPerJob.setNumberContainers(nContainers);
 		solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO check.

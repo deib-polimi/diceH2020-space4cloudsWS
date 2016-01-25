@@ -20,7 +20,7 @@ public class AMPLDataFileBuilder {
         return this;
     }
 
-    public <N extends Number> AMPLDataFileBuilder setArrayParameter(String name, Iterable<N> values) {
+	public <N extends Number> AMPLDataFileBuilder setArrayParameter(String name, Iterable<N> values) {
         String currentLine = String.format("param: %s :=", name);
         lines.add(currentLine);
         int idx = 1;
