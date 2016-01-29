@@ -39,11 +39,6 @@ public class DataService {
 		return jobNumber;
 	}
 
-	private int vmNumber;
-
-	public int getNumberTypeVM() {
-		return vmNumber;
-	}
 
 	private Solution currentSolution;
 
@@ -108,7 +103,7 @@ public class DataService {
 	public void setInstanceData(InstanceData inputData) {
 		this.data = inputData;
 		this.jobNumber = data.getNumberJobs();
-		this.vmNumber = data.getNumberTypeVM();
+		//this.vmNumber = data.getNumberTypeVM();
 		this.NameProvider = data.getProvider();
 		loadDataFromDB(new Provider(this.NameProvider));
 	}
@@ -142,6 +137,7 @@ public class DataService {
 				DataService.this.lstCore.add(s.getNumCores());
 			}
 		});
+		//TODO check this
 		data.getId_job().forEach(new Consumer<Integer>() {
 			@Override
 			public void accept(Integer s) {

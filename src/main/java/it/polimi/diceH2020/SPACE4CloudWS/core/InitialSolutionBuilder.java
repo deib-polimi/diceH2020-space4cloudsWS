@@ -1,19 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLDataFileBuilder;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLDataFileUtils;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -22,6 +8,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
+
+import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLDataFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLDataFileUtils;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 
 @Service
 public class InitialSolutionBuilder {
@@ -44,7 +47,6 @@ public class InitialSolutionBuilder {
 	private List<List<Integer>> matrixJobCores;
 
 	private int numJobs;
-	private int numTypeVM;
 
 	public Solution getInitialSolution() throws Exception {
 
@@ -53,15 +55,23 @@ public class InitialSolutionBuilder {
 		Solution startingSol = new Solution();
 
 		init();
-
+		InstanceData data = dataService.getData();
 		// Phase 1
+		data.getLstClass().forEach(jobClass -> {
+			data.getLstTypeVM(jobClass).forEach(tVM->{
+				Profile prof = data.getProfile(jobClass, tVM);
+				AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(data.getGamma(), jobClass, tVM, prof);
+				
+			});
+			
+		});
 		for (int i = 0; i < numJobs; ++i) {
+
 			for (int j = 0; j < numTypeVM; ++j) {
-				AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(instanceData, i, j);
 				builder.setArrayParameter("w", Ints.asList(matrixJobCores.get(i).get(j)))
-				.setArrayParameter("sigmabar", Doubles.asList(sigmaBar.get(j)))
-				.setArrayParameter("deltabar", Doubles.asList(deltaBar.get(j)))
-				.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
+						.setArrayParameter("sigmabar", Doubles.asList(sigmaBar.get(j)))
+						.setArrayParameter("deltabar", Doubles.asList(deltaBar.get(j)))
+						.setArrayParameter("rhobar", Doubles.asList(rhoBar.get(j)));
 				File dataFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j), ".dat");
 				fileUtility.writeContentToFile(builder.build(), dataFile);
 				File resultsFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%d_", i, j),
@@ -141,7 +151,6 @@ public class InitialSolutionBuilder {
 
 	public void init() throws IOException {
 		numJobs = dataService.getNumberJobs();
-		numTypeVM = dataService.getNumberTypeVM();
 		sigmaBar = dataService.getLstSigmaBar();
 		deltaBar = dataService.getLstDeltaBar();
 		rhoBar = dataService.getLstRhoBar();

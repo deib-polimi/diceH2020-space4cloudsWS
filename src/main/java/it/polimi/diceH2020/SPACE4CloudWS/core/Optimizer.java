@@ -132,7 +132,7 @@ public class Optimizer {
 
 	public List<Double> sharedCluster() throws Exception {
 
-		InstanceData data = dataService.getData();
+		InstanceDataOld data = dataService.getData();
 
 		List<Double> tempArray = new ArrayList<>();
 
@@ -211,7 +211,7 @@ public class Optimizer {
 
 	private void modifinalenet(int i) throws IOException {
 
-		InstanceData data = dataService.getData();
+		InstanceDataOld data = dataService.getData();
 		String oldFileName = "MR-Yarn2Pcopy.net";
 		String tmpFileName = "MR-Yarn2P" + i + ".net";
 		int index = solution.getIdxVmTypeSelected().get(i);

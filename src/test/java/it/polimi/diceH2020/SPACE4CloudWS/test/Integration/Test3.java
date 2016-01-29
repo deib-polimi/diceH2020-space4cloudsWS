@@ -1,9 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.post;
-import static org.junit.Assert.*;
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;

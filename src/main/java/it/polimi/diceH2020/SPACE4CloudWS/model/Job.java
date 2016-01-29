@@ -10,11 +10,6 @@ public class Job {
 	@Id
 	private int idJob;
 
-	/*
-	 * @OneToMany(cascade = CascadeType.ALL, mappedBy = "job") private
-	 * List<SpedFind> spedf;
-	 */
-
 	public int getIdJob() {
 		return idJob;
 	}
