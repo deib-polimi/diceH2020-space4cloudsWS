@@ -57,7 +57,7 @@ public class MINLPSolver {
 		connector = new SshConnector(connSettings);
 	}
 
-	public Float run(File dataFile, File solutionFile) throws Exception {
+	public Double run(File dataFile, File solutionFile) throws Exception {
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
 		connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath);
 		logger.info("AMPL .data file sent");
@@ -86,7 +86,7 @@ public class MINLPSolver {
 		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 		connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath);
 
-		float objFunctionValue = analyzeSolution(solutionFile);
+		Double objFunctionValue = analyzeSolution(solutionFile);
 
 		logger.info("The value of the objective function is: " + objFunctionValue);
 
@@ -95,12 +95,12 @@ public class MINLPSolver {
 		return objFunctionValue;
 	}
 
-	private float analyzeSolution(File solFile) throws IOException {
+	private Double analyzeSolution(File solFile) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
 		String centralized = "centralized_obj = ";
 		int startPos = fileToString.indexOf(centralized);
 		int endPos = fileToString.indexOf('\n', startPos);
-		float objFunctionValue = Float.parseFloat(fileToString.substring(startPos + centralized.length(), endPos));
+		Double objFunctionValue = Double.parseDouble(fileToString.substring(startPos + centralized.length(), endPos));
 
 		logger.info(fileToString);
 		logger.info(objFunctionValue);

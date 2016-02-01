@@ -2,10 +2,11 @@ package it.polimi.diceH2020.SPACE4CloudWS.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
-//TODO This entity is unused. 
 @Entity
-public class Job {
+@Table(name = "JOBCLASS")
+public class EntityJobClass {
 
 	@Id
 	private int idJob;
@@ -18,10 +19,10 @@ public class Job {
 		this.idJob = idJob;
 	}
 
-	public Job() {
+	public EntityJobClass() {
 	}
 
-	public Job(int idJob) {
+	public EntityJobClass(int idJob) {
 		super();
 		this.idJob = idJob;
 	}

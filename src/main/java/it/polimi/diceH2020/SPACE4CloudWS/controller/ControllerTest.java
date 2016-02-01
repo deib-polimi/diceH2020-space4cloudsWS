@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.model.Job;
-import it.polimi.diceH2020.SPACE4CloudWS.model.Key;
-import it.polimi.diceH2020.SPACE4CloudWS.model.Provider;
-import it.polimi.diceH2020.SPACE4CloudWS.model.TypeVM;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityJobClass;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.JobRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.ProviderRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.TypeVMRepository;
@@ -58,29 +58,29 @@ public class ControllerTest {
 	
 	@RequestMapping(method = RequestMethod.POST, value = "job")
 	@Profile("test")
-	public @ResponseBody Job postJob(@RequestBody Job jb){
+	public @ResponseBody EntityJobClass postJob(@RequestBody EntityJobClass jb){
 		jobRepository.saveAndFlush(jb);
-		Job job = jobRepository.findOne(jb.getIdJob());
+		EntityJobClass job = jobRepository.findOne(jb.getIdJob());
 		return job;
 	}
 	@RequestMapping(method = RequestMethod.POST, value = "typeVM")
 	@Profile("test")
-	public @ResponseBody TypeVM postTypeVM(@RequestBody TypeVM typeVM){
+	public @ResponseBody EntityTypeVM postTypeVM(@RequestBody EntityTypeVM typeVM){
 		typeVMRepository.saveAndFlush(typeVM);
-		Provider provider = new Provider();
+		EntityProvider provider = new EntityProvider();
 		provider.setName("Amazon");
-		Key key = new Key("T1", provider);
-		TypeVM tVM = typeVMRepository.findOne(key);
+		EntityKey key = new EntityKey("T1", provider);
+		EntityTypeVM tVM = typeVMRepository.findOne(key);
 		return tVM;
 	}
 	@RequestMapping(method = RequestMethod.GET, value = "providers")
 	@Profile("test")
-	public @ResponseBody List<Provider> getProvider(){
+	public @ResponseBody List<EntityProvider> getProvider(){
 		return providerRepository.findAll();
 	}
 	@RequestMapping(method = RequestMethod.GET, value = "typeVM")
 	@Profile("test")
-	public @ResponseBody List<TypeVM> getTypeVM(){
+	public @ResponseBody List<EntityTypeVM> getTypeVM(){
 		return typeVMRepository.findAll();
 	}
 	

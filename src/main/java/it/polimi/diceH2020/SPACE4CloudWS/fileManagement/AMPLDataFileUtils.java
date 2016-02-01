@@ -16,10 +16,6 @@ public class AMPLDataFileUtils {
 	public static AMPLDataFileBuilder singleClassBuilder(int gamma, JobClass jClass, TypeVM tVM, Profile prof) {
 
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(1);
-//		JobClass jClass = data.getLstClass().get(classId);
-//		Profile prof = data.getMapProfiles().get(new TypeVMJobClassKey(jClass.getId(), vmType));
-//		TypeVM tVM = data.getMapTypeVMs().get(jClass.getId()).get(index);
-		
 		builder.setScalarParameter("Gamma", gamma);
 		builder.setArrayParameter("HUp",   Ints.asList(jClass.getHup()));
 		builder.setArrayParameter("HLow", Ints.asList(jClass.getHlow()));

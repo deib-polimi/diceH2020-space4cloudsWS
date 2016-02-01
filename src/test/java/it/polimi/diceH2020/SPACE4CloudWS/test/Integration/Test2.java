@@ -15,9 +15,9 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 
-import it.polimi.diceH2020.SPACE4CloudWS.model.Job;
-import it.polimi.diceH2020.SPACE4CloudWS.model.Provider;
-import it.polimi.diceH2020.SPACE4CloudWS.model.TypeVM;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityJobClass;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 
 @RunWith(SpringJUnit4ClassRunner.class)   // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class)   // 2
@@ -36,7 +36,7 @@ public class Test2 {
 
     @Test
     public void testPutJob() {
-        Job jb = new Job();
+        EntityJobClass jb = new EntityJobClass();
         jb.setIdJob(10);
     	RestAssured.
     	given().
@@ -49,9 +49,9 @@ public class Test2 {
     @Test
     public void testPutTypeVM() {
         
-    	Provider provider = new Provider();
+    	EntityProvider provider = new EntityProvider();
     	provider.setName("Amazon");
-    	TypeVM typeVM = new TypeVM();
+    	EntityTypeVM typeVM = new EntityTypeVM();
     	typeVM.setCore(2);
     	typeVM.setDeltabar(0.8);
     	typeVM.setProvider(provider);

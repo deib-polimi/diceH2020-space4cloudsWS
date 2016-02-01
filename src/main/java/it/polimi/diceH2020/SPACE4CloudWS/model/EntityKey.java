@@ -2,33 +2,33 @@ package it.polimi.diceH2020.SPACE4CloudWS.model;
 
 import java.io.Serializable;
 
-public class Key implements Serializable {
+public class EntityKey implements Serializable {
 
 	private static final long serialVersionUID = -5386973188931712971L;
-	private Provider provider;
+	private EntityProvider provider;
 
 	private String type;
 
-	public Key(){
+	public EntityKey(){
 		
 	}
 	
-	public Key(String type, Provider provider) {
+	public EntityKey(String type, EntityProvider provider) {
 		super();
 		this.setType(type);
 		this.setProvider(provider);
 	}
 
-	public Key(String type, String name) {
+	public EntityKey(String type, String name) {
 		super();
 		this.setType(type);
-		this.setProvider(new Provider(name));
+		this.setProvider(new EntityProvider(name));
 	}
 
 	/**
 	 * @return the provider
 	 */
-	public Provider getProvider() {
+	public EntityProvider getProvider() {
 		return provider;
 	}
 
@@ -42,7 +42,7 @@ public class Key implements Serializable {
 	/**
 	 * @param provider the provider to set
 	 */
-	public void setProvider(Provider provider) {
+	public void setProvider(EntityProvider provider) {
 		this.provider = provider;
 	}
 
@@ -55,8 +55,8 @@ public class Key implements Serializable {
 	
     @Override
     public boolean equals(Object obj) {
-        if(obj != null && obj instanceof Key) {
-            Key s = (Key)obj;
+        if(obj != null && obj instanceof EntityKey) {
+            EntityKey s = (EntityKey)obj;
             return type.equals(s.type) && provider.equals(s.provider);
         }
         return false;

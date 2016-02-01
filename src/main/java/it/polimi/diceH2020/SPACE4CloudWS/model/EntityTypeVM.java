@@ -5,20 +5,22 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 @Entity
-@IdClass(Key.class)
-public class TypeVM {
+@IdClass(EntityKey.class)
+@Table(name = "TYPEVM")
+public class EntityTypeVM {
 
-	public Provider getProvider() {
+	public EntityProvider getProvider() {
 		return provider;
 	}
 
-	public void setProvider(Provider provider) {
+	public void setProvider(EntityProvider provider) {
 		this.provider = provider;
 	}
 
-	public TypeVM() {
+	public EntityTypeVM() {
 	}
 
 	@Id
@@ -27,7 +29,7 @@ public class TypeVM {
 	@Id
 	@ManyToOne
 	@JoinColumn(name = "pId")
-	private Provider provider;
+	private EntityProvider provider;
 
 	private int core;
 
@@ -41,7 +43,7 @@ public class TypeVM {
 
 	private double deltabar;
 
-	public TypeVM(String type) {
+	public EntityTypeVM(String type) {
 		super();
 		this.type = type;
 	}

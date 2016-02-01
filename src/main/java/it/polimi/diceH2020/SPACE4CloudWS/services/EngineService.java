@@ -54,8 +54,8 @@ public class EngineService {
 			optimizer.init(sol);
 			optimizer.parallelLocalSearch();
 
-			if (dataService.getNumberJobs() > 1)
-				optimizer.sharedCluster();
+//			if (dataService.getNumberJobs() > 1)
+//				optimizer.sharedCluster();
 
 			stateHandler.sendEvent(Events.MIGRATE);
 		} catch (Exception e) {
@@ -100,12 +100,5 @@ public class EngineService {
 		this.dataService.setInstanceData(inputData);
 	}
 
-	// this is called from a debug endpoint
-	public void optimizationSharedCluster() throws Exception {
-		Solution sol = solBuilder.getInitialSolution();
-		optimizer.init(sol);
-		List<Double> lstResults = optimizer.sharedCluster();
-		logger.info(lstResults.toString());
-	}
 
 }

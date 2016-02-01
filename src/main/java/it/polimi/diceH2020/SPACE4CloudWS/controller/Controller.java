@@ -40,11 +40,6 @@ public class Controller {
 		return getWebServiceState();
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "app/debug")
-	public void debug() throws Exception {
-		engineService.optimizationSharedCluster();
-	}
-
 	@RequestMapping(method = RequestMethod.POST, value = "inputdata")
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointInputData(@RequestBody InstanceData inputData) throws Exception {

@@ -3,20 +3,22 @@ package it.polimi.diceH2020.SPACE4CloudWS.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
-public class Provider {
+@Table(name = "Provider")
+public class EntityProvider {
 
 	@Id
 	@Column(name = "pId")
 	String name;
 
-	public Provider() {
+	public EntityProvider() {
 		super();
 		System.out.println("");
 	}
 
-	public Provider(String name) {
+	public EntityProvider(String name) {
 		super();
 		this.name = name;
 	}
@@ -30,7 +32,7 @@ public class Provider {
 	}
 	@Override
 	public boolean equals(Object provider){
-		Provider myProvider = (Provider) provider;
+		EntityProvider myProvider = (EntityProvider) provider;
 		if( this.getName().equals(myProvider.name)){
 			return true;
 		}

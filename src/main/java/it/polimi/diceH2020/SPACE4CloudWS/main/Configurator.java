@@ -10,8 +10,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceDataGenerator;
+import it.polimi.diceH2020.SPACE4Cloud.shared.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4Cloud.shared.TypeVM;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
 @Configuration
@@ -59,13 +61,22 @@ public class Configurator {
 	public Solution solution() {
 		Solution sol = new Solution();
 		SolutionPerJob sol1 = new SolutionPerJob();
+		TypeVM t1 = new TypeVM();
+		t1.setId("T2");
+		t1.setEta(0.3);
+		t1.setR(25);
+		sol1.setTypeVMselected(t1);
+		JobClass job1 = new JobClass();
+		job1.setD(150.0);
+		sol1.setJob(job1);
+		
+		
 		sol1.setAlfa(1250.0);
 		sol1.setBeta(125.0);
 		sol1.setChanged(false);
 		sol1.setCost(13.3);
 		sol1.setDeltaBar(1.4);
 		sol1.setFeasible(false);
-		sol1.setIdxVmTypeSelected(1);
 		sol1.setNumberContainers(5);
 		sol1.setNumberUsers(10);
 		sol1.setNumberVM(15);
@@ -74,22 +85,24 @@ public class Configurator {
 		sol1.setNumReservedVM(11);
 		sol1.setNumSpotVM(4);
 		sol1.setPos(0);
+		
 		sol1.setRhoBar(1.1);
 		sol1.setSigmaBar(0.3);
 		sol1.setDuration(180.0);
-		sol1.setTypeVMselected("T2");
-		sol1.setEta(0.3);
-		sol1.setR(25);
-		sol1.setD(150.0);
+
 		sol.getLstSolutions().add(sol1);
+
 		SolutionPerJob sol2 = new SolutionPerJob();
-        sol2.setAlfa(749.5);
+        JobClass job2 = new JobClass();
+        job2.setD(150.0);
+        sol2.setJob(job2);
+		sol2.setTypeVMselected(t1);
+		sol2.setAlfa(749.5);
         sol2.setBeta(74.95);
         sol2.setChanged(false);
         sol2.setCost(35.0);
         sol2.setDeltaBar(1.4);
         sol2.setFeasible(false);
-        sol2.setIdxVmTypeSelected(1);
         sol2.setNumberContainers(13);
         sol2.setNumberUsers(10);
         sol2.setNumberVM(39);
@@ -101,10 +114,7 @@ public class Configurator {
         sol2.setRhoBar(1.1);
         sol2.setSigmaBar(0.3);
         sol2.setDuration(150.0);
-        sol2.setTypeVMselected("T2");
-        sol2.setEta(0.3);
-        sol2.setR(25);
-        sol2.setD(150.0);
+
         sol.getLstSolutions().add(sol2);
         
 		return sol;
