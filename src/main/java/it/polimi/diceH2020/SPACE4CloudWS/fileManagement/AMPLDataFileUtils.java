@@ -38,26 +38,28 @@ public class AMPLDataFileUtils {
 		return builder;
 	}
 
-	public static AMPLDataFileBuilder multiClassBuilder(InstanceData data, List<TypeVMJobClassKey> lstTypeJobClass) {
+	public static AMPLDataFileBuilder multiClassBuilder(InstanceData data, List<TypeVMJobClassKey> lstKeys) {
 
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(data.getNumberJobs());
-
+		
+		List<JobClass> lstJob = data.getListJobs(lstKeys);
+		
 		builder.setScalarParameter("Gamma", data.getGamma());
-		builder.setArrayParameter("HUp",  data.getHUp(lstTypeJobClass));
-		builder.setArrayParameter("HLow", data.getHLow(lstTypeJobClass));
+		builder.setArrayParameter("HUp",  data.getHUp(lstJob));
+		builder.setArrayParameter("HLow", data.getHLow(lstJob));
 		builder.setArrayParameter("job_penalty", data.getJob_penalty());
-		builder.setArrayParameter("NM", data.getNM(lstTypeJobClass));
-		builder.setArrayParameter("NR", data.getNR(lstTypeJobClass));
-		builder.setArrayParameter("D", data.getD(lstTypeJobClass));
-		builder.setArrayParameter("Mmax", data.getMmax(lstTypeJobClass));
-		builder.setArrayParameter("Mavg", data.getMavg(lstTypeJobClass));
-		builder.setArrayParameter("Rmax", data.getRmax(lstTypeJobClass));
-		builder.setArrayParameter("Ravg", data.getRavg(lstTypeJobClass));
-		builder.setArrayParameter("SH1max", data.getSH1max(lstTypeJobClass));
-		builder.setArrayParameter("SHtypavg", data.getSHtypavg(lstTypeJobClass));
-		builder.setArrayParameter("SHtypmax", data.getSHtypmax(lstTypeJobClass));
-		builder.setArrayParameter("R", data.getR(lstTypeJobClass));
-		builder.setArrayParameter("eta", data.getEta(lstTypeJobClass));
+		builder.setArrayParameter("NM", data.getNM(lstKeys));
+		builder.setArrayParameter("NR", data.getNR(lstKeys));
+		builder.setArrayParameter("D", data.getD(lstJob));
+		builder.setArrayParameter("Mmax", data.getMmax(lstKeys));
+		builder.setArrayParameter("Mavg", data.getMavg(lstKeys));
+		builder.setArrayParameter("Rmax", data.getRmax(lstKeys));
+		builder.setArrayParameter("Ravg", data.getRavg(lstKeys));
+		builder.setArrayParameter("SH1max", data.getSH1max(lstKeys));
+		builder.setArrayParameter("SHtypavg", data.getSHtypavg(lstKeys));
+		builder.setArrayParameter("SHtypmax", data.getSHtypmax(lstKeys));
+		builder.setArrayParameter("R", data.getR(lstKeys));
+		builder.setArrayParameter("eta", data.getEta(lstKeys));
 
 		return builder;
 	}

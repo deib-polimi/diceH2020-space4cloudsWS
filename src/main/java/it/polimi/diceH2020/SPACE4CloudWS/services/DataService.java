@@ -5,6 +5,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,12 @@ public class DataService {
 		return this.mapTypeVM.get(key).getSigmaBar();
 	}
 
+	public List<Integer> getNumCores(List<TypeVM> tVM) {
+		return tVM.stream().map(vm->
+			getNumCores(vm)).collect(Collectors.toList());
+
+	}
+	
 	public Integer getNumCores(TypeVM tVM) {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
 		return this.mapTypeVM.get(key).getNumCores();
@@ -81,9 +88,6 @@ public class DataService {
 		return data.getR(key);
 	}
 
-	public double getD(TypeVMJobClassKey key) {
-		return data.getD(key);
-	}
 
 	public List<JobClass> getListJobClass() {
 		return data.getLstClass();

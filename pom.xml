@@ -168,6 +168,11 @@
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.rometools</groupId>
+			<artifactId>rome-utils</artifactId>
+			<version>1.5.0</version>
+		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>

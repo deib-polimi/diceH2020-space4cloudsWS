@@ -42,7 +42,7 @@ public class MINLPSolver {
 	@Autowired
 	private MINLPSettings connSettings;
 
-	@Autowired	
+	@Autowired
 	private Environment environment; // this is to check which is the active
 										// profile at runtime
 
@@ -66,8 +66,7 @@ public class MINLPSolver {
 		String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
 		File runFile = fileUtility.provideTemporaryFile("S4C-run-", ".run");
 		String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
-				.setSolverPath(connSettings.getSolverPath())
-				.setSolutionFile(remoteRelativeSolutionPath).build();
+				.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath).build();
 		fileUtility.writeContentToFile(runFileContent, runFile);
 
 		fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
@@ -81,12 +80,16 @@ public class MINLPSolver {
 		clearResultDir();
 		String command = "cd " + connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + " && "
 				+ connSettings.getAmplDirectory() + " " + REMOTEPATH_DATA_RUN;
-		logger.info("Remote exit status: " + connector.exec(command));
+		List<String> remoteMsg = connector.exec(command);
+		if (remoteMsg.contains("exit-status: 0")) {
+			logger.info("The remote optimization proces completed correctly");
+		}
+		else logger.info("Remote exit status: " + remoteMsg.get(1));
 
 		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 		connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath);
 
-		Double objFunctionValue = analyzeSolution(solutionFile);
+		Double objFunctionValue = analyzeSolution(solutionFile, connSettings.isVerbose());
 
 		logger.info("The value of the objective function is: " + objFunctionValue);
 
@@ -95,15 +98,17 @@ public class MINLPSolver {
 		return objFunctionValue;
 	}
 
-	private Double analyzeSolution(File solFile) throws IOException {
+	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
 		String centralized = "centralized_obj = ";
 		int startPos = fileToString.indexOf(centralized);
 		int endPos = fileToString.indexOf('\n', startPos);
 		Double objFunctionValue = Double.parseDouble(fileToString.substring(startPos + centralized.length(), endPos));
 
-		logger.info(fileToString);
-		logger.info(objFunctionValue);
+		if (verbose) {
+			logger.info(fileToString);
+			logger.info(objFunctionValue);
+		}
 		return objFunctionValue;
 
 	}
@@ -131,9 +136,8 @@ public class MINLPSolver {
 				connector.exec(cleanRemoteDirectoryTree);
 
 				logger.info("Creating new remote work directory tree");
-				String makeRemoteDirectoryTree =
-						"mkdir -p " + root + "/{problems,utils,solve,scratch,results}";
-				connector.exec (makeRemoteDirectoryTree);
+				String makeRemoteDirectoryTree = "mkdir -p " + root + "/{problems,utils,solve,scratch,results}";
+				connector.exec(makeRemoteDirectoryTree);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -162,7 +166,8 @@ public class MINLPSolver {
 			System.out.print("[#########   ] Sending work files\r");
 			sendFile(localPath + "/AM_closed_form.run", connSettings.getRemoteWorkDir() + "/solve/AM_closed_form.run");
 			System.out.print("[##########  ] Sending work files\r");
-			sendFile(localPath + "/post_processing.run", connSettings.getRemoteWorkDir() + "/utils/post_processing.run");
+			sendFile(localPath + "/post_processing.run",
+					connSettings.getRemoteWorkDir() + "/utils/post_processing.run");
 			System.out.print("[########### ] Sending work files\r");
 			sendFile(localPath + "/save_centralized.run",
 					connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");

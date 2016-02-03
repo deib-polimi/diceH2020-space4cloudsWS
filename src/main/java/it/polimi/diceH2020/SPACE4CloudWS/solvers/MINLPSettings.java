@@ -25,6 +25,8 @@ public class MINLPSettings implements ConnectionSettings {
 	private String knownHosts;
 
 	private boolean forceClean;
+	
+	private boolean verbose = false;
 
 	public String getAddress() {
 		return address;
@@ -133,6 +135,14 @@ public class MINLPSettings implements ConnectionSettings {
 
 	public void setForceClean(boolean forceClean) {
 		this.forceClean = forceClean;
+	}
+
+	public boolean isVerbose() {
+		return verbose;
+	}
+
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
 	}
 
 }

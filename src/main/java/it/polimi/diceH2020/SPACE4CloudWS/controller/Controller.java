@@ -26,7 +26,7 @@ public class Controller {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	@RequestMapping(method = RequestMethod.POST, value = "/sendevent")
+	@RequestMapping(method = RequestMethod.POST, value = "/event")
 	public @ResponseBody String changeState(@RequestBody Events event) throws Exception {
 
 		stateHandler.sendEvent(event);
@@ -34,21 +34,27 @@ public class Controller {
 		return getWebServiceState();
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "/sendsettings")
+	@RequestMapping(method = RequestMethod.POST, value = "/settings")
 	public @ResponseBody String changeState(@RequestBody Settings settings) {
 		engineService.setAccuracyAndCycles(settings);
 		return getWebServiceState();
 	}
 
-	@RequestMapping(method = RequestMethod.POST, value = "inputdata")
+	@RequestMapping(method = RequestMethod.POST, value = "/inputdata")
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointInputData(@RequestBody InstanceData inputData) throws Exception {
 		engineService.setInstanceData(inputData);
 		stateHandler.sendEvent(Events.MIGRATE);
 		return getWebServiceState();
 	}
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/solution")
+	@ResponseStatus(value = HttpStatus.OK)
+	public void endpointSolution(@RequestBody Solution sol) throws Exception {
 
-	@RequestMapping(method = RequestMethod.GET, value = "solution")
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
 	public Solution endpointSolution() throws Exception {
 		if (stateHandler.getState().getId() == States.FINISH)

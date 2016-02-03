@@ -85,7 +85,7 @@ public class ControllerTest {
 	}
 	
 	
-	@RequestMapping(method = RequestMethod.POST, value = "debug/sendevent")
+	@RequestMapping(method = RequestMethod.POST, value = "debug/event")
 	@Profile("test")
 	public String debug() throws Exception {
 		Solution sol =engineService.generateInitialSolution();

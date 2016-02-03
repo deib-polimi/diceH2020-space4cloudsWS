@@ -54,9 +54,6 @@ public class EngineService {
 			optimizer.init(sol);
 			optimizer.parallelLocalSearch();
 
-//			if (dataService.getNumberJobs() > 1)
-//				optimizer.sharedCluster();
-
 			stateHandler.sendEvent(Events.MIGRATE);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
