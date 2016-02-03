@@ -1,19 +1,24 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceDataGenerator;
-import it.polimi.diceH2020.SPACE4Cloud.shared.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4Cloud.shared.TypeVM;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import it.polimi.diceH2020.SPACE4Cloud.shared.generators.InstanceDataGenerator;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
 @Configuration
@@ -118,6 +123,13 @@ public class Configurator {
         sol.getLstSolutions().add(sol2);
         
 		return sol;
+	}
+	
+	@Autowired(required = true)
+	public void configeJackson(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+	    SimpleModule module = new SimpleModule();
+		module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer() );
+	    jackson2ObjectMapperBuilder.modules(module);
 	}
 
 }

@@ -11,9 +11,9 @@ import org.springframework.statemachine.annotation.OnTransition;
 import org.springframework.statemachine.annotation.WithStateMachine;
 import org.springframework.stereotype.Service;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.InitialSolutionBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.core.Optimizer;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;

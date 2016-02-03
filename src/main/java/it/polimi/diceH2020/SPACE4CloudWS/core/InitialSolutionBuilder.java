@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.Profile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4Cloud.shared.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLDataFileBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLDataFileUtils;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;

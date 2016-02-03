@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 

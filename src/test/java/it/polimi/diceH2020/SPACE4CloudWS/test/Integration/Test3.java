@@ -22,7 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 
 

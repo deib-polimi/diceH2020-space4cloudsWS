@@ -5,11 +5,11 @@ import java.util.List;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Profile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.TypeVM;
-import it.polimi.diceH2020.SPACE4Cloud.shared.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
 
 public class AMPLDataFileUtils {
 

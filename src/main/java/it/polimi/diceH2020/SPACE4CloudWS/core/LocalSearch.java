@@ -9,9 +9,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.Profile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.PNDefFileBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.PNNetFileBuilder;

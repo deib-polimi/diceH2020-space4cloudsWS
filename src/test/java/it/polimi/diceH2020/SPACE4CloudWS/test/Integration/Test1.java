@@ -5,8 +5,6 @@ import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.get;
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
 
-import java.io.IOException;
-
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -22,16 +20,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.KeyDeserializer;
-import it.polimi.diceH2020.SPACE4Cloud.shared.KeySerializer;
-import it.polimi.diceH2020.SPACE4Cloud.shared.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
@@ -83,26 +75,26 @@ public class Test1 {
 	public void testOptimizationAlgorithm() {
 		if (get("/state").getBody().asString().equals("IDLE")) {
 			
-			try {
-				ObjectMapper mapper = new ObjectMapper();
-				 
-				SimpleModule module = new SimpleModule();
-				module.addSerializer(TypeVMJobClassKey.class, new KeySerializer());
-				mapper.registerModule(module);
-				 
-				String serialized = mapper.writeValueAsString(data);
-				System.out.println(serialized);
-				module.addDeserializer(TypeVMJobClassKey.class, new KeyDeserializer());
-				mapper.registerModule(module);
-
-				InstanceData myData = mapper.readValue(serialized, InstanceData.class);
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				ObjectMapper mapper = new ObjectMapper();
+//				 
+//				SimpleModule module = new SimpleModule();
+//				module.addKeyDeserializer(TypeVMJobClassKey.class, new TypeVMJobClassDeserializer());
+//				mapper.registerModule(module);
+//				 
+//				String serialized = mapper.writeValueAsString(data);
+//				System.out.println(serialized);
+//				module.addDeserializer(TypeVMJobClassKey.class, new KeyDeserializer());
+//				mapper.registerModule(module);
+//
+//				InstanceData myData = mapper.readValue(serialized, InstanceData.class);
+//			} catch (JsonProcessingException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			
 			given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
