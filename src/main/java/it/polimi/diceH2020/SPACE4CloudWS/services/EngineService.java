@@ -1,10 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import java.util.List;
+import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.annotation.OnTransition;
@@ -37,6 +36,8 @@ public class EngineService {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
+	private Solution solution;
+
 	public EngineService() {
 	}
 
@@ -46,44 +47,55 @@ public class EngineService {
 	}
 
 	@Async("workExecutor")
-	@OnTransition(target = "RUNNING")
-	public void optimizationPublicCloud() {
+//	@OnTransition(target = "RUNNING_INIT")
+	public void runningInitSolution() {
 		try {
-			Solution sol = solBuilder.getInitialSolution();
-
-			optimizer.init(sol);
-			optimizer.parallelLocalSearch();
-
-			stateHandler.sendEvent(Events.MIGRATE);
+			solution = solBuilder.getInitialSolution();
+			stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());
 	}
-	
-	@Profile("test")
-	public Solution generateInitialSolution() {
+
+	@Async("workExecutor")
+	public void localSearch() {
 		try {
-			return  solBuilder.getInitialSolution();
+			optimizer.init(this.solution);
+			optimizer.parallelLocalSearch();
+			stateHandler.sendEvent(Events.FINISH);
+		} catch (Exception e) {
+			logger.error("Error while performing Local search", e);
+			stateHandler.sendEvent(Events.STOP);
+		}
+		logger.info(stateHandler.getState().getId());
+	}
+
+	// @OnTransition(source= "CHARGED_INPUTDATA", target =
+	// "RUNNING_INITSOLUTION")
+	public Optional<Solution> generateInitialSolution() {
+		try {
+			solution = solBuilder.getInitialSolution();
+			Optional<Solution> res = Optional.of(solution);
+			return res;
 		} catch (Exception e) {
 			logger.error("Error while performing initial solution", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());
-		return null;
+		return Optional.empty();
 	}
-	
 
 	// nobody calls this function
 	// TODO generate interface for this ?
-	public void sequence() throws Exception {
-		Solution sol = solBuilder.getInitialSolution();
-		optimizer.init(sol);
-		optimizer.sequentialLS();
-		stateHandler.sendEvent(Events.MIGRATE);
-		logger.info(stateHandler.getState().getId());
-	}
+//	public void sequence() throws Exception {
+//		Solution sol = solBuilder.getInitialSolution();
+//		optimizer.init(sol);
+//		optimizer.sequentialLS();
+//		// stateHandler.sendEvent(Events.MIGRATE);
+//		logger.info(stateHandler.getState().getId());
+//	}
 
 	public void setAccuracyAndCycles(Settings settings) {
 		optimizer.extractAccuracyAndCycle(settings);
@@ -97,5 +109,9 @@ public class EngineService {
 		this.dataService.setInstanceData(inputData);
 	}
 
+	public void setSolution(Solution sol) {
+		this.solution = sol;
+		
+	}
 
 }

@@ -6,6 +6,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -13,6 +14,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,7 +60,9 @@ public class MINLPSolver {
 		connector = new SshConnector(connSettings);
 	}
 
-	public Double run(File dataFile, File solutionFile) throws Exception {
+	public Double run(@NotNull Pair<File, File> pFiles)throws Exception {
+		File dataFile = pFiles.getLeft();
+		File solutionFile = pFiles.getRight();
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
 		connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath);
 		logger.info("AMPL .data file sent");
@@ -84,8 +89,10 @@ public class MINLPSolver {
 		if (remoteMsg.contains("exit-status: 0")) {
 			logger.info("The remote optimization proces completed correctly");
 		}
-		else logger.info("Remote exit status: " + remoteMsg.get(1));
-
+		else {
+			logger.info("Remote exit status: " + remoteMsg);
+			throw new Exception("Error in the MINLP server");
+		}
 		fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 		connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath);
 

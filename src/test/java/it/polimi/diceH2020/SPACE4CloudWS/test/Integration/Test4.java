@@ -1,6 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import static com.jayway.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.get;
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
@@ -25,7 +24,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
@@ -34,11 +33,11 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 @ActiveProfiles("test")
 @Transactional
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test1 {
+public class Test4 {
 
 
 	@Autowired
-	private InstanceData data;
+	private Solution solution;
 
 	@Autowired
 	WebApplicationContext wac;
@@ -54,43 +53,24 @@ public class Test1 {
 		this.setUp = true;
 	}
 
-	@Test
-	public void test1ApplDataFormat() {
-
-		when().get("/appldata").then().statusCode(HttpStatus.SC_OK)
-				.body(matchesJsonSchemaInClasspath("AMPL/applData.json"));
-	}
-
-//	@Test
-//	public void test2PutInputData() {
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
-//
-//		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
-//				.statusCode(HttpStatus.SC_OK);
-//
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
-//
-//		given().contentType("application/json; charset=UTF-16").body(Events.RESET, ObjectMapperType.JACKSON_2).when()
-//		.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
-//
-//	}
 
 	@Test
-	public void test3OptimizationAlgorithm() {
+	public void test1() {
 		if (get("/state").getBody().asString().equals("IDLE")) {
 			
-			given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
+			given().contentType("application/json; charset=UTF-16").body(solution).when().post("/solution").then()
 					.statusCode(HttpStatus.SC_OK);
 
-			when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
+			when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
 		}
-
-
-			given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2)
-					.when().post("/event").then().statusCode(HttpStatus.SC_OK);
-
-		String body = "RUNNING_INIT";
-		while (body.equals("RUNNING_INIT")) {
+	}
+	
+	@Test
+	public void test2(){
+		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_LS, ObjectMapperType.JACKSON_2)
+		.when().post("/event").then().statusCode(HttpStatus.SC_OK);
+		String body = "RUNNING_LS";
+		while (body.equals("RUNNING_LS")) {
 			try {
 				Thread.sleep(5000);
 			} catch (InterruptedException e) {
@@ -99,19 +79,9 @@ public class Test1 {
 			body = get("/state").getBody().asString();
 		}
 
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
+		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("FINISH"));
+
 	}
 
-//	@BeforeTransaction
-//	public void possiblyRecover() {
-//		if (!setUp) {
-//			setUp();
-//		}
-//		while (!get("/state").getBody().asString().equals("IDLE")) {
-//
-//			given().contentType("application/json; charset=UTF-16").body(Events.MIGRATE, ObjectMapperType.JACKSON_2)
-//					.when().post("/event").then().statusCode(HttpStatus.SC_OK);
-//		}
-//	}
 
 }

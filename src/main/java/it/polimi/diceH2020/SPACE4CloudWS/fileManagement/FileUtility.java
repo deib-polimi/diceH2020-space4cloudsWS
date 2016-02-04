@@ -1,5 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -8,6 +9,8 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,6 +27,10 @@ public class FileUtility {
 	@Autowired
 	private DeletionPolicy policy;
 
+	public boolean delete(@NotNull Pair<File, File> pFiles){
+		return delete(pFiles.getLeft()) & delete(pFiles.getRight());
+	}
+	
 	public boolean delete(File file) {
 		return policy.delete(file);
 	}

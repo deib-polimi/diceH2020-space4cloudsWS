@@ -5,7 +5,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,7 +60,7 @@ public class DataService {
 
 	public List<Integer> getNumCores(List<TypeVM> tVM) {
 		return tVM.stream().map(vm->
-			getNumCores(vm)).collect(Collectors.toList());
+			getNumCores(vm)).collect(toList());
 
 	}
 	

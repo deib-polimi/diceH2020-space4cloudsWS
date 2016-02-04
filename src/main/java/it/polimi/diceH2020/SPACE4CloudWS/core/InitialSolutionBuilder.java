@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.validation.constraints.NotNull;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
@@ -37,41 +42,22 @@ public class InitialSolutionBuilder {
 
 	@Autowired
 	private FileUtility fileUtility;
-	
 
 	public Solution getInitialSolution() throws Exception {
-
-		Map<TypeVM, Double> mapResults = new HashMap<TypeVM, Double>();
+		
 		Solution startingSol = new Solution();
 
 		// Phase 1
 		dataService.getListJobClass().forEach(jobClass -> {
-
+			Map<TypeVM, Double> mapResults = new HashMap<TypeVM, Double>();
 			dataService.getListTypeVM(jobClass).forEach(tVM -> {
-				logger.info("---------- Starting optimization jobClass " + jobClass.getId() + " considering VM type " + tVM.getId()
-						+ " ----------");
-				Profile prof = dataService.getProfile(jobClass, tVM);
-				AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass,
-						tVM, prof);
-				builder.setArrayParameter("w", Ints.asList(dataService.getNumCores(tVM)))
-						.setArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
-						.setArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM)))
-						.setArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
-				File dataFile;
+				logger.info("---------- Starting optimization jobClass " + jobClass.getId() + " considering VM type "
+						+ tVM.getId() + " ----------");
 				try {
-					dataFile = fileUtility.provideTemporaryFile(
-							String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".dat");
-					fileUtility.writeContentToFile(builder.build(), dataFile);
-					File resultsFile = fileUtility.provideTemporaryFile(
-							String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".sol");
-					Double result = minlpSolver.run(dataFile, resultsFile);
-					if (fileUtility.delete(dataFile))
-						logger.debug(dataFile + " deleted");
-
-					if (fileUtility.delete(resultsFile))
-						logger.debug(resultsFile + " deleted");
-
-					mapResults.put(tVM, result);
+					Pair<File, File> pFiles = createSingleClassWorkingFiles(jobClass, tVM);
+					mapResults.put(tVM, minlpSolver.run(pFiles));
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -82,49 +68,70 @@ public class InitialSolutionBuilder {
 			Map.Entry<TypeVM, Double> min = mapResults.entrySet().stream()
 					.min(Map.Entry.comparingByValue(Double::compareTo)).get();
 
-			SolutionPerJob solPerJob = new SolutionPerJob();
-			solPerJob.setJob(jobClass);
 			TypeVM minTVM = min.getKey();
-			solPerJob.setTypeVMselected(minTVM);
-			solPerJob.setNumCores(dataService.getNumCores(minTVM));
-			solPerJob.setDeltaBar(dataService.getDeltaBar(minTVM));
-			solPerJob.setRhoBar(dataService.getRhoBar(minTVM));
-			solPerJob.setSigmaBar(dataService.getSigmaBar(minTVM));
-			solPerJob.setProfile(dataService.getProfile(jobClass, minTVM));
 			logger.info("For job class " + jobClass.getId() + " has been selected the machine " + minTVM.getId());
-			mapResults.clear();
-			startingSol.setSolutionPerJob(solPerJob);
+			startingSol.setSolutionPerJob(createSolPerJob(jobClass, minTVM));
 		});
 
 		// Phase 2
-		AMPLDataFileBuilder builder = AMPLDataFileUtils.multiClassBuilder(dataService.getData(),
-				startingSol.getPairsTypeVMJobClass());
-		
-		builder.setArrayParameter("w",  startingSol.getLstNumberCores());
-		builder.setArrayParameter("cM", startingSol.getListCM());
-		builder.setArrayParameter("cR", startingSol.getListCR());
-		builder.setArrayParameter("deltabar", startingSol.getListDeltabar());
-		builder.setArrayParameter("rhobar", startingSol.getListRhobar());
-		builder.setArrayParameter("sigmabar", startingSol.getListSigmaBar());
+		Pair<File, File> multiClassPairFiles = createMultiClassWorkingFiles(startingSol);
+		minlpSolver.run(multiClassPairFiles);		
+		File resultsFile = multiClassPairFiles.getRight();
+		updateWithFinalValues(startingSol,resultsFile);
+		if (fileUtility.delete(multiClassPairFiles))
+				logger.info("Working files correctly deleted");
 
-		
+		Evaluator.evaluate(startingSol);
+		logger.info("---------- Initial solution correctly created ----------");
+		return startingSol;
+	}
+	
+	private Pair<File, File> createMultiClassWorkingFiles(@NotNull Solution sol) throws IOException{
+		AMPLDataFileBuilder builder = AMPLDataFileUtils.multiClassBuilder(dataService.getData(),
+				sol.getPairsTypeVMJobClass());
+
+		builder.setArrayParameter("w", sol.getLstNumberCores());
+		builder.setArrayParameter("cM", sol.getListCM());
+		builder.setArrayParameter("cR", sol.getListCR());
+		builder.setArrayParameter("deltabar", sol.getListDeltabar());
+		builder.setArrayParameter("rhobar", sol.getListRhobar());
+		builder.setArrayParameter("sigmabar", sol.getListSigmaBar());
+
 		File dataFile = fileUtility.provideTemporaryFile("S4C-multi-class-", ".dat");
 		fileUtility.writeContentToFile(builder.build(), dataFile);
 		File resultsFile = fileUtility.provideTemporaryFile("S4C-multi-class-", ".sol");
-		minlpSolver.run(dataFile, resultsFile);
-		if (fileUtility.delete(dataFile)) {
-			logger.debug(dataFile + " deleted");
-		}
-		updateWithFinalValues(startingSol, resultsFile);
-		if (fileUtility.delete(resultsFile)) {
-			logger.debug(resultsFile + " deleted");
-		}
-
-		Evaluator.evaluate(startingSol);
-		return startingSol;
+		return new ImmutablePair<File, File>(dataFile, resultsFile);
 	}
 
-	
+	private Pair<File, File> createSingleClassWorkingFiles(@NotNull JobClass jobClass, @NotNull TypeVM tVM) throws IOException {
+		Profile prof = dataService.getProfile(jobClass, tVM);
+		AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass, tVM, prof);
+		builder.setArrayParameter("w", Ints.asList(dataService.getNumCores(tVM)))
+				.setArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
+				.setArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM)))
+				.setArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
+		File dataFile = fileUtility
+				.provideTemporaryFile(String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".dat");
+		fileUtility.writeContentToFile(builder.build(), dataFile);
+		File resultsFile = fileUtility
+				.provideTemporaryFile(String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".sol");
+		return new ImmutablePair<File, File>(dataFile, resultsFile);
+
+	}
+
+	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass, @NotNull TypeVM minTVM) {
+		SolutionPerJob solPerJob = new SolutionPerJob();
+		solPerJob.setJob(jobClass);
+		solPerJob.setTypeVMselected(minTVM);
+		solPerJob.setNumCores(dataService.getNumCores(minTVM));
+		solPerJob.setDeltaBar(dataService.getDeltaBar(minTVM));
+		solPerJob.setRhoBar(dataService.getRhoBar(minTVM));
+		solPerJob.setSigmaBar(dataService.getSigmaBar(minTVM));
+		solPerJob.setProfile(dataService.getProfile(jobClass, minTVM));
+		return solPerJob;
+
+	}
+
 	private void updateWithFinalValues(Solution sol, File solutionFile) throws IOException {
 		int numJobs = dataService.getJobNumber();
 		int ncontainers = 0;
@@ -150,26 +157,26 @@ public class InitialSolutionBuilder {
 
 		while (!line.contains("t [*]")) {
 			line = reader.readLine();
-//			System.out.println(line);
+			// System.out.println(line);
 		}
 
 		for (int i = 0; i < numJobs; i++) {
 			line = reader.readLine();
 			bufferStr = line.split("\\s+");
-			//System.out.println(bufferStr[1]);
-		
+			// System.out.println(bufferStr[1]);
+
 			String localStr = bufferStr[1].replaceAll("\\s+", "");
 			sol.getLstSolutions().get(i).setDuration(Double.parseDouble(localStr));
 		}
 		while (!line.contains("Variables")) {
 			line = reader.readLine();
-//			System.out.println(line);
+			// System.out.println(line);
 		}
 		line = reader.readLine();
-//		System.out.println(line);
+		// System.out.println(line);
 		while (line.contains(":")) {
 			line = reader.readLine();
-//			System.out.println(line);
+			// System.out.println(line);
 		}
 		double users;
 

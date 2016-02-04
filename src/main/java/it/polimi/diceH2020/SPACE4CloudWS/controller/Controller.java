@@ -29,8 +29,16 @@ public class Controller {
 	@RequestMapping(method = RequestMethod.POST, value = "/event")
 	public @ResponseBody String changeState(@RequestBody Events event) throws Exception {
 
+		
 		stateHandler.sendEvent(event);
-		// if the state transitions to RUNNING Spring will call EngineService.optimizationPublicCloud
+		States currentState = stateHandler.getState().getId();
+		if (currentState.equals(States.RUNNING_INIT))
+			engineService.runningInitSolution();
+		if (currentState.equals(States.RUNNING_LS))
+			engineService.localSearch();
+		
+		// if the state transitions to RUNNING_initLocaSearch Spring will call
+		// EngineService.runningInitLocalSearch
 		return getWebServiceState();
 	}
 
@@ -44,14 +52,16 @@ public class Controller {
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointInputData(@RequestBody InstanceData inputData) throws Exception {
 		engineService.setInstanceData(inputData);
-		stateHandler.sendEvent(Events.MIGRATE);
+		stateHandler.sendEvent(Events.TO_CHARGED_INPUTDATA);
 		return getWebServiceState();
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
-	public void endpointSolution(@RequestBody Solution sol) throws Exception {
-
+	public String endpointSolution(@RequestBody Solution sol) throws Exception {
+		engineService.setSolution(sol);
+		stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
+		return getWebServiceState();
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/solution")
@@ -66,8 +76,8 @@ public class Controller {
 	public @ResponseBody String getState() {
 		return getWebServiceState();
 	}
-	
-	private String getWebServiceState(){
+
+	private String getWebServiceState() {
 		return stateHandler.getState().getId().toString();
 	}
 

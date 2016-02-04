@@ -1,6 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -88,7 +89,7 @@ public class ControllerTest {
 	@RequestMapping(method = RequestMethod.POST, value = "debug/event")
 	@Profile("test")
 	public String debug() throws Exception {
-		Solution sol =engineService.generateInitialSolution();
+		Optional<Solution> sol =engineService.generateInitialSolution();
 		return stateHandler.getState().getId().toString();
 	}
 	
@@ -97,7 +98,8 @@ public class ControllerTest {
 	public Solution getSolutionDebug() {
 		engineService.setInstanceData(inputData);
 		//stateHandler.sendEvent(Events.MIGRATE);
-		return engineService.generateInitialSolution();
+		Optional<Solution> sol = engineService.generateInitialSolution(); 
+		return sol.isPresent()? sol.get(): null;
 	}
 	
 	
