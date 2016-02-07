@@ -2,11 +2,15 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -36,9 +40,6 @@ public class Optimizer {
 	@Value("${settings.cycles:100}")
 	private int cycles;
 
-	// @Autowired
-	// private LocalSearch localSearch;
-
 	@Autowired
 	private FileUtility fileUtility;
 
@@ -50,6 +51,10 @@ public class Optimizer {
 
 	public static double calculateResponseTime(double throughput, int numServers, double thinkTime) {
 		return (double) numServers / throughput - thinkTime;
+	}
+
+	public static BigDecimal calculateResponseTime(BigDecimal throughput, int numServers, double thinkTime) {
+		return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime)).setScale(2, RoundingMode.HALF_EVEN);
 	}
 
 	// read an input file and type value of accuracy and cycles
@@ -68,57 +73,57 @@ public class Optimizer {
 	}
 
 	public void makeFeasible(Solution solution) {
-		solution.getLstSolutions().stream().forEach(solPerJob -> makeFeasible(solPerJob));
+		solution.getLstSolutions().parallelStream().forEach(solPerJob -> makeFeasible(solPerJob));
 	}
 
 	private boolean makeFeasible(SolutionPerJob solPerJob) {
 		JobClass jobClass = solPerJob.getJob();
-		int jobID = jobClass.getId();
-		int nUsers = solPerJob.getNumberUsers();
-		double think = jobClass.getThink();
 		double deadline = jobClass.getD();
-		int numVM = solPerJob.getNumberVM();
-		//Optional<Double> optDuration = calculateDuration(solPerJob);
 
-		List<Triple<Integer, Optional<Double>, Boolean>> res = alterUntilBreakPoint(dataService.getGamma(), numVM, n->n+1,
+		List<Triple<Integer, Optional<BigDecimal>, Boolean>> res = alterUntilBreakPoint(dataService.getGamma(), n -> n + 1,
 				solPerJob, deadline);
-//
-//		if (optDuration.isPresent()) {
-//			Double duration = optDuration.get();
-//			while (duration > deadline) {
-//				// first thing reduce the number of VM
-//				solPerJob.setNumberVM(++numVM);
-//
-//			}
-//			return true;
-//		} else
-			return false;
+
+		Stream<Triple<Integer, Optional<BigDecimal>, Boolean>> p = res.parallelStream()
+				.filter(t -> t.getRight() && t.getMiddle().isPresent());
+		Optional<Triple<Integer, Optional<BigDecimal>, Boolean>> result = p
+				.min(Comparator.comparing(t -> t.getMiddle().get()));
+		if (result.isPresent()) {
+			BigDecimal dur = result.get().getMiddle().get();
+			int nVM = result.get().getLeft();
+			logger.info("MakeFisible ended the duration of the job: " + solPerJob.getJob().getId() + " is: " + dur
+					+ " obtained with: " + nVM + " vms");
+			return true;
+		}
+		return false;
 
 	}
 
-	private List<Triple<Integer, Optional<Double>, Boolean>> alterUntilBreakPoint(Integer MaxVM, Integer nVM, Function<Integer, Integer> updateFunction,
-			SolutionPerJob solPerJob, double deadline) {
-		List<Triple<Integer, Optional<Double>, Boolean>> lst = new ArrayList<>();
-		checkCondition(MaxVM, nVM, updateFunction,  solPerJob, deadline, lst);
+	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM,
+			Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
+		checkCondition(MaxVM, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
-	private void checkCondition(Integer MaxVM, Integer nVM, Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline,
-			List<Triple<Integer, Optional<Double>, Boolean>> lst) {
-		Optional<Double> optDuration = calculateDuration(solPerJob.setNumberVM(nVM));
-		lst.add(new ImmutableTriple<Integer, Optional<Double>, Boolean>(nVM, optDuration,
-				optDuration.isPresent() && optDuration.get() < deadline));
-		Boolean condition = optDuration.isPresent() && optDuration.get() < deadline && nVM < MaxVM;
-		//TODO in this condition we have to add also the case in which adding more VM does not affect the duration. 
+	private void checkCondition(Integer MaxVM, Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob,
+			double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
+		Integer nVM = solPerJob.getNumberVM();
+		lst.add(new ImmutableTriple<Integer, Optional<BigDecimal>, Boolean>(nVM, optDuration,
+				optDuration.isPresent() && (optDuration.get().doubleValue() < deadline)));
+		Boolean condition = optDuration.isPresent() && optDuration.get().doubleValue() < deadline && nVM < MaxVM;
+		// TODO in this condition we have to add also the case in which adding
+		// more VM does not affect the duration.
 		// meaning that a steady state has been reached.
 		if (!condition) {
-			logger.info("Optimization jobClass: " + solPerJob.getJob().getId() + " num VM: "+nVM+ " duration: " + optDuration.get()
-					+ " deadline: " + deadline);
-			checkCondition(MaxVM, updateFunction.apply(nVM), updateFunction, solPerJob, deadline, lst);
+			logger.info("Optimization jobClass: " + solPerJob.getJob().getId() + " num VM: " + nVM + " duration: "
+					+ optDuration.get() + " deadline: " + deadline);
+			solPerJob.setNumberVM(updateFunction.apply(nVM));
+			checkCondition(MaxVM, updateFunction, solPerJob, deadline, lst);
 		}
 	}
 
-	private Optional<Double> calculateDuration(SolutionPerJob solPerJob) {
+	private Optional<BigDecimal> calculateDuration(SolutionPerJob solPerJob) {
 		JobClass jobClass = solPerJob.getJob();
 		int jobID = jobClass.getId();
 		int nUsers = solPerJob.getNumberUsers();
@@ -126,8 +131,8 @@ public class Optimizer {
 		Pair<File, File> pFiles;
 		try {
 			pFiles = createSPNWorkingFiles(solPerJob);
-			double throughput = SPNSolver.run(pFiles, "class" + jobID);
-			double duration = calculateResponseTime(throughput, nUsers, think);
+			BigDecimal throughput = SPNSolver.run(pFiles, "class" + jobID);
+			BigDecimal duration = calculateResponseTime(throughput, nUsers, think);
 			return Optional.of(duration);
 		} catch (Exception e) {
 			return Optional.empty();
@@ -147,85 +152,85 @@ public class Optimizer {
 		return res;
 	}
 
-	public Optional<Double> execute(SolutionPerJob solPerJob, int cycles) {
-		double tempResponseTime = 0;
-		int maxIterations = (int) Math.ceil((double) cycles / 2.0);
-		JobClass jobClass = solPerJob.getJob();
-
-		int jobID = jobClass.getId();
-
-		double deadline = jobClass.getD();
-		double think = jobClass.getThink();
-
-		int nUsers = solPerJob.getNumberUsers();
-		int nContainers = solPerJob.getNumberContainers();
-		int hUp = jobClass.getHup();
-
-		Optional<Double> res;
-		try {
-			Pair<File, File> pFiles = createSPNWorkingFiles(solPerJob);
-			double throughput = SPNSolver.run(pFiles, "class" + jobID);
-			double responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
-
-			if (responseTime < deadline) {
-				for (int iteration = 0; responseTime < deadline && nUsers < hUp
-						&& iteration <= maxIterations; ++iteration) {
-					tempResponseTime = responseTime;
-					++nUsers;
-
-					if (fileUtility.delete(pFiles))
-						logger.info("Working files correctly deleted");
-					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
-
-					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
-					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
-				}
-				for (int iteration = 0; responseTime < deadline && iteration <= maxIterations
-						&& nContainers > 1; ++iteration) {
-					tempResponseTime = responseTime;
-					// TODO aggiungere vm invece che gli slot.
-					++nContainers;
-
-					if (fileUtility.delete(pFiles))
-						logger.info("Working files correctly deleted");
-
-					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
-
-					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
-					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
-				}
-
-			} else {
-				// TODO: check on this.
-				while (responseTime > deadline) {
-					++nContainers;
-
-					if (fileUtility.delete(pFiles))
-						logger.info("Working files correctly deleted");
-
-					pFiles = createSPNWorkingFiles(solPerJob);
-
-					throughput = SPNSolver.run(pFiles, String.format("class%d", jobID));
-					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
-					tempResponseTime = responseTime;
-				}
-			}
-
-			if (fileUtility.delete(pFiles))
-				logger.info("Working files correctly deleted");
-
-			solPerJob.setDuration(tempResponseTime);
-			solPerJob.setNumberUsers(nUsers);
-			solPerJob.setNumberContainers(nContainers);
-			solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO
-																			// check.
-			res = Optional.of(tempResponseTime);
-		} catch (Exception e) {
-			logger.error("Some error happend in the local search");
-			res = Optional.empty();
-		}
-		return res;
-	}
+//	public Optional<Double> execute(SolutionPerJob solPerJob, int cycles) {
+//		double tempResponseTime = 0;
+//		int maxIterations = (int) Math.ceil((double) cycles / 2.0);
+//		JobClass jobClass = solPerJob.getJob();
+//
+//		int jobID = jobClass.getId();
+//
+//		double deadline = jobClass.getD();
+//		double think = jobClass.getThink();
+//
+//		int nUsers = solPerJob.getNumberUsers();
+//		int nContainers = solPerJob.getNumberContainers();
+//		int hUp = jobClass.getHup();
+//
+//		Optional<Double> res;
+//		try {
+//			Pair<File, File> pFiles = createSPNWorkingFiles(solPerJob);
+//			BigDecimal throughput = SPNSolver.run(pFiles, "class" + jobID);
+//			BigDecimal responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+//
+//			if (responseTime < deadline) {
+//				for (int iteration = 0; responseTime < deadline && nUsers < hUp
+//						&& iteration <= maxIterations; ++iteration) {
+//					tempResponseTime = responseTime;
+//					++nUsers;
+//
+//					if (fileUtility.delete(pFiles))
+//						logger.info("Working files correctly deleted");
+//					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
+//
+//					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
+//					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+//				}
+//				for (int iteration = 0; responseTime < deadline && iteration <= maxIterations
+//						&& nContainers > 1; ++iteration) {
+//					tempResponseTime = responseTime;
+//					// TODO aggiungere vm invece che gli slot.
+//					++nContainers;
+//
+//					if (fileUtility.delete(pFiles))
+//						logger.info("Working files correctly deleted");
+//
+//					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
+//
+//					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
+//					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+//				}
+//
+//			} else {
+//				// TODO: check on this.
+//				while (responseTime > deadline) {
+//					++nContainers;
+//
+//					if (fileUtility.delete(pFiles))
+//						logger.info("Working files correctly deleted");
+//
+//					pFiles = createSPNWorkingFiles(solPerJob);
+//
+//					throughput = SPNSolver.run(pFiles, String.format("class%d", jobID));
+//					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+//					tempResponseTime = responseTime;
+//				}
+//			}
+//
+//			if (fileUtility.delete(pFiles))
+//				logger.info("Working files correctly deleted");
+//
+//			solPerJob.setDuration(tempResponseTime);
+//			solPerJob.setNumberUsers(nUsers);
+//			solPerJob.setNumberContainers(nContainers);
+//			solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO
+//																			// check.
+//			res = Optional.of(tempResponseTime);
+//		} catch (Exception e) {
+//			logger.error("Some error happend in the local search");
+//			res = Optional.empty();
+//		}
+//		return res;
+//	}
 
 	private Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob) throws IOException {
 		return createSPNWorkingFiles(solPerJob, Optional.empty());

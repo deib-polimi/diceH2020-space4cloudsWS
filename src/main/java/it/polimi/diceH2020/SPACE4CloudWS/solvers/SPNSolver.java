@@ -1,6 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,6 +14,8 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import com.google.common.primitives.Doubles;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -50,7 +54,7 @@ public class SPNSolver {
 	 * @return the throughput of the simulation
 	 * @throws Exception
 	 */
-	public double run(Pair<File,File> pFiles, String remoteName) throws Exception {
+	public BigDecimal run(Pair<File,File> pFiles, String remoteName) throws Exception {
 		File netFile = pFiles.getLeft();
 		File defFile = pFiles.getRight();
 		String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
@@ -91,8 +95,9 @@ public class SPNSolver {
 		int endPos = solFileInString.indexOf('\n', startPos);
 		double throughput = Double.parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
 		logger.info("GreatSPN model run.");
-
-		return throughput;
+		BigDecimal result = BigDecimal.valueOf(throughput);
+		result.setScale(2, RoundingMode.HALF_EVEN);
+		return result;
 	}
 
 	// public List<Double> run2Classes(String nameInputFile, String
