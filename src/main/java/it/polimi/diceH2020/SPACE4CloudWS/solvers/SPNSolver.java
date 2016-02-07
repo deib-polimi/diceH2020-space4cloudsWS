@@ -7,6 +7,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -17,16 +18,16 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 
 @Component
 public class SPNSolver {
-	private  SshConnector connector;
+	private SshConnector connector;
 
 	@Autowired
-	private  SPNSettings connSettings;
+	private SPNSettings connSettings;
 
 	@Autowired
-	private  FileUtility fileUtility;
+	private FileUtility fileUtility;
 
 	@Autowired
-	private  Environment environment; // this is to check which is the active
+	private Environment environment; // this is to check which is the active
 										// profile at runtime
 
 	private static Logger logger = Logger.getLogger(SPNSolver.class.getName());
@@ -49,9 +50,11 @@ public class SPNSolver {
 	 * @return the throughput of the simulation
 	 * @throws Exception
 	 */
-	public double run(File netFile, File defFile, String remoteName) throws Exception {
+	public double run(Pair<File,File> pFiles, String remoteName) throws Exception {
+		File netFile = pFiles.getLeft();
+		File defFile = pFiles.getRight();
 		String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
-
+		logger.info("------- Starting Stochastic Petri Net simulation on the server -------");
 		connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net");
 		logger.info("GreatSPN .net file sent");
 		connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def");
@@ -67,7 +70,14 @@ public class SPNSolver {
 		String command = connSettings.getSolverPath() + " " + remotePath + " -a "
 				+ connSettings.getAccuracy() + " -c 6";
 		logger.info("Starting GreatSPN model...");
-		logger.info("Remote exit status: " + connector.exec(command));
+		List<String> remoteMsg = connector.exec(command);
+		if (remoteMsg.contains("exit-status: 0")) {
+			logger.info("The remote optimization proces completed correctly");
+		}
+		else {
+			logger.info("Remote exit status: " + remoteMsg);
+			throw new Exception("Error in the SPN server");
+		}
 
 		File solFile = fileUtility.provideTemporaryFile("S4C-" + remoteName, ".sta");
 		connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta");
@@ -85,51 +95,59 @@ public class SPNSolver {
 		return throughput;
 	}
 
-//	public List<Double> run2Classes(String nameInputFile, String nameSolutionFile) throws Exception {
-//		List<Double> throughputArray = new ArrayList<>(3);
-//		double thr;
-//		String solFileInString = null;
-//
-//		logger.info("sto per eseguire");
-//		connector.sendFile(nameInputFile + ".net", connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".net");
-//		logger.info("file" + nameInputFile + ".net has been sent");
-//		logger.info("file" + nameInputFile + "has been sent");
-//
-//		connector.sendFile(nameInputFile + ".def", connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".def");
-//		logger.info("file run have been sent");
-//		logger.info("file run have been sent");
-//
-//		String command = connSettings.getSolverPath() + " " + connSettings.getRemoteWorkDir() + "/" + nameInputFile
-//				+ " -M 10000";
-//		connector.exec(command);
-//		logger.info("processing execution..." + nameInputFile);
-//		logger.info("processing execution..." + nameInputFile);
-//
-//		File file = new File(nameSolutionFile);
-//		if (!file.exists())
-//			file.createNewFile();
-//
-//		connector.receiveFile(nameSolutionFile, connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".sta");
-//		solFileInString = FileUtils.readFileToString(file);
-//		logger.info(nameSolutionFile);
-//		String throughputStr = "Thru_end = ";
-//		int startPos = solFileInString.indexOf(throughputStr);
-//		int endPos = solFileInString.indexOf('\n', startPos);
-//		thr = Double.parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
-//		throughputArray.add(thr);
-//
-//		String throughputStr1 = "Thru_join2Cb = ";
-//		startPos = solFileInString.indexOf(throughputStr1);
-//		endPos = solFileInString.indexOf('\n', startPos);
-//		thr = Double.parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
-//		throughputArray.add(thr);
-//		String throughputStr2 = "Thru_join2Cb = ";
-//		startPos = solFileInString.indexOf(throughputStr2);
-//		endPos = solFileInString.indexOf('\n', startPos);
-//		thr = Double.parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
-//		throughputArray.add(thr);
-//		return throughputArray;
-//	}
+	// public List<Double> run2Classes(String nameInputFile, String
+	// nameSolutionFile) throws Exception {
+	// List<Double> throughputArray = new ArrayList<>(3);
+	// double thr;
+	// String solFileInString = null;
+	//
+	// logger.info("sto per eseguire");
+	// connector.sendFile(nameInputFile + ".net",
+	// connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".net");
+	// logger.info("file" + nameInputFile + ".net has been sent");
+	// logger.info("file" + nameInputFile + "has been sent");
+	//
+	// connector.sendFile(nameInputFile + ".def",
+	// connSettings.getRemoteWorkDir() + "/" + nameInputFile + ".def");
+	// logger.info("file run have been sent");
+	// logger.info("file run have been sent");
+	//
+	// String command = connSettings.getSolverPath() + " " +
+	// connSettings.getRemoteWorkDir() + "/" + nameInputFile
+	// + " -M 10000";
+	// connector.exec(command);
+	// logger.info("processing execution..." + nameInputFile);
+	// logger.info("processing execution..." + nameInputFile);
+	//
+	// File file = new File(nameSolutionFile);
+	// if (!file.exists())
+	// file.createNewFile();
+	//
+	// connector.receiveFile(nameSolutionFile, connSettings.getRemoteWorkDir() +
+	// "/" + nameInputFile + ".sta");
+	// solFileInString = FileUtils.readFileToString(file);
+	// logger.info(nameSolutionFile);
+	// String throughputStr = "Thru_end = ";
+	// int startPos = solFileInString.indexOf(throughputStr);
+	// int endPos = solFileInString.indexOf('\n', startPos);
+	// thr = Double.parseDouble(solFileInString.substring(startPos +
+	// throughputStr.length(), endPos));
+	// throughputArray.add(thr);
+	//
+	// String throughputStr1 = "Thru_join2Cb = ";
+	// startPos = solFileInString.indexOf(throughputStr1);
+	// endPos = solFileInString.indexOf('\n', startPos);
+	// thr = Double.parseDouble(solFileInString.substring(startPos +
+	// throughputStr.length(), endPos));
+	// throughputArray.add(thr);
+	// String throughputStr2 = "Thru_join2Cb = ";
+	// startPos = solFileInString.indexOf(throughputStr2);
+	// endPos = solFileInString.indexOf('\n', startPos);
+	// thr = Double.parseDouble(solFileInString.substring(startPos +
+	// throughputStr.length(), endPos));
+	// throughputArray.add(thr);
+	// return throughputArray;
+	// }
 
 	public void setAccuracy(double accuracy) {
 		connSettings.setAccuracy(accuracy);

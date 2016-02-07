@@ -1,22 +1,21 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
 
 @Component
 public class FileUtility {
@@ -27,7 +26,8 @@ public class FileUtility {
 	@Autowired
 	private DeletionPolicy policy;
 
-	public boolean delete(@NotNull Pair<File, File> pFiles){
+	public boolean delete(Pair<File, File> pFiles){
+		if(pFiles == null){return true;}
 		return delete(pFiles.getLeft()) & delete(pFiles.getRight());
 	}
 	
@@ -35,7 +35,7 @@ public class FileUtility {
 		return policy.delete(file);
 	}
 
-	public File provideTemporaryFile(@Nonnull String prefix, @Nullable String suffix) throws IOException {
+	public @Nonnull File provideTemporaryFile(@CheckForNull String prefix, String suffix) throws IOException {
 		File file = File.createTempFile(prefix, suffix, LOCAL_DYNAMIC_FOLDER);
 		policy.markForDeletion(file);
 		return file;

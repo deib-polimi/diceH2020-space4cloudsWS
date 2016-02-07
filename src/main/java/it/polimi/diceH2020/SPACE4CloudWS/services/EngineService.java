@@ -6,7 +6,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.annotation.OnTransition;
 import org.springframework.statemachine.annotation.WithStateMachine;
 import org.springframework.stereotype.Service;
 
@@ -42,8 +41,7 @@ public class EngineService {
 	}
 
 	public Solution getSolution() {
-		return optimizer.getSolution();
-
+		return solution;
 	}
 
 	@Async("workExecutor")
@@ -62,8 +60,8 @@ public class EngineService {
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
-			optimizer.init(this.solution);
-			optimizer.parallelLocalSearch();
+			optimizer.makeFeasible(solution);
+			optimizer.parallelLocalSearch(solution);
 			stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.error("Error while performing Local search", e);
@@ -72,8 +70,6 @@ public class EngineService {
 		logger.info(stateHandler.getState().getId());
 	}
 
-	// @OnTransition(source= "CHARGED_INPUTDATA", target =
-	// "RUNNING_INITSOLUTION")
 	public Optional<Solution> generateInitialSolution() {
 		try {
 			solution = solBuilder.getInitialSolution();
@@ -86,16 +82,6 @@ public class EngineService {
 		logger.info(stateHandler.getState().getId());
 		return Optional.empty();
 	}
-
-	// nobody calls this function
-	// TODO generate interface for this ?
-//	public void sequence() throws Exception {
-//		Solution sol = solBuilder.getInitialSolution();
-//		optimizer.init(sol);
-//		optimizer.sequentialLS();
-//		// stateHandler.sendEvent(Events.MIGRATE);
-//		logger.info(stateHandler.getState().getId());
-//	}
 
 	public void setAccuracyAndCycles(Settings settings) {
 		optimizer.extractAccuracyAndCycle(settings);
@@ -110,8 +96,7 @@ public class EngineService {
 	}
 
 	public void setSolution(Solution sol) {
-		this.solution = sol;
-		
+		this.solution = sol;		
 	}
 
 }

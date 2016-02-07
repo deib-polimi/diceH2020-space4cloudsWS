@@ -1,13 +1,13 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.Future;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
@@ -28,54 +28,37 @@ public class LocalSearch {
 	@Autowired
 	private FileUtility fileUtility;
 
-	@Async
-	public Future<Optional<Double>> executeMock(SolutionPerJob solPerJob, int cycles) {
+
+	public Optional<Double> executeMock(SolutionPerJob solPerJob, int cycles) {
 		try {
-			Thread.sleep(10000);
+			Thread.sleep(1000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Optional<Double> res = Optional.of(10.0);
-		return new AsyncResult<Optional<Double>>(res);
+		logger.info("Local search num " + solPerJob.getPos() + " finished");
+		return res;
 	}
-	@Async
-	public Future<Optional<Double>> execute(SolutionPerJob solPerJob, int cycles) {
+
+	public Optional<Double> execute(SolutionPerJob solPerJob, int cycles) {
 		double tempResponseTime = 0;
 		int maxIterations = (int) Math.ceil((double) cycles / 2.0);
 		JobClass jobClass = solPerJob.getJob();
 
 		int jobID = jobClass.getId();
-		Profile prof = solPerJob.getProfile();
 
 		double deadline = jobClass.getD();
-		double mAvg = prof.getMavg();
-		double rAvg = prof.getRavg();
-		double shTypAvg = prof.getSHtypavg();
 		double think = jobClass.getThink();
 
 		int nUsers = solPerJob.getNumberUsers();
-		int NM = prof.getNM();
-		int NR = prof.getNR();
 		int nContainers = solPerJob.getNumberContainers();
 		int hUp = jobClass.getHup();
 
 		Optional<Double> res;
 		try {
-			String netFileContent;
-
-			netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
-					.setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
-
-			File netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
-			fileUtility.writeContentToFile(netFileContent, netFile);
-			String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
-					.setNumberOfReduceTasks(NR).build();
-			File defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".def");
-			fileUtility.writeContentToFile(defFileContent, defFile);
-
-			double throughput = SPNSolver.run(netFile, defFile, "class" + jobID);
-
+			Pair<File, File> pFiles = createSPNWorkingFiles(solPerJob);
+			double throughput = SPNSolver.run(pFiles, "class" + jobID);
 			double responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 
 			if (responseTime < deadline) {
@@ -84,16 +67,11 @@ public class LocalSearch {
 					tempResponseTime = responseTime;
 					++nUsers;
 
-					if (fileUtility.delete(defFile)) {
-						logger.debug(defFile + " deleted");
-					}
-					defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
-							.setNumberOfReduceTasks(NR).build();
-					defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration),
-							".def");
-					fileUtility.writeContentToFile(defFileContent, defFile);
-
-					throughput = SPNSolver.run(netFile, defFile, String.format("class%d_iter%d", jobID, iteration));
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
+					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
+					
+					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
 					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 				}
 				for (int iteration = 0; responseTime < deadline && iteration <= maxIterations
@@ -102,16 +80,12 @@ public class LocalSearch {
 					// TODO aggiungere vm invece che gli slot.
 					++nContainers;
 
-					if (fileUtility.delete(netFile)) {
-						logger.debug(netFile + " deleted");
-					}
-					netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
-							.setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
-					netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration),
-							".net");
-					fileUtility.writeContentToFile(netFileContent, netFile);
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
 
-					throughput = SPNSolver.run(netFile, defFile, String.format("class%d_iter%d", jobID, iteration));
+					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
+
+					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
 					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 				}
 
@@ -120,26 +94,19 @@ public class LocalSearch {
 				while (responseTime > deadline) {
 					++nContainers;
 
-					if (fileUtility.delete(netFile)) {
-						logger.debug(netFile + " deleted");
-					}
-					netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
-							.setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
-					netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
-					fileUtility.writeContentToFile(netFileContent, netFile);
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
 
-					throughput = SPNSolver.run(netFile, defFile, String.format("class%d", jobID));
+					pFiles = createSPNWorkingFiles(solPerJob);
+
+					throughput = SPNSolver.run(pFiles, String.format("class%d", jobID));
 					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
 					tempResponseTime = responseTime;
 				}
 			}
 
-			if (fileUtility.delete(netFile)) {
-				logger.debug(netFile + " deleted");
-			}
-			if (fileUtility.delete(defFile)) {
-				logger.debug(defFile + " deleted");
-			}
+			if (fileUtility.delete(pFiles))
+				logger.info("Working files correctly deleted");
 
 			solPerJob.setDuration(tempResponseTime);
 			solPerJob.setNumberUsers(nUsers);
@@ -151,7 +118,51 @@ public class LocalSearch {
 			logger.error("Some error happend in the local search");
 			res = Optional.empty();
 		}
-		return new AsyncResult<Optional<Double>>(res);
+		return res;
+	}
+
+	private  Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob) throws IOException {
+		return createSPNWorkingFiles(solPerJob, Optional.empty());
+	}
+
+	private  Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration)
+			throws IOException {
+		int nContainers = solPerJob.getNumberContainers();
+		JobClass jobClass = solPerJob.getJob();
+		Profile prof = solPerJob.getProfile();
+		int jobID = jobClass.getId();
+		double mAvg = prof.getMavg();
+		double rAvg = prof.getRavg();
+		double shTypAvg = prof.getSHtypavg();
+		double think = jobClass.getThink();
+
+		int nUsers = solPerJob.getNumberUsers();
+		int NM = prof.getNM();
+		int NR = prof.getNR();
+
+		String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
+				.setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
+
+		File netFile;
+		if (iteration.isPresent()) {
+			netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
+
+		} else
+			netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration), ".net");
+
+		fileUtility.writeContentToFile(netFileContent, netFile);
+
+		String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
+				.setNumberOfReduceTasks(NR).build();
+		File defFile;
+		if (iteration.isPresent()) {
+			defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration.get()),
+					".def");
+		} else
+			defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".def");
+		fileUtility.writeContentToFile(defFileContent, defFile);
+		return new ImmutablePair<File, File>(netFile, defFile);
+
 	}
 
 }

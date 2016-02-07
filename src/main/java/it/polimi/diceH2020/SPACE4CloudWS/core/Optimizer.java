@@ -1,21 +1,30 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Future;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.PNDefFileBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.PNNetFileBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
 
@@ -27,29 +36,17 @@ public class Optimizer {
 	@Value("${settings.cycles:100}")
 	private int cycles;
 
-	@Autowired
-	private LocalSearch localSearch;
-
-	// private File fileShared1;
-	// private File fileShared2;
-	// private File fileSharedDef;
-	// private File fileSharedNet;
-
-	// private int numJobs;
-	private Solution solution;
+	// @Autowired
+	// private LocalSearch localSearch;
 
 	@Autowired
-	DataService dataService;
+	private FileUtility fileUtility;
+
+	@Autowired
+	private DataService dataService;
 
 	@Autowired(required = true)
 	SPNSolver SPNSolver;
-
-	// public Optimizer() {
-	// this.fileShared1 = new File("MR-Yarn2Pcopy.def");
-	// this.fileShared2 = new File("MR-Yarn2Pcopy.net");
-	// this.fileSharedDef = new File("MR-Yarn2P.def");
-	// this.fileSharedNet = new File("MR-Yarn2P.net");
-	// }
 
 	public static double calculateResponseTime(double throughput, int numServers, double thinkTime) {
 		return (double) numServers / throughput - thinkTime;
@@ -61,239 +58,217 @@ public class Optimizer {
 		this.cycles = settings.getCycles();
 	}
 
-	/**
-	 * @return the solution
-	 */
-	public Solution getSolution() {
-		return this.solution;
-	}
+	public void parallelLocalSearch(Solution solution) throws Exception {
 
-	public void init(Solution sol) throws IOException {
+		List<Optional<Double>> objectives = solution.getLstSolutions().parallelStream().map(s -> executeMock(s, cycles))
+				.collect(Collectors.toList());
 
-		// numJobs = dataService.getJobNumber();
-		solution = sol;
-	}
-
-	// send data of determinate job class
-	// public void modifinaledef(int i) throws IOException {
-	//
-	// InstanceData data = dataService.getData();
-	// String oldFileName = "MR-Yarn2Pcopy.def";
-	// String tmpFileName = "MR-Yarn2P" + i + ".def";
-	//
-	// int nUsers = solution.getLstSolutions().get(i).getNumberUsers();
-	// int nContainers =
-	// solution.getLstSolutions().get(i).getNumberContainers();
-	// BufferedReader br = null;
-	// BufferedWriter bw = null;
-	// try {
-	// br = new BufferedReader(new FileReader(oldFileName));
-	// bw = new BufferedWriter(new FileWriter(tmpFileName));
-	// String line;
-	// while ((line = br.readLine()) != null) {
-	// if (line.contains("paramr" + i))
-	// line = line.replace("paramr" + i, String.valueOf(data.getNR(i)));
-	//
-	// if (line.contains("paramm" + i))
-	// line = line.replace("paramm" + i, String.valueOf(data.getNM(i)));
-	//
-	// if (line.contains("job" + i))
-	// line = line.replace("job" + i, String.valueOf(nUsers));
-	//
-	// if (line.contains("paramp" + i))
-	// line = line.replace("paramp" + i, String.valueOf(nContainers));
-	//
-	// bw.write(line + "\n");
-	// }
-	// } catch (Exception e) {
-	// return;
-	// } finally {
-	// try {
-	// if (br != null)
-	// br.close();
-	// } catch (IOException e) {
-	// //
-	// }
-	// try {
-	// if (bw != null)
-	// bw.close();
-	// } catch (IOException e) {
-	// //
-	// }
-	// File share = new File("MR-Yarn2P" + i + ".def");
-	// FileUtils.copyFile(share, fileShared1);
-	// }
-	// }
-
-	// public List<Double> sharedCluster() throws Exception {
-	//
-	// InstanceData data = dataService.getData();
-	//
-	// List<Double> tempArray = new ArrayList<>();
-	//
-	// List<Double> arrayThroughput = new ArrayList<>(3);
-	// List<Double> arrayResponseTime = new ArrayList<>();
-	// int countIter = 0;
-	//
-	// double cost = solution.evaluate();
-	//
-	// FileUtils.copyFile(fileSharedNet, fileShared2);
-	// FileUtils.copyFile(fileSharedDef, fileShared1);
-	//
-	// for (int i = 0; i < numJobs; i++) {
-	// modifinalenet(i);
-	// modifinaledef(i);
-	// }
-	//
-	// long startTime = System.currentTimeMillis();
-	// arrayThroughput = SPNSolver.run2Classes("MR-Yarn2Pcopy",
-	// "resulfinale.sta");
-	// long runTimeMillis = (System.currentTimeMillis() - startTime);
-	// double runTime = runTimeMillis / 1000.0;
-	//
-	// for (int i = 0; i < numJobs; i++) {
-	// SolutionPerJob solPerJob = solution.getSolutionPerJob(i);
-	// int nUsers = solPerJob.getNumberUsers();
-	// double think = data.getThink(i); // TODO move think in solPerJob
-	// arrayResponseTime.add(calculateResponseTime(arrayThroughput.get(i),
-	// nUsers, think));
-	// }
-	//
-	// logger.info("The initial runtime time is :" + runTime);
-	// cost = Evaluator.evaluate(solution);
-	//
-	// logger.info("il costo iniziale 2 e:" + cost);
-	// Collections.copy(tempArray, arrayResponseTime);
-	// for (int i = 0; i < numJobs; i++) {
-	// SolutionPerJob solPerJob = solution.getSolutionPerJob(i);
-	// double deadline = data.getD(i); // TODO move deadline inside
-	// // solPerJob
-	// int nContainers = solPerJob.getNumberContainers();
-	// if (arrayResponseTime.get(i) > deadline) {
-	// while (arrayResponseTime.get(i) > deadline) {
-	// nContainers++;
-	// FileUtils.copyFile(fileSharedDef, fileShared1);
-	//
-	// for (int j = 0; j < numJobs; j++)
-	// modifinaledef(j);
-	//
-	// startTime = System.currentTimeMillis();
-	// arrayThroughput = SPNSolver.run2Classes("MR-Yarn2Pcopy",
-	// "resulfinale.sta");
-	// runTimeMillis = (System.currentTimeMillis() - startTime);
-	// runTime = runTimeMillis / 1000.0;
-	// arrayResponseTime.clear();
-	// for (int j = 0; j < numJobs; j++) {
-	// SolutionPerJob solPerJob2 = solution.getSolutionPerJob(j);
-	// int nUsers = solPerJob2.getNumberUsers();
-	// double think = data.getThink(j);
-	// arrayResponseTime.add(calculateResponseTime(arrayThroughput.get(j),
-	// nUsers, think));
-	// }
-	// Collections.copy(tempArray, arrayResponseTime);
-	// cost = Evaluator.evaluate(solution);
-	// logger.info("the cost of iteration " + countIter + " is: " + cost);
-	// countIter = countIter + 1;
-	// }
-	//
-	// }
-	// solPerJob.setNumberContainers(nContainers);
-	// solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO
-	// // check
-	//
-	// }
-	// for (int j = 0; j < numJobs; j++)
-	// solution.getLstSolutions().get(j).setDuration(tempArray.get(j));
-	//
-	// return tempArray;
-	// }
-	//
-	// private void modifinalenet(int i) throws IOException {
-	//
-	// InstanceData data = dataService.getData();
-	// String oldFileName = "MR-Yarn2Pcopy.net";
-	// String tmpFileName = "MR-Yarn2P" + i + ".net";
-	// int index = solution.getIdxVmTypeSelected().get(i);
-	// double mAvg = data.getMavg(index);
-	// double rAvg = data.getRavg(index);
-	// double shTypAvg = data.getSHtypavg(index);
-	// double think = data.getThink(index);
-	//
-	// BufferedReader br = null;
-	// BufferedWriter bw = null;
-	//
-	// try {
-	// br = new BufferedReader(new FileReader(oldFileName));
-	// bw = new BufferedWriter(new FileWriter(tmpFileName));
-	// String line;
-	// while ((line = br.readLine()) != null) {
-	// if (line.contains("ratemap" + i))
-	// line = line.replace("ratemap" + i, String.valueOf(1 / mAvg));
-	//
-	// if (line.contains("ratered" + i))
-	// line = line.replace("ratered" + i, String.valueOf(1 / (rAvg +
-	// shTypAvg)));
-	//
-	// if (line.contains("think" + i))
-	// line = line.replace("think" + i, String.valueOf(1 / think));
-	//
-	// bw.write(line + "\n");
-	// }
-	// } catch (Exception e) {
-	// return;
-	// } finally {
-	// try {
-	// if (br != null)
-	// br.close();
-	// } catch (IOException e) {
-	// //
-	// }
-	// try {
-	// if (bw != null)
-	// bw.close();
-	// } catch (IOException e) {
-	// //
-	// }
-	// }
-	//
-	// File share1 = new File("MR-Yarn2P" + i + ".net");
-	// FileUtils.copyFile(share1, fileShared2);
-	// }
-
-	public void parallelLocalSearch() throws Exception {
-
-		List<Future<Optional<Double>>> objectives = solution.getLstSolutions().parallelStream()
-				.map(s -> localSearch.execute(s, cycles)).collect(Collectors.toList());
-		
-		int i = 1;
-		for (Future<Optional<Double>> obj : objectives) {
-			
-			while (!obj.isDone())
-				Thread.sleep(1000);
-			logger.info("Local search num " + i + " finished");
-			i++;
-		}
 		objectives.clear();
 
 	}
 
-//	public void sequentialLS() {
+	public void makeFeasible(Solution solution) {
+		solution.getLstSolutions().stream().forEach(solPerJob -> makeFeasible(solPerJob));
+	}
+
+	private boolean makeFeasible(SolutionPerJob solPerJob) {
+		JobClass jobClass = solPerJob.getJob();
+		int jobID = jobClass.getId();
+		int nUsers = solPerJob.getNumberUsers();
+		double think = jobClass.getThink();
+		double deadline = jobClass.getD();
+		int numVM = solPerJob.getNumberVM();
+		//Optional<Double> optDuration = calculateDuration(solPerJob);
+
+		List<Triple<Integer, Optional<Double>, Boolean>> res = alterUntilBreakPoint(dataService.getGamma(), numVM, n->n+1,
+				solPerJob, deadline);
 //
-//		int i = 1;
-//		for (SolutionPerJob solPerJob : solution.getLstSolutions()) {
-//			Future<Double> objective;
-//			try {
-//				objective = localSearch.execute(solPerJob, cycles);
+//		if (optDuration.isPresent()) {
+//			Double duration = optDuration.get();
+//			while (duration > deadline) {
+//				// first thing reduce the number of VM
+//				solPerJob.setNumberVM(++numVM);
 //
-//				while (!objective.isDone())
-//					Thread.sleep(1000);
-//				logger.info("Local search num " + i + " finished");
-//				i++;
-//			} catch (Exception e) {
-//				e.printStackTrace();
 //			}
-//		}
-//
-//	}
+//			return true;
+//		} else
+			return false;
+
+	}
+
+	private List<Triple<Integer, Optional<Double>, Boolean>> alterUntilBreakPoint(Integer MaxVM, Integer nVM, Function<Integer, Integer> updateFunction,
+			SolutionPerJob solPerJob, double deadline) {
+		List<Triple<Integer, Optional<Double>, Boolean>> lst = new ArrayList<>();
+		checkCondition(MaxVM, nVM, updateFunction,  solPerJob, deadline, lst);
+		return lst;
+	}
+
+	private void checkCondition(Integer MaxVM, Integer nVM, Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline,
+			List<Triple<Integer, Optional<Double>, Boolean>> lst) {
+		Optional<Double> optDuration = calculateDuration(solPerJob.setNumberVM(nVM));
+		lst.add(new ImmutableTriple<Integer, Optional<Double>, Boolean>(nVM, optDuration,
+				optDuration.isPresent() && optDuration.get() < deadline));
+		Boolean condition = optDuration.isPresent() && optDuration.get() < deadline && nVM < MaxVM;
+		//TODO in this condition we have to add also the case in which adding more VM does not affect the duration. 
+		// meaning that a steady state has been reached.
+		if (!condition) {
+			logger.info("Optimization jobClass: " + solPerJob.getJob().getId() + " num VM: "+nVM+ " duration: " + optDuration.get()
+					+ " deadline: " + deadline);
+			checkCondition(MaxVM, updateFunction.apply(nVM), updateFunction, solPerJob, deadline, lst);
+		}
+	}
+
+	private Optional<Double> calculateDuration(SolutionPerJob solPerJob) {
+		JobClass jobClass = solPerJob.getJob();
+		int jobID = jobClass.getId();
+		int nUsers = solPerJob.getNumberUsers();
+		double think = jobClass.getThink();
+		Pair<File, File> pFiles;
+		try {
+			pFiles = createSPNWorkingFiles(solPerJob);
+			double throughput = SPNSolver.run(pFiles, "class" + jobID);
+			double duration = calculateResponseTime(throughput, nUsers, think);
+			return Optional.of(duration);
+		} catch (Exception e) {
+			return Optional.empty();
+		}
+
+	}
+
+	public Optional<Double> executeMock(SolutionPerJob solPerJob, int cycles) {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Optional<Double> res = Optional.of(10.0);
+		logger.info("Local search num " + solPerJob.getPos() + " finished");
+		return res;
+	}
+
+	public Optional<Double> execute(SolutionPerJob solPerJob, int cycles) {
+		double tempResponseTime = 0;
+		int maxIterations = (int) Math.ceil((double) cycles / 2.0);
+		JobClass jobClass = solPerJob.getJob();
+
+		int jobID = jobClass.getId();
+
+		double deadline = jobClass.getD();
+		double think = jobClass.getThink();
+
+		int nUsers = solPerJob.getNumberUsers();
+		int nContainers = solPerJob.getNumberContainers();
+		int hUp = jobClass.getHup();
+
+		Optional<Double> res;
+		try {
+			Pair<File, File> pFiles = createSPNWorkingFiles(solPerJob);
+			double throughput = SPNSolver.run(pFiles, "class" + jobID);
+			double responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+
+			if (responseTime < deadline) {
+				for (int iteration = 0; responseTime < deadline && nUsers < hUp
+						&& iteration <= maxIterations; ++iteration) {
+					tempResponseTime = responseTime;
+					++nUsers;
+
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
+					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
+
+					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
+					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+				}
+				for (int iteration = 0; responseTime < deadline && iteration <= maxIterations
+						&& nContainers > 1; ++iteration) {
+					tempResponseTime = responseTime;
+					// TODO aggiungere vm invece che gli slot.
+					++nContainers;
+
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
+
+					pFiles = createSPNWorkingFiles(solPerJob, Optional.of(iteration));
+
+					throughput = SPNSolver.run(pFiles, String.format("class%d_iter%d", jobID, iteration));
+					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+				}
+
+			} else {
+				// TODO: check on this.
+				while (responseTime > deadline) {
+					++nContainers;
+
+					if (fileUtility.delete(pFiles))
+						logger.info("Working files correctly deleted");
+
+					pFiles = createSPNWorkingFiles(solPerJob);
+
+					throughput = SPNSolver.run(pFiles, String.format("class%d", jobID));
+					responseTime = Optimizer.calculateResponseTime(throughput, nUsers, think);
+					tempResponseTime = responseTime;
+				}
+			}
+
+			if (fileUtility.delete(pFiles))
+				logger.info("Working files correctly deleted");
+
+			solPerJob.setDuration(tempResponseTime);
+			solPerJob.setNumberUsers(nUsers);
+			solPerJob.setNumberContainers(nContainers);
+			solPerJob.setNumberVM(nContainers / solPerJob.getNumCores()); // TODO
+																			// check.
+			res = Optional.of(tempResponseTime);
+		} catch (Exception e) {
+			logger.error("Some error happend in the local search");
+			res = Optional.empty();
+		}
+		return res;
+	}
+
+	private Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob) throws IOException {
+		return createSPNWorkingFiles(solPerJob, Optional.empty());
+	}
+
+	private Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration)
+			throws IOException {
+		int nContainers = solPerJob.getNumberContainers();
+		JobClass jobClass = solPerJob.getJob();
+		Profile prof = solPerJob.getProfile();
+		int jobID = jobClass.getId();
+		double mAvg = prof.getMavg();
+		double rAvg = prof.getRavg();
+		double shTypAvg = prof.getSHtypavg();
+		double think = jobClass.getThink();
+
+		int nUsers = solPerJob.getNumberUsers();
+		int NM = prof.getNM();
+		int NR = prof.getNR();
+
+		String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
+				.setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
+
+		File netFile;
+		if (iteration.isPresent())
+			netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration), ".net");
+		else
+			netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
+
+		fileUtility.writeContentToFile(netFileContent, netFile);
+
+		String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
+				.setNumberOfReduceTasks(NR).build();
+		File defFile;
+		if (iteration.isPresent())
+			defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration.get()),
+					".def");
+		else
+			defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".def");
+
+		fileUtility.writeContentToFile(defFileContent, defFile);
+		return new ImmutablePair<File, File>(netFile, defFile);
+
+	}
 
 }
