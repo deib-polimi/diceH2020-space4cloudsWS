@@ -60,8 +60,8 @@ public class EngineService {
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
-			optimizer.makeFeasible(solution);
-			optimizer.parallelLocalSearch(solution);
+			optimizer.hillClimbing(solution);
+			//optimizer.parallelLocalSearch(solution);
 			stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.error("Error while performing Local search", e);

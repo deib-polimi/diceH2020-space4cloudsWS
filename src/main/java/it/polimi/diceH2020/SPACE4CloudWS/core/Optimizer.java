@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.gs.collections.impl.list.mutable.primitive.BooleanArrayList;
+
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
@@ -54,8 +56,7 @@ public class Optimizer {
 	}
 
 	public static BigDecimal calculateResponseTime(BigDecimal throughput, int numServers, double thinkTime) {
-		return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime)).setScale(2,
-				RoundingMode.HALF_EVEN);
+		return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime)).setScale(2, RoundingMode.HALF_EVEN);
 	}
 
 	// read an input file and type value of accuracy and cycles
@@ -66,74 +67,86 @@ public class Optimizer {
 
 	public void parallelLocalSearch(Solution solution) throws Exception {
 
-		List<Optional<Double>> objectives = solution.getLstSolutions().parallelStream().map(s -> executeMock(s, cycles))
-				.collect(Collectors.toList());
+		List<Optional<Double>> objectives = solution.getLstSolutions().parallelStream().map(s -> executeMock(s, cycles)).collect(Collectors.toList());
 
 		objectives.clear();
 
 	}
 
-	public void makeFeasible(Solution solution) {
-		solution.getLstSolutions().parallelStream().forEach(solPerJob -> makeFeasible(solPerJob));
+	public void hillClimbing(Solution solution) {
+		solution.getLstSolutions().parallelStream().forEach(solPerJob -> hillClimbing(solPerJob));
+		
 	}
 
-	private boolean makeFeasible(SolutionPerJob solPerJob) {
+	private boolean hillClimbing(SolutionPerJob solPerJob) {
 		JobClass jobClass = solPerJob.getJob();
 		double deadline = jobClass.getD();
+		FiveParmsFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction;
+		Function<Integer, Integer> updateFunction;
+		List<Triple<Integer, Optional<BigDecimal>, Boolean>> res = null;
 
-		List<Triple<Integer, Optional<BigDecimal>, Boolean>> res = alterUntilBreakPoint(dataService.getGamma(),
-				n -> n + 1, solPerJob, deadline);
-
-		Stream<Triple<Integer, Optional<BigDecimal>, Boolean>> p = res.parallelStream()
-				.filter(t -> t.getRight() && t.getMiddle().isPresent());
-		Optional<Triple<Integer, Optional<BigDecimal>, Boolean>> result = p
-				.min(Comparator.comparing(t -> t.getMiddle().get()));
-		if (result.isPresent()) {
-			BigDecimal dur = result.get().getMiddle().get();
-			int nVM = result.get().getLeft();
-			logger.info("MakeFisible ended the duration of the job: " + solPerJob.getJob().getId() + " is: " + dur
-					+ " obtained with: " + nVM + " vms");
-			return true;
+		Optional<BigDecimal> duration = calculateDuration(solPerJob);
+		if (duration.isPresent()) {
+			if (duration.get().doubleValue() > deadline) {
+				checkFunction = (pDur, dur, dead, nVM, max) -> checkConditionToFeasibility(pDur, dur, dead, nVM, max);
+				updateFunction = n -> n + 1;
+			} else {
+				checkFunction = (pDur, dur, dead, nVM, max) -> checkConditionFromFeasibility(pDur, dur, dead, nVM, max);
+				updateFunction = n -> n - 1;
+			}
+			res = alterUntilBreakPoint(dataService.getGamma(), checkFunction, updateFunction, solPerJob, deadline);
+			Stream<Triple<Integer, Optional<BigDecimal>, Boolean>> filteredStream = res.parallelStream().filter(t -> t.getRight() && t.getMiddle().isPresent());
+			Optional<Triple<Integer, Optional<BigDecimal>, Boolean>> result = filteredStream.min(Comparator.comparing(t -> t.getMiddle().get()));
+			if (result.isPresent()) {
+				BigDecimal dur = result.get().getMiddle().get();
+				int nVM = result.get().getLeft();
+				logger.info("class" + solPerJob.getJob().getId() + "-> MakeFisible ended, the duration is: " + dur + " obtained with: " + nVM + " vms");
+				return true;
+			}
 		}
+		logger.info("class" + solPerJob.getJob().getId() + "-> MakeFisible ended with ERROR");
 		return false;
-
 	}
 
-	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM,
+	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM, FiveParmsFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction,
 			Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
-		recursiveSeekFeasibility(MaxVM, updateFunction, solPerJob, deadline, lst);
+		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
-	private void recursiveSeekFeasibility(Integer maxVM, Function<Integer, Integer> updateFunction,
+	private void recursiveOptimize(Integer maxVM, FiveParmsFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
 			SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+		// TODO Auto-generated method stub
 		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
-		Optional<BigDecimal> previous ;
-		if (lst.size()>0) {
-			previous = lst.get(lst.size()-1).getMiddle();
-		}else 
-			previous = Optional.empty();
-		
-		lst.add(new ImmutableTriple<Integer, Optional<BigDecimal>, Boolean>(nVM, optDuration,
-				optDuration.isPresent() && (optDuration.get().doubleValue() < deadline)));
-		Boolean condition = checkCondition(previous, optDuration, deadline, nVM, maxVM);
+		Optional<BigDecimal> previous;
+		if (lst.size() > 0) previous = lst.get(lst.size() - 1).getMiddle();
+		else previous = Optional.empty();
+
+		lst.add(new ImmutableTriple<Integer, Optional<BigDecimal>, Boolean>(nVM, optDuration, optDuration.isPresent() && (optDuration.get().doubleValue() < deadline)));
+		Boolean condition = checkFunction.apply(previous, optDuration, deadline, nVM, maxVM);
 		if (!condition) {
-			logger.info("Optimization jobClass: " + solPerJob.getJob().getId() + " num VM: " + nVM + " duration: "
-					+ (optDuration.isPresent()? optDuration.get(): "null ")+ " deadline: " + deadline);
+			logger.info("class" + solPerJob.getJob().getId() + "->  num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
 			solPerJob.setNumberVM(updateFunction.apply(nVM));
-			recursiveSeekFeasibility(maxVM, updateFunction, solPerJob, deadline, lst);
+			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		}
 	}
 
-	private boolean checkCondition(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration,
-			double deadline, Integer nVM, Integer maxVM) {
+	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
 		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() < deadline) && (nVM < maxVM)
 				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1);
 	}
 
+	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
+		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() > deadline) && (nVM < maxVM)
+				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1);
+	}
+
 	private Optional<BigDecimal> calculateDuration(SolutionPerJob solPerJob) {
+		if (!solPerJob.getChanged()) {
+			return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
+		}
 		JobClass jobClass = solPerJob.getJob();
 		int jobID = jobClass.getId();
 		int nUsers = solPerJob.getNumberUsers();
@@ -142,6 +155,7 @@ public class Optimizer {
 		try {
 			pFiles = createSPNWorkingFiles(solPerJob);
 			BigDecimal throughput = SPNSolver.run(pFiles, "class" + jobID);
+			if (fileUtility.delete(pFiles)) logger.debug("Working files correctly deleted");
 			BigDecimal duration = calculateResponseTime(throughput, nUsers, think);
 			return Optional.of(duration);
 		} catch (Exception e) {
@@ -253,8 +267,7 @@ public class Optimizer {
 		return createSPNWorkingFiles(solPerJob, Optional.empty());
 	}
 
-	private Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration)
-			throws IOException {
+	private Pair<File, File> createSPNWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration) throws IOException {
 		int nContainers = solPerJob.getNumberContainers();
 		JobClass jobClass = solPerJob.getJob();
 		Profile prof = solPerJob.getProfile();
@@ -268,25 +281,18 @@ public class Optimizer {
 		int NM = prof.getNM();
 		int NR = prof.getNR();
 
-		String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
-				.setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
+		String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
 
 		File netFile;
-		if (iteration.isPresent())
-			netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration), ".net");
-		else
-			netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
+		if (iteration.isPresent()) netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration), ".net");
+		else netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
 
 		fileUtility.writeContentToFile(netFileContent, netFile);
 
-		String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
-				.setNumberOfReduceTasks(NR).build();
+		String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM).setNumberOfReduceTasks(NR).build();
 		File defFile;
-		if (iteration.isPresent())
-			defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration.get()),
-					".def");
-		else
-			defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".def");
+		if (iteration.isPresent()) defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration.get()), ".def");
+		else defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".def");
 
 		fileUtility.writeContentToFile(defFileContent, defFile);
 		return new ImmutablePair<File, File>(netFile, defFile);

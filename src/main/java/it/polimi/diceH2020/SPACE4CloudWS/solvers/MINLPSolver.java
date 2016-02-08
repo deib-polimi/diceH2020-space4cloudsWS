@@ -60,7 +60,7 @@ public class MINLPSolver {
 		connector = new SshConnector(connSettings);
 	}
 
-	public Double run(@NotNull Pair<File, File> pFiles)throws Exception {
+	public Double run(@NotNull Pair<File, File> pFiles) throws Exception {
 		File dataFile = pFiles.getLeft();
 		File solutionFile = pFiles.getRight();
 		String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
@@ -77,9 +77,8 @@ public class MINLPSolver {
 		fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
 		connector.sendFile(runFile.getAbsolutePath(), fullRemotePath);
 		logger.info("AMPL .run file sent");
-		if (fileUtility.delete(runFile)) {
+		if (fileUtility.delete(runFile))
 			logger.debug(runFile + " deleted");
-		}
 
 		logger.info("Processing execution...");
 		clearResultDir();
@@ -88,8 +87,7 @@ public class MINLPSolver {
 		List<String> remoteMsg = connector.exec(command);
 		if (remoteMsg.contains("exit-status: 0")) {
 			logger.info("The remote optimization proces completed correctly");
-		}
-		else {
+		} else {
 			logger.info("Remote exit status: " + remoteMsg);
 			throw new Exception("Error in the MINLP server");
 		}

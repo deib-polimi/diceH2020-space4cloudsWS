@@ -34,4 +34,19 @@ public class Evaluator implements IEvaluator {
 		return cost;
 	}
 
+
+
+	@Override
+	public boolean evaluateFeasibility(SolutionPerJob solPerJob) {
+		if (solPerJob.getChanged()) {
+			if (solPerJob.getDuration()<solPerJob.getJob().getD()) {
+				solPerJob.setFeasible(true);
+				return true;
+			}
+			solPerJob.setFeasible(false);
+			return false;
+		}
+		return solPerJob.getFeasible();
+	}
+
 }

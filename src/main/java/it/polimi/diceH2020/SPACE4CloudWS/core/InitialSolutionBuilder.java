@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.activemq.filter.function.splitFunction;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -46,7 +47,7 @@ public class InitialSolutionBuilder {
 	public Solution getInitialSolution() throws Exception {
 		
 		Solution startingSol = new Solution();
-
+		startingSol.setGamma(dataService.getGamma());
 		// Phase 1
 		dataService.getListJobClass().forEach(jobClass -> {
 			Map<TypeVM, Double> mapResults = new HashMap<TypeVM, Double>();
