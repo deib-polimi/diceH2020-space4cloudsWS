@@ -45,7 +45,6 @@ public class EngineService {
 	}
 
 	@Async("workExecutor")
-//	@OnTransition(target = "RUNNING_INIT")
 	public void runningInitSolution() {
 		try {
 			solution = solBuilder.getInitialSolution();
