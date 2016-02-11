@@ -1,5 +1,12 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import it.polimi.diceH2020.SPACE4Cloud.shared.generators.InstanceDataGenerator;
+import it.polimi.diceH2020.SPACE4Cloud.shared.generators.SolutionGenerator;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,15 +16,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import it.polimi.diceH2020.SPACE4Cloud.shared.generators.InstanceDataGenerator;
-import it.polimi.diceH2020.SPACE4Cloud.shared.generators.SolutionGenerator;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
 @Configuration
 public class Configurator {

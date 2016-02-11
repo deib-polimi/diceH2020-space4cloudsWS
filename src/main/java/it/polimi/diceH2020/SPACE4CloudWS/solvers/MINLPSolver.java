@@ -3,7 +3,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.AMPLRunFileBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

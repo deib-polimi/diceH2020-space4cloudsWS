@@ -1,12 +1,12 @@
 package it.polimi.diceH2020.SPACE4CloudWS.stateMachine;
 
-import java.util.EnumSet;
-
 import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.config.EnableStateMachine;
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
+
+import java.util.EnumSet;
 
 @Configuration
 @EnableStateMachine 

@@ -3,6 +3,9 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+/**
+ * Configuration class for SPN solver/server
+ */
 @Component
 @ConfigurationProperties(prefix="SPN")
 public class SPNSettings implements ConnectionSettings {
@@ -24,6 +27,7 @@ public class SPNSettings implements ConnectionSettings {
 	private String knownHosts;
 
 	private boolean forceClean;
+	private double accuracy = 0.1; //default value
 
 	public String getPubKeyFile() {
 		return pubKeyFile;
@@ -40,8 +44,6 @@ public class SPNSettings implements ConnectionSettings {
 	public void setKnownHosts(String knownHosts) {
 		this.knownHosts = knownHosts;
 	}
-
-	private double accuracy= 0.1; //default value
 
 	/**
 	 * @return the address

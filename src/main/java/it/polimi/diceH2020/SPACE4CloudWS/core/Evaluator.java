@@ -1,10 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import org.springframework.stereotype.Component;
-
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import org.springframework.stereotype.Component;
 
 @Component
 public class Evaluator implements IEvaluator {
@@ -23,7 +22,7 @@ public class Evaluator implements IEvaluator {
 	@Override
 	public  double calculateCostPerJob(SolutionPerJob solPerJob) {
 		double deltaBar = solPerJob.getDeltaBar();
-		double rhoBar = solPerJob.getRhoBar();;
+		double rhoBar = solPerJob.getRhoBar();
 		double sigmaBar = solPerJob.getSigmaBar();
 		double alfa = solPerJob.getAlfa();
 		double numberOfUsers = solPerJob.getNumberUsers();

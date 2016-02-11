@@ -1,15 +1,10 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
-import java.util.List;
-
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.*;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import java.util.List;
 
 public class AMPLDataFileUtils {
 

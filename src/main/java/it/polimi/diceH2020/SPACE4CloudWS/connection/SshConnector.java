@@ -1,9 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.connection;
 
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+
 import java.io.File;
 import java.util.List;
-
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 
 public class SshConnector {
 

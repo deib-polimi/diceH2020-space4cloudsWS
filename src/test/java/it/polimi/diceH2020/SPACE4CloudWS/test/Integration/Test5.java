@@ -1,13 +1,13 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.get;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -25,15 +25,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
-import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
@@ -44,15 +40,13 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test5 {
 
-	private InstanceData data;
-	
-	private ObjectMapper mapper;
-	
-	private Solution solution;
-
 	@Autowired
 	WebApplicationContext wac;
 	MockMvc mockMvc;
+	private InstanceData data;
+	private ObjectMapper mapper;
+	private Solution solution;
+
 	@Before
 	public void setUp() throws IOException {
 		// RestAssured.port = port;

@@ -1,18 +1,17 @@
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.JobRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.ProviderRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.TypeVMRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class DAOService {

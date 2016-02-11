@@ -1,9 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.post;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
-
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -19,11 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
-import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
-
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
@@ -35,11 +31,11 @@ public class Test3 {
 
 
 	@Autowired
-	private InstanceData data;
-
-	@Autowired
 	WebApplicationContext wac;
 	MockMvc mockMvc;
+	@Autowired
+	private InstanceData data;
+
 	@Before
 	public void setUp() {
 		// RestAssured.port = port;

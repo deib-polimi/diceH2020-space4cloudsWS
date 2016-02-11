@@ -1,21 +1,19 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
 
 @Component
 public class FileUtility {

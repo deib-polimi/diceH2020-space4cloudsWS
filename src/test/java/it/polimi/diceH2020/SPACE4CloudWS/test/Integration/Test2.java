@@ -1,5 +1,10 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityJobClass;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -11,13 +16,6 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
-
-import it.polimi.diceH2020.SPACE4CloudWS.model.EntityJobClass;
-import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
-import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 
 @RunWith(SpringJUnit4ClassRunner.class)   // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class)   // 2

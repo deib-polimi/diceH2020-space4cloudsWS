@@ -1,17 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.statemachine.StateMachine;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityJobClass;
@@ -25,6 +13,13 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
 
 
 @RestController
@@ -39,10 +34,6 @@ public class ControllerTest {
 	
 	@Autowired
 	InstanceData inputData;
-	
-	@Autowired
-	private StateMachine<States, Events> stateHandler;
-	
 	// I could use the daoService, but this class is only for testing purposes
 	@Autowired
 	JobRepository jobRepository;
@@ -50,6 +41,8 @@ public class ControllerTest {
 	TypeVMRepository typeVMRepository;
 	@Autowired
 	ProviderRepository providerRepository;
+	@Autowired
+	private StateMachine<States, Events> stateHandler;
 
 	@RequestMapping(method = RequestMethod.GET, value = "appldata")
 	@Profile("test")

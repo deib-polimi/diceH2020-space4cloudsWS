@@ -1,16 +1,32 @@
 package it.polimi.diceH2020.SPACE4CloudWS.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @IdClass(EntityKey.class)
 @Table(name = "TYPEVM")
 public class EntityTypeVM {
+
+	@Id
+	private String type;
+	@Id
+	@ManyToOne
+	@JoinColumn(name = "pId")
+	private EntityProvider provider;
+	private int core;
+	private double deltabar;
+	// cost reserved
+	private double rhobar;
+	// cost
+	private double sigmabar;
+
+	public EntityTypeVM() {
+	}
+
+	public EntityTypeVM(String type) {
+		super();
+		this.type = type;
+	}
 
 	public EntityProvider getProvider() {
 		return provider;
@@ -20,19 +36,6 @@ public class EntityTypeVM {
 		this.provider = provider;
 	}
 
-	public EntityTypeVM() {
-	}
-
-	@Id
-	private String type;
-
-	@Id
-	@ManyToOne
-	@JoinColumn(name = "pId")
-	private EntityProvider provider;
-
-	private int core;
-
 	public int getNumCores() {
 		return core;
 	}
@@ -40,19 +43,6 @@ public class EntityTypeVM {
 	public void setCore(int core) {
 		this.core = core;
 	}
-
-	private double deltabar;
-
-	public EntityTypeVM(String type) {
-		super();
-		this.type = type;
-	}
-
-	// cost reserved
-	private double rhobar;
-
-	// cost
-	private double sigmabar;
 
 	public double getDeltabar() {
 		return deltabar;
