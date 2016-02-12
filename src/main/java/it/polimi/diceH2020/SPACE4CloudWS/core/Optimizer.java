@@ -57,8 +57,8 @@ public class Optimizer {
 	}
 
 	public void hillClimbing(Solution solution) {
-		solution.getLstSolutions().parallelStream().forEach(this::hillClimbing);
-		
+//		solution.getLstSolutions().parallelStream().forEach(this::hillClimbing);
+		solution.getLstSolutions().stream().forEach(this::hillClimbing);
 	}
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {

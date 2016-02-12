@@ -8,4 +8,12 @@ public interface ConnectionSettings {
 	String getPubKeyFile() ;
 	String getKnownHosts();
 	boolean isForceClean();
+
+	String getRemoteWorkDir();
+
+	double getAccuracy();
+
+	void setAccuracy(double accuracy);
+
+	String getSolverPath();
 }

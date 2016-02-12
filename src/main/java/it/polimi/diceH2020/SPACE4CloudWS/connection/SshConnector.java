@@ -25,6 +25,7 @@ public class SshConnector {
 
 	}
 
+
 	public void sendFile(String localFile, String remoteFile) throws Exception {
 		newScpTo.sendfile(localFile, remoteFile);
 		fixFile(new File(remoteFile).getParent(), new File(remoteFile).getName());

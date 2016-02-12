@@ -26,7 +26,7 @@
 <subParameter classPath="jmt.engine.random.Exponential" name="Exponential"/>
 <subParameter classPath="jmt.engine.random.ExponentialPar" name="distrPar">
 <subParameter classPath="java.lang.Double" name="lambda">
-<value>1.0E-4</value>
+<value>@@THINK_RATE@@</value>
 </subParameter>
 </subParameter>
 </subParameter>
@@ -58,7 +58,7 @@
 </section>
 <section className="Server">
 <parameter classPath="java.lang.Integer" name="maxJobs">
-<value>NCORES</value>
+<value>@@NCORES@@</value>
 </parameter>
 <parameter array="true" classPath="java.lang.Integer" name="numberOfVisits">
 <refClass>Class1</refClass>
@@ -216,13 +216,13 @@
 <blockingRegion name="FCRegion0" type="default">
 <regionNode nodeName="Queue 1"/>
 <regionNode nodeName="Queue 1_1"/>
-<globalConstraint maxJobs="NCORES"/>
-<classConstraint jobClass="Class1" maxJobsPerClass="NCORES"/>
+<globalConstraint maxJobs="@@NCORES@@"/>
+<classConstraint jobClass="Class1" maxJobsPerClass="@@NCORES@@"/>
 <dropRules dropThisClass="false" jobClass="Class1"/>
 </blockingRegion>
 <preload>
 <stationPopulations stationName="Delay 1">
-<classPopulation population="NUSER" refClass="Class1"/>
+<classPopulation population="@@CONCURRENCY@@" refClass="Class1"/>
 </stationPopulations>
 </preload>
 </sim>

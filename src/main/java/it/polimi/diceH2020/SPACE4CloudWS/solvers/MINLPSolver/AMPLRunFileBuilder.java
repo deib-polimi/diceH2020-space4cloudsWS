@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;

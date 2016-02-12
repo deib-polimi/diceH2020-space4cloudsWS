@@ -1,4 +1,6 @@
-package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
+
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;

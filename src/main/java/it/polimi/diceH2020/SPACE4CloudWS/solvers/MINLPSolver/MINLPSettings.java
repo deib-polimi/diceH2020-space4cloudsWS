@@ -1,5 +1,6 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -32,8 +33,16 @@ public class MINLPSettings implements ConnectionSettings {
 		return address;
 	}
 
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
 	public String getPassword() {
 		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	/**
@@ -43,24 +52,16 @@ public class MINLPSettings implements ConnectionSettings {
 		return port;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
 	/**
 	 * @param port
 	 *            the port to set
 	 */
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	public void setUsername(String username) {
@@ -111,6 +112,16 @@ public class MINLPSettings implements ConnectionSettings {
 	 */
 	public void setRemoteWorkDir(String remoteWorkDir) {
 		this.remoteWorkDir = remoteWorkDir;
+	}
+
+	@Override
+	public double getAccuracy() {
+		return 0;
+	}
+
+	@Override
+	public void setAccuracy(double accuracy) {
+
 	}
 
 	public String getPubKeyFile() {

@@ -1,8 +1,9 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver.MINLPSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.SolverFactory;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
@@ -12,6 +13,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 @Component
 public class Initializator {
 	private static Logger logger = Logger.getLogger(Initializator.class.getName());
@@ -19,14 +22,24 @@ public class Initializator {
 	@Autowired
 	private MINLPSolver milpSolver;
 
-	@Autowired(required = true)
-	private SPNSolver SPNSolver;
+
+	private Solver solver;
+
+	@Autowired
+	private SolverFactory solverFactory;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
 	@Autowired
 	private FileUtility fileUtility;
+
+
+	@PostConstruct
+	private void setSolver() {
+		solver = solverFactory.create();
+	}
+
 
 	@EventListener
 	public void handleContextRefresh(ContextRefreshedEvent event) throws Exception {
@@ -36,7 +49,7 @@ public class Initializator {
 		try {
 			fileUtility.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
-			SPNSolver.initRemoteEnvironment();
+			solver.initRemoteEnvironment();
 
 			stateHandler.sendEvent(Events.MIGRATE);
 			logger.info("Current service state: " + stateHandler.getState().getId());

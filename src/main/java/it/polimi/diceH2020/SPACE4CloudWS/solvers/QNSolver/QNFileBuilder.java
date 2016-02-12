@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.QNSolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,34 +10,42 @@ import java.util.List;
 /**
  * Created by ciavotta on 11/02/16.
  */
-public class QNFileBuilder implements FileBuilder {
+public class QNFileBuilder {
 
     private Integer concurrency = -1;
     private Integer numberOfMapTasks = -1;
     private Integer numberOfReduceTasks = -1;
     private String mapFilePath = "";
-    private String rsFilePath = "";
+    private String RSFilePath = "";
+    private Double thinkRate;
+    private Integer cores;
 
 
-    @Override
-    public FileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
+    public QNFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
         this.numberOfReduceTasks = numberOfReduceTasks;
         return this;
     }
 
-    @Override
-    public FileBuilder setNumberOfMapTasks(int numberOfMapTasks) {
+    public QNFileBuilder setNumberOfMapTasks(int numberOfMapTasks) {
         this.numberOfMapTasks = numberOfMapTasks;
         return this;
     }
 
-    @Override
-    public FileBuilder setConcurrency(int concurrency) {
+    public QNFileBuilder setConcurrency(int concurrency) {
         this.concurrency = concurrency;
         return this;
     }
 
-    @Override
+    public QNFileBuilder setThinkRate(Double thinkRate) {
+        this.thinkRate = thinkRate;
+        return this;
+    }
+
+    public QNFileBuilder setCores(Integer cores) {
+        this.cores = cores;
+        return this;
+    }
+
     public String build() throws IOException {
         InputStream inputStream = getClass().getResourceAsStream("/QN/MR-multiuser.jsimg");
         List<String> lines = new LinkedList<>();
@@ -48,19 +56,21 @@ public class QNFileBuilder implements FileBuilder {
                     .replace("@@NUM_MAP@@", numberOfMapTasks.toString())
                     .replace("@@NUM_REDUCE@@", numberOfReduceTasks.toString())
                     .replace("@@MAPPATH@@", mapFilePath)
-                    .replace("@@REDUCESHUFFLEPATH@@", rsFilePath);
+                    .replace("@@REDUCESHUFFLEPATH@@", RSFilePath)
+                    .replace("@@NCORES@@", cores.toString())
+                    .replace("@@THINK_RATE@@", thinkRate.toString());
             lines.add(outputLine);
         }
         return String.join("\n", lines);
     }
 
-    public FileBuilder setMapFilePath(String mapFilePath) {
+    public QNFileBuilder setMapFilePath(String mapFilePath) {
         this.mapFilePath = mapFilePath;
         return this;
     }
 
-    public FileBuilder setRsFilePath(String rsFilePath) {
-        this.rsFilePath = rsFilePath;
+    public QNFileBuilder setRsFilePath(String rsFilePath) {
+        this.RSFilePath = rsFilePath;
         return this;
     }
 }

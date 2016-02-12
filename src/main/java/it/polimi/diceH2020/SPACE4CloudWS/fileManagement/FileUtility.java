@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 @Component
 public class FileUtility {
@@ -58,4 +59,7 @@ public class FileUtility {
 		}
 	}
 
+	public boolean delete(List<File> pFiles) {
+		return pFiles.stream().map(f -> delete(f)).allMatch(r -> r);
+	}
 }
