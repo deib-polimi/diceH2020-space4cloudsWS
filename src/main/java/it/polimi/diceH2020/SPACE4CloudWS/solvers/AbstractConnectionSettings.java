@@ -1,36 +1,29 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.QNSolver;
-
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 /**
- * Created by ciavotta on 11/02/16./**
- * Configuration class for SPN solver/server
+ * Created by ciavotta on 13/02/16.
  */
-@Component
-@ConfigurationProperties(prefix = "QN")
-public class QNSettings implements ConnectionSettings {
+public abstract class AbstractConnectionSettings implements ConnectionSettings {
+    protected String address;
 
-    private String address;
+    protected Integer port = 22; //default value
 
-    private int port = 22; //default value
+    protected String username;
 
-    private String username;
-
-    private String password;
-
-    private String solverPath;
-
-    private String remoteWorkDir;
+    protected String password;
 
     private String pubKeyFile;
 
     private String knownHosts;
 
-    private Integer maxTime = Integer.MIN_VALUE;
-
     private boolean forceClean;
+
+    private String remoteWorkDir;
+
+    private double accuracy = 0.1; //default value
+
+    private String solverPath;
+
 
     @Override
     public String getAddress() {
@@ -51,11 +44,11 @@ public class QNSettings implements ConnectionSettings {
     }
 
     @Override
-    public int getPort() {
+    public Integer getPort() {
         return port;
     }
 
-    public void setPort(int port) {
+    public void setPort(Integer port) {
         this.port = port;
     }
 
@@ -106,12 +99,12 @@ public class QNSettings implements ConnectionSettings {
 
     @Override
     public double getAccuracy() {
-        return 0;
+        return accuracy;
     }
 
     @Override
     public void setAccuracy(double accuracy) {
-
+        this.accuracy = accuracy;
     }
 
     @Override
@@ -121,13 +114,5 @@ public class QNSettings implements ConnectionSettings {
 
     public void setSolverPath(String solverPath) {
         this.solverPath = solverPath;
-    }
-
-    public Integer getMaxTime() {
-        return maxTime;
-    }
-
-    public void setMaxTime(Integer maxTime) {
-        this.maxTime = maxTime;
     }
 }

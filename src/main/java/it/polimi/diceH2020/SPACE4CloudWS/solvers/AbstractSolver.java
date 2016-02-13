@@ -99,7 +99,7 @@ public abstract class AbstractSolver implements Solver {
     public void initRemoteEnvironment() throws Exception {
         List<String> lstProfiles = Arrays.asList(environment.getActiveProfiles());
         logger.info("------------------------------------------------");
-        logger.info(String.format("Starting %s service initialization phase", this.getClass().getCanonicalName()));
+        logger.info(String.format("Starting %s service initialization phase", this.getClass().getSimpleName()));
         logger.info("------------------------------------------------");
         if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
             logger.info("Test phase: the remote work directory tree is assumed to be ok.");

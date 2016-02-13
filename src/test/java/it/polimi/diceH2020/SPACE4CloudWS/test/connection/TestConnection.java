@@ -1,7 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.connection;
 
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.SPNSolver.SPNSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 import org.aspectj.apache.bcel.util.ClassPath;
 import org.junit.Assert;
 import org.junit.Test;

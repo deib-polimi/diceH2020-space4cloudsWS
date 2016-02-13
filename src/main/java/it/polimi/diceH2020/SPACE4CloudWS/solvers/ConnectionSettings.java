@@ -1,19 +1,25 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 public interface ConnectionSettings {
-	String getAddress() ;
-	String getPassword();
-	int getPort();
-	String getUsername();
-	String getPubKeyFile() ;
-	String getKnownHosts();
-	boolean isForceClean();
+    String getAddress();
 
-	String getRemoteWorkDir();
+    String getPassword();
 
-	double getAccuracy();
+    Integer getPort();
 
-	void setAccuracy(double accuracy);
+    String getUsername();
 
-	String getSolverPath();
+    String getPubKeyFile();
+
+    String getKnownHosts();
+
+    boolean isForceClean();
+
+    String getRemoteWorkDir();
+
+    double getAccuracy();
+
+    void setAccuracy(double accuracy);
+
+    String getSolverPath();
 }

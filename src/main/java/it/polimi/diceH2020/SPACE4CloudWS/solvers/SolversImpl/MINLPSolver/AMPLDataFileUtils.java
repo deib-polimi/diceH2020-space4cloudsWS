@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;

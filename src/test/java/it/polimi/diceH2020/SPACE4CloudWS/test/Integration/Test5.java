@@ -40,34 +40,34 @@ import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test5 {
 
-	@Autowired
-	WebApplicationContext wac;
-	MockMvc mockMvc;
-	private InstanceData data;
-	private ObjectMapper mapper;
-	private Solution solution;
+    @Autowired
+    WebApplicationContext wac;
+    MockMvc mockMvc;
+    private InstanceData data;
+    private ObjectMapper mapper;
+    private Solution solution;
 
-	@Before
-	public void setUp() throws IOException {
-		// RestAssured.port = port;
-		mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
-		RestAssuredMockMvc.mockMvc(mockMvc);
-		
-		mapper = new ObjectMapper();
-		SimpleModule module = new SimpleModule();		
-		module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer() );
-		mapper.registerModule(module);
-		String serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/myJson.json")));
+    @Before
+    public void setUp() throws IOException {
+        // RestAssured.port = port;
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+        RestAssuredMockMvc.mockMvc(mockMvc);
+
+        mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
+        mapper.registerModule(module);
+        String serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/myJson.json")));
 //		System.out.println(serialized);
-		data = mapper.readValue(serialized, InstanceData.class);
-		System.out.println(data.toString());
-		serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/sol.json")));
+        data = mapper.readValue(serialized, InstanceData.class);
+        System.out.println(data.toString());
+        serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/sol.json")));
 //		System.out.println(serialized);
-		solution = mapper.readValue(serialized, Solution.class);
-		System.out.println(data.toString());
-	}
-	
-	
+        solution = mapper.readValue(serialized, Solution.class);
+        System.out.println(data.toString());
+    }
+
+
 //	@Test
 //	public void test0PutInputData() throws IOException {
 //		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
@@ -92,43 +92,43 @@ public class Test5 {
 //		}
 //		
 //		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));	
-		
+
 //		Solution sol = get("/solution").body().as(Solution.class);
 //		
 //		String serialized = mapper.writeValueAsString(sol);
 //		System.out.println(serialized);
 //		 Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
-		
+
 //	}
-	
-	@Test
-	public void test1() {
-		if (get("/state").getBody().asString().equals("IDLE")) {
-			
-			given().contentType("application/json; charset=UTF-16").body(solution).when().post("/solution").then()
-					.statusCode(HttpStatus.SC_OK);
 
-			when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
-		}
-	}
-	
-	@Test
-	public void test2(){
-		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_LS, ObjectMapperType.JACKSON_2)
-		.when().post("/event").then().statusCode(HttpStatus.SC_OK);
-		String body = "RUNNING_LS";
-		while (body.equals("RUNNING_LS")) {
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			body = get("/state").getBody().asString();
-		}
+    @Test
+    public void test1() {
+        if (get("/state").getBody().asString().equals("IDLE")) {
 
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("FINISH"));
+            given().contentType("application/json; charset=UTF-16").body(solution).when().post("/solution").then()
+                    .statusCode(HttpStatus.SC_OK);
 
-	}
+            when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
+        }
+    }
+
+    @Test
+    public void test2() {
+        given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_LS, ObjectMapperType.JACKSON_2)
+                .when().post("/event").then().statusCode(HttpStatus.SC_OK);
+        String body = "RUNNING_LS";
+        while (body.equals("RUNNING_LS")) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            body = get("/state").getBody().asString();
+        }
+
+        when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("FINISH"));
+
+    }
 
 
 }

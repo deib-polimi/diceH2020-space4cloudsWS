@@ -7,7 +7,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
 import lombok.NonNull;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;

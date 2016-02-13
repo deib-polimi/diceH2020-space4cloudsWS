@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -40,7 +40,7 @@ public class MINLPSolver {
 	private static Logger logger = Logger.getLogger(MINLPSolver.class.getName());
 
 	@Autowired
-	private MINLPSolver.MINLPSettings connSettings;
+	private MINLPSettings connSettings;
 
 	@Autowired
 	private Environment environment; // this is to check which is the active
