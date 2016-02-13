@@ -34,7 +34,7 @@ public class SolverFactory {
             case QNSolver:
                 return ctx.getBean(QNSolver.class);
             default:
-                throw new RuntimeException("Misconfigured deletion policy");
+                throw new RuntimeException("Mis-configured deletion policy");
         }
     }
 

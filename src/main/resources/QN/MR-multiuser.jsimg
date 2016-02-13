@@ -141,7 +141,7 @@
 </section>
 <section className="Server">
 <parameter classPath="java.lang.Integer" name="maxJobs">
-<value>20</value>
+<value>@@NCORES@@</value>
 </parameter>
 <parameter array="true" classPath="java.lang.Integer" name="numberOfVisits">
 <refClass>Class1</refClass>
