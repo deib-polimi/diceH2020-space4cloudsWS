@@ -2,6 +2,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import lombok.NonNull;
@@ -96,6 +97,11 @@ public class SPNSolver extends AbstractSolver {
 
     public List<File> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
         return createWorkingFiles(solPerJob, Optional.empty());
+    }
+
+    @Override
+    public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
+        return null;
     }
 
 

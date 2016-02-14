@@ -1,5 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.generated.Solutions;
@@ -118,9 +119,13 @@ public class QNSolver extends AbstractSolver {
         });
     }
 
-
     public List<File> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
         return createWorkingFiles(solPerJob, Optional.empty());
+    }
+
+    @Override
+    public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
+        return null;
     }
 
     private List<File> createWorkingFiles(SolutionPerJob solPerJob, Optional<Object> iteration) throws IOException {

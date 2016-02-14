@@ -1,6 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -78,7 +79,6 @@ public abstract class AbstractSolver implements Solver {
         connSettings.setAccuracy(accuracy);
     }
 
-
     @Override
     public List<String> pwd() throws Exception {
         return connector.pwd();
@@ -89,11 +89,9 @@ public abstract class AbstractSolver implements Solver {
         return connector;
     }
 
-
     protected abstract BigDecimal run(List<File> pFiles, String s) throws Exception;
 
     protected abstract List<File> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
-
 
     @Override
     public void initRemoteEnvironment() throws Exception {
@@ -115,4 +113,10 @@ public abstract class AbstractSolver implements Solver {
     }
 
 
+    public String getRemoteWorkingDirectory() {
+        return connSettings.getRemoteWorkDir();
+    }
+
+
+    public abstract Optional<BigDecimal> evaluate(@NonNull Solution solution);
 }
