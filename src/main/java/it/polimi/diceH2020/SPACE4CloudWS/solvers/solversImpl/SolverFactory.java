@@ -1,8 +1,8 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl;
 
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.QNSolver.QNSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.SPNSolver.SPNSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.QNSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -9,8 +9,8 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.SPNSolver.SPNSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 
 import java.util.List;
 

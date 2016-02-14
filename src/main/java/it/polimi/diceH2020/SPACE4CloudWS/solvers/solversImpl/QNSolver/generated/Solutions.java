@@ -6,7 +6,7 @@
 //
 
 
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.QNSolver.generated;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.generated;
 
 import java.util.ArrayList;
 import java.util.List;

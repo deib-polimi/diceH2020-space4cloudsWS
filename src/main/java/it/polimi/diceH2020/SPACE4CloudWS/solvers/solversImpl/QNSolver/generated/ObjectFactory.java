@@ -6,7 +6,7 @@
 //
 
 
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.QNSolver.generated;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.generated;
 
 import javax.xml.bind.annotation.XmlRegistry;
 
