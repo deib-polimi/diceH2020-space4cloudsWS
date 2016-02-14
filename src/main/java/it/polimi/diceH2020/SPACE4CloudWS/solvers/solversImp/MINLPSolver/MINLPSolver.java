@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.MINLPSolver;
 
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;

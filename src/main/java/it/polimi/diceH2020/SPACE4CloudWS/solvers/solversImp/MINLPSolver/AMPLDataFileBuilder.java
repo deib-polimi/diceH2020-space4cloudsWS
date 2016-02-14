@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.MINLPSolver;
 
 import java.io.IOException;
 import java.util.LinkedList;

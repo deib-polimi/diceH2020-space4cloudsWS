@@ -1,8 +1,8 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.QNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.Schema.generated.Solutions;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.QNSolver.generated.Solutions;
 import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;

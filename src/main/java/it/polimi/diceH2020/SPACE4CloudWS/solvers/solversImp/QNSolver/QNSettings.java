@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.QNSolver;
 
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractConnectionSettings;
 import org.springframework.boot.context.properties.ConfigurationProperties;

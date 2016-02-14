@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.SPNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;

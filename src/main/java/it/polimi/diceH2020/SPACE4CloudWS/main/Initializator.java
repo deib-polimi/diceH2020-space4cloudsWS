@@ -2,8 +2,8 @@ package it.polimi.diceH2020.SPACE4CloudWS.main;
 
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImp.MINLPSolver.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
