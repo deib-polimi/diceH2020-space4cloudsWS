@@ -1,6 +1,11 @@
 /.apt_generated/
 /target/
-.idea/
-SPACE4CloudWS.iml
-TempWorkingDir/
-log.txt*
+/.idea/
+/SPACE4CloudWS.iml
+/TempWorkingDir/
+/log.txt*
+/.classpath
+/.factorypath
+/.project
+/.springBeans
+/.settings/
