@@ -4,7 +4,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import org.apache.log4j.Logger;
@@ -14,9 +13,9 @@ import org.springframework.stereotype.Service;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class InitialSolutionBuilder {
@@ -26,17 +25,16 @@ public class InitialSolutionBuilder {
     private DataService dataService;
     @Autowired
     private MINLPSolver minlpSolver;
-    @Autowired
-    private FileUtility fileUtility;
+
 
     public Solution getInitialSolution() throws Exception {
 
         Solution startingSol = new Solution();
         startingSol.setGamma(dataService.getGamma());
         // Phase 1
-
+        //SingleClass
         dataService.getListJobClass().forEach(jobClass -> {
-            Map<TypeVM, Optional<BigDecimal>> mapResults = new HashMap<>();
+            Map<TypeVM, Optional<BigDecimal>> mapResults = new ConcurrentHashMap<TypeVM, Optional<BigDecimal>>();
             dataService.getListTypeVM(jobClass).forEach(tVM -> {
                 logger.info(String.format("---------- Starting optimization jobClass %d considering VM type %s ----------", jobClass.getId(), tVM.getId()));
                 SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
@@ -52,6 +50,7 @@ public class InitialSolutionBuilder {
         });
 
         // Phase 2
+        //multiClass
         minlpSolver.evaluate(startingSol);
         Evaluator.evaluate(startingSol);
         logger.info("---------- Initial solution correctly created ----------");

@@ -363,19 +363,4 @@ public class MINLPSolver extends AbstractSolver {
         return lst;
     }
 
-/*    private Pair<File, File> createSingleClassWorkingFiles(@NotNull JobClass jobClass, @NotNull TypeVM tVM) throws IOException {
-        Profile prof = dataService.getProfile(jobClass, tVM);
-        AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass, tVM, prof);
-        builder.setArrayParameter("w", Ints.asList(dataService.getNumCores(tVM)))
-                .setArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
-                .setArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM)))
-                .setArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
-        File dataFile = fileUtility
-                .provideTemporaryFile(String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".dat");
-        fileUtility.writeContentToFile(builder.build(), dataFile);
-        File resultsFile = fileUtility
-                .provideTemporaryFile(String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".sol");
-        return new ImmutablePair<File, File>(dataFile, resultsFile);
-
-    }*/
 }
