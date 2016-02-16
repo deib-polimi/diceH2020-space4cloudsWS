@@ -29,7 +29,7 @@ public class InitialSolutionBuilder {
 
     public Solution getInitialSolution() throws Exception {
 
-        Solution startingSol = new Solution();
+        Solution startingSol = new Solution(dataService.getData().getId());
         startingSol.setGamma(dataService.getGamma());
         // Phase 1
         //SingleClass

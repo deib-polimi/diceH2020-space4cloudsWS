@@ -1,13 +1,13 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
-import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.get;
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -18,6 +18,7 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,20 +26,25 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
 
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class) // 2
 @WebAppConfiguration // 3
 @ActiveProfiles("test")
+@Sql(scripts = "classpath:/testInstances/import-test6.sql")
 @Transactional
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test5 {
+public class Test6 {
 
     @Autowired
     WebApplicationContext wac;
@@ -57,7 +63,7 @@ public class Test5 {
         SimpleModule module = new SimpleModule();
         module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
         mapper.registerModule(module);
-        String serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/myJson.json")));
+        String serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/testInstances/first_attempt.json")));
 //		System.out.println(serialized);
         data = mapper.readValue(serialized, InstanceData.class);
         System.out.println(data.toString());
@@ -68,38 +74,38 @@ public class Test5 {
     }
 
 
-//	@Test
-//	public void test0PutInputData() throws IOException {
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
-//
-//		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
-//				.statusCode(HttpStatus.SC_OK);
-//
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
-//
-//		//InstanceData data = post("/debug/event").body().as(InstanceData.class);
-//		
-//		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2).when()
-//				.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING_INIT"));
-//		String body = "RUNNING_INIT";
-//		while (body.equals("RUNNING_INIT")) {
-//			try {
-//				Thread.sleep(5000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//			body = get("/state").getBody().asString();
-//		}
-//		
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));	
-//
-//		Solution sol = get("/solution").body().as(Solution.class);
-//		
-//		String serialized = mapper.writeValueAsString(sol);
-//		System.out.println(serialized);
-//		Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
-//
-//	}
+	@Test
+	public void test0PutInputData() throws IOException {
+		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
+
+		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
+				.statusCode(HttpStatus.SC_OK);
+
+		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
+
+		//InstanceData data = post("/debug/event").body().as(InstanceData.class);
+		
+		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2).when()
+				.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING_INIT"));
+		String body = "RUNNING_INIT";
+		while (body.equals("RUNNING_INIT")) {
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			body = get("/state").getBody().asString();
+		}
+		
+		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));	
+
+		Solution sol = get("/solution").body().as(Solution.class);
+		
+		String serialized = mapper.writeValueAsString(sol);
+		System.out.println(serialized);
+		 Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
+
+	}
 
     @Test
     public void test1() {

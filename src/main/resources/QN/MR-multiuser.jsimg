@@ -205,7 +205,7 @@
 </parameter>
 </section>
 </node>
-<measure alpha="0.01" name="Delay 1_Class1_Throughput" nodeType="station" precision="0.03" referenceNode="Delay 1" referenceUserClass="Class1" type="Throughput" verbose="false"/>
+<measure alpha="0.01" name="Delay 1_Class1_Throughput" nodeType="station" precision="0.10" referenceNode="Delay 1" referenceUserClass="Class1" type="Throughput" verbose="false"/>
 <connection source="Delay 1" target="Fork 1"/>
 <connection source="Queue 1" target="Join 1"/>
 <connection source="Fork 1" target="Queue 1"/>
@@ -251,7 +251,7 @@
 </station>
 </jmodel>
 <results pollingInterval="1.0" xsi:noNamespaceSchemaLocation="Results.xsd">
-<measure alpha="0.99" analyzedSamples="377" finalValue="0.27465984230498514" name="Delay 1_Class1_Throughput" nodeType="station" precision="0.03" referenceClass="Class1" referenceStation="Delay 1" state="2" type="3">
+<measure alpha="0.99" analyzedSamples="377" finalValue="0.27465984230498514" name="Delay 1_Class1_Throughput" nodeType="station" precision="0.10" referenceClass="Class1" referenceStation="Delay 1" state="2" type="3">
 <sample lastIntervalAvgValue="0.26672350088792507" meanValue="0.26672350088792507" simulationTime="56.23801408599114"/>
 <sample lastIntervalAvgValue="0.24511538420258308" meanValue="0.25420080175302484" simulationTime="133.75252857397967"/>
 <sample lastIntervalAvgValue="0.34346888667389247" meanValue="0.27933107620521985" simulationTime="186.15902214115437"/>

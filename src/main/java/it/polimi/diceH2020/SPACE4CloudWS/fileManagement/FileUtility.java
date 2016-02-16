@@ -1,20 +1,23 @@
 package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
 
 @Component
 public class FileUtility {
@@ -33,6 +36,13 @@ public class FileUtility {
 	public boolean delete(File file) {
 		return policy.delete(file);
 	}
+	
+	public @Nonnull File provideFile(@CheckForNull String fileName) throws IOException {
+		File file = new File(LOCAL_DYNAMIC_FOLDER, fileName);
+		policy.markForDeletion(file);
+		return file;
+	}
+	
 
 	public @Nonnull File provideTemporaryFile(@CheckForNull String prefix, String suffix) throws IOException {
 		File file = File.createTempFile(prefix, suffix, LOCAL_DYNAMIC_FOLDER);
@@ -61,5 +71,20 @@ public class FileUtility {
 
 	public boolean delete(List<File> pFiles) {
 		return pFiles.stream().map(f -> delete(f)).allMatch(r -> r);
+	}
+
+	public InputStream getFileAsStream(String fileName) {
+		
+		Path filePath = new File(LOCAL_DYNAMIC_FOLDER, fileName).toPath();
+		if (Files.exists(filePath)) {
+			try {
+				return Files.newInputStream(filePath);
+			} catch (IOException e) {
+				return null;
+			}
+		}
+		else return null;
+			
+		
 	}
 }

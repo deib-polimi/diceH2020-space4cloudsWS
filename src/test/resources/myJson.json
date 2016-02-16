@@ -1,4 +1,5 @@
 {
+	"id": "myJson",
     "gamma": 240,
     "provider": "Amazon",
     "lstClass": [

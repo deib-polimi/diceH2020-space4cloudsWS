@@ -173,6 +173,7 @@ public class MINLPSolver extends AbstractSolver {
             } else {
                 logger.info("Remote exit status: " + remoteMsg);
                 iteration = iteration + 1;
+                logger.info(remoteName + "-> Restarted. Iteration "+iteration);
                 return run(pFiles, remoteName, iteration);
             }
             fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
