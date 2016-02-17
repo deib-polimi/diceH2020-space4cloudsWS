@@ -69,38 +69,38 @@ public class Test5 {
     }
 
 
-	@Test
-	public void test0PutInputData() throws IOException {
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
-
-		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
-				.statusCode(HttpStatus.SC_OK);
-
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
-
-		//InstanceData data = post("/debug/event").body().as(InstanceData.class);
-		
-		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2).when()
-				.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING_INIT"));
-		String body = "RUNNING_INIT";
-		while (body.equals("RUNNING_INIT")) {
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			body = get("/state").getBody().asString();
-		}
-		
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));	
-
-		Solution sol = get("/solution").body().as(Solution.class);
-		
-		String serialized = mapper.writeValueAsString(sol);
-		System.out.println(serialized);
-		Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
-
-	}
+//	@Test
+//	public void test0PutInputData() throws IOException {
+//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
+//
+//		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
+//				.statusCode(HttpStatus.SC_OK);
+//
+//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
+//
+//		//InstanceData data = post("/debug/event").body().as(InstanceData.class);
+//		
+//		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2).when()
+//				.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING_INIT"));
+//		String body = "RUNNING_INIT";
+//		while (body.equals("RUNNING_INIT")) {
+//			try {
+//				Thread.sleep(5000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//			body = get("/state").getBody().asString();
+//		}
+//		
+//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));	
+//
+//		Solution sol = get("/solution").body().as(Solution.class);
+//		
+//		String serialized = mapper.writeValueAsString(sol);
+//		System.out.println(serialized);
+//		Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
+//
+//	}
 
     @Test
     public void test1() {

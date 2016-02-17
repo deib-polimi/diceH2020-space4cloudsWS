@@ -67,6 +67,8 @@ public class Optimizer {
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		strm.forEach(this::hillClimbing);
+		solution.setEvaluated(false);
+		Evaluator.evaluate(solution);
 		Instant after = Instant.now();
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
@@ -96,6 +98,8 @@ public class Optimizer {
 			if (result.isPresent()) {
 				BigDecimal dur = result.get().getMiddle().get();
 				int nVM = result.get().getLeft();
+				solPerJob.setDuration(dur.doubleValue());
+				solPerJob.setNumberVM(nVM);
 				logger.info(String.format("class%d-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getJob().getId(), dur, nVM));
 				return true;
 			}

@@ -43,7 +43,7 @@ public class Evaluator implements IEvaluator {
 
 	@Override
 	public boolean evaluateFeasibility(SolutionPerJob solPerJob) {
-			if (solPerJob.getDuration()<solPerJob.getJob().getD()) {
+			if (solPerJob.getDuration()<=solPerJob.getJob().getD()) {
 				solPerJob.setFeasible(true);
 				return true;
 			}

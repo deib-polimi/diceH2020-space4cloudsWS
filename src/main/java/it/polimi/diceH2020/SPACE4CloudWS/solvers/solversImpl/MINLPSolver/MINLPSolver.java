@@ -311,9 +311,9 @@ public class MINLPSolver extends AbstractSolver {
             bufferStr = line.split("\\s+");
             String x = bufferStr[2].replaceAll("\\s+", "");
             ncontainers = Math.round(Float.parseFloat(x));
+            int numVM =-Math.floorDiv(-ncontainers,numCores.get(i));
             SolutionPerJob solPerJob = sol.getSolutionPerJob(i);
-            solPerJob.setNumberVM(ncontainers / numCores.get(i));
-            solPerJob.setNumberContainers(ncontainers);
+            solPerJob.setNumberVM(numVM);
             x = bufferStr[5].replaceAll("\\s+", "");
             users = Double.parseDouble(x);
             users = 1 / users;
