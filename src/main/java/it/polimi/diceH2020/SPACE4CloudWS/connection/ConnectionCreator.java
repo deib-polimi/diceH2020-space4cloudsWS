@@ -7,34 +7,38 @@ import com.jcraft.jsch.Session;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 
 public class ConnectionCreator {
-	private final ConnectionSettings settings;
+    private final ConnectionSettings settings;
 
-	public ConnectionCreator(ConnectionSettings settings) {
-		this.settings = settings;
-	}
+    public ConnectionCreator(ConnectionSettings settings) {
+        this.settings = settings;
+    }
 
-	public Session createSession() throws Exception {
-		JSch jsch = new JSch();
-		jsch.addIdentity(settings.getPubKeyFile(), settings.getPassword());
-		jsch.setKnownHosts(settings.getKnownHosts());
+    public Session createSession() throws Exception {
+        JSch jsch = new JSch();
+        jsch.setKnownHosts(settings.getKnownHosts());
 
-		Session session = jsch.getSession(settings.getUsername(), settings.getAddress(), settings.getPort());
+        String key = settings.getPubKeyFile();
+        if (key != null) {
+            jsch.addIdentity(key, settings.getPassword());
+        }
 
-		// Jsch 0.1.53 supports ecdsa-sha2-nistp256 key but default
-		// configuration look for RSA key
-		HostKeyRepository hkr = jsch.getHostKeyRepository();
-		for (HostKey hk : hkr.getHostKey()) {
-			if (hk.getHost().contains(settings.getAddress())) { // So the variable host inserted
-												// by the user must be contained
-												// in setKnownHosts
-				String type = hk.getType();
-				session.setConfig("server_host_key", type); // set the real key
-															// type instead of
-															// using the default
-															// one
-			}
-		}
-		return session;
-	}
+        Session session = jsch.getSession(settings.getUsername(), settings.getAddress(), settings.getPort());
+
+        if (key == null) {
+            session.setPassword(settings.getPassword());
+        }
+
+        /* Jsch 0.1.53 supports ecdsa-sha2-nistp256 key, but default
+           configuration looks for RSA key. Here we override with the
+           correct key type. */
+        HostKeyRepository hkr = jsch.getHostKeyRepository();
+        for (HostKey hk : hkr.getHostKey()) {
+            if (hk.getHost().contains(settings.getAddress())) {
+                String type = hk.getType();
+                session.setConfig("server_host_key", type);
+            }
+        }
+        return session;
+    }
 
 }
