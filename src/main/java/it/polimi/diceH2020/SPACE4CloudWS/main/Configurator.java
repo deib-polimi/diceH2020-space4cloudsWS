@@ -1,6 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import it.polimi.diceH2020.SPACE4Cloud.shared.generators.InstanceDataGenerator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.generators.SolutionGenerator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
@@ -69,6 +71,7 @@ public class Configurator {
 		SimpleModule module = new SimpleModule();
 		module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
 		jackson2ObjectMapperBuilder.modules(module);
+//		jackson2ObjectMapperBuilder.modules(new JavaTimeModule());
 	}
 
 }

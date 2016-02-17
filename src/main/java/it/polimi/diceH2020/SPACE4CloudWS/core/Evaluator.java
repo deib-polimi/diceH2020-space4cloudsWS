@@ -5,6 +5,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.springframework.stereotype.Component;
 
@@ -32,7 +33,7 @@ public class Evaluator implements IEvaluator {
 		double beta = solPerJob.getBeta();
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
 				+ sigmaBar * solPerJob.getNumSpotVM() + (alfa / numberOfUsers - beta);
-		BigDecimal c = BigDecimal.valueOf(cost).setScale(2);
+		BigDecimal c = BigDecimal.valueOf(cost).setScale(2, RoundingMode.HALF_EVEN);
 		double decCost = Double.parseDouble(c.toString());
 		solPerJob.setCost(decCost);
 		return decCost;
@@ -42,15 +43,12 @@ public class Evaluator implements IEvaluator {
 
 	@Override
 	public boolean evaluateFeasibility(SolutionPerJob solPerJob) {
-		if (solPerJob.getChanged()) {
 			if (solPerJob.getDuration()<solPerJob.getJob().getD()) {
 				solPerJob.setFeasible(true);
 				return true;
 			}
 			solPerJob.setFeasible(false);
 			return false;
-		}
-		return solPerJob.getFeasible();
 	}
 
 }

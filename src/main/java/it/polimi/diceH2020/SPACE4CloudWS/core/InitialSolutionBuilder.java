@@ -58,7 +58,10 @@ public class InitialSolutionBuilder {
         minlpSolver.evaluate(startingSol);
         Evaluator.evaluate(startingSol);
         Instant after = Instant.now();
-        startingSol.addPhase(new Phase(PhaseID.INIT_SOLUTION, Duration.between(first, after)));
+		Phase ph = new Phase();
+		ph.setId(PhaseID.OPTIMIZATION);
+		ph.setDuration(Duration.between(first, after).toMillis());
+        startingSol.addPhase(ph);
         logger.info("---------- Initial solution correctly created ----------");
         return startingSol;
     }

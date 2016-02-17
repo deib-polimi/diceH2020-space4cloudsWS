@@ -68,7 +68,10 @@ public class Optimizer {
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		strm.forEach(this::hillClimbing);
 		Instant after = Instant.now();
-		solution.addPhase(new Phase(PhaseID.OPTIMIZATION, Duration.between(first, after)));
+		Phase ph = new Phase();
+		ph.setId(PhaseID.OPTIMIZATION);
+		ph.setDuration(Duration.between(first, after).toMillis());
+		solution.addPhase(ph);
 	}
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {
@@ -119,7 +122,7 @@ public class Optimizer {
 		lst.add(new ImmutableTriple<>(nVM, optDuration, optDuration.isPresent() && (optDuration.get().doubleValue() < deadline)));
 		Boolean condition = checkFunction.apply(previous, optDuration, deadline, nVM, maxVM);
 		if (!condition) {
-			logger.info("class" + solPerJob.getJob().getId() + "->  num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
+			logger.info("class" + solPerJob.getJob().getId() + "-> num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
 			solPerJob.setNumberVM(updateFunction.apply(nVM));
 			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		}
