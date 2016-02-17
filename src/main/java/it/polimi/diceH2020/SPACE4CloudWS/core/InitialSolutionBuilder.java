@@ -2,6 +2,8 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -28,7 +32,7 @@ public class InitialSolutionBuilder {
 
 
     public Solution getInitialSolution() throws Exception {
-
+    	Instant first = Instant.now();
         Solution startingSol = new Solution(dataService.getData().getId());
         startingSol.setGamma(dataService.getGamma());
         // Phase 1
@@ -53,6 +57,8 @@ public class InitialSolutionBuilder {
         //multiClass
         minlpSolver.evaluate(startingSol);
         Evaluator.evaluate(startingSol);
+        Instant after = Instant.now();
+        startingSol.addPhase(new Phase(PhaseID.INIT_SOLUTION, Duration.between(first, after)));
         logger.info("---------- Initial solution correctly created ----------");
         return startingSol;
     }

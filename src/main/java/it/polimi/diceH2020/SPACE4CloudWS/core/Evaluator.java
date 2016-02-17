@@ -3,6 +3,9 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,8 +32,10 @@ public class Evaluator implements IEvaluator {
 		double beta = solPerJob.getBeta();
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
 				+ sigmaBar * solPerJob.getNumSpotVM() + (alfa / numberOfUsers - beta);
-		solPerJob.setCost(cost);
-		return cost;
+		BigDecimal c = BigDecimal.valueOf(cost).setScale(2);
+		double decCost = Double.parseDouble(c.toString());
+		solPerJob.setCost(decCost);
+		return decCost;
 	}
 
 

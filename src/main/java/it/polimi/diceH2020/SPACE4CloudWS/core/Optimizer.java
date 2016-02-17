@@ -1,22 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
-import lombok.NonNull;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,23 +11,43 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import lombok.NonNull;
+
 @Component
 public class Optimizer {
 
 	private static Logger logger = Logger.getLogger(Optimizer.class.getName());
 	Solver solver;
 	@Autowired
-	private FileUtility fileUtility;
-	@Autowired
 	private DataService dataService;
 	@Autowired
 	private SolverFactory solverFactory;
+
+	@Autowired
+	private S4CSettings settings;
 
 	@PostConstruct
 	private void setSolver() {
 		solver = solverFactory.create();
 	}
-
 
 	// read an input file and type value of accuracy and cycles
 	public void setAccuracy(Settings settings) {
@@ -57,8 +63,12 @@ public class Optimizer {
 	}
 
 	public void hillClimbing(Solution solution) {
-//		solution.getLstSolutions().parallelStream().forEach(this::hillClimbing);
-		solution.getLstSolutions().stream().forEach(this::hillClimbing);
+		Instant first = Instant.now();
+		List<SolutionPerJob> lst = solution.getLstSolutions();
+		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
+		strm.forEach(this::hillClimbing);
+		Instant after = Instant.now();
+		solution.addPhase(new Phase(PhaseID.OPTIMIZATION, Duration.between(first, after)));
 	}
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {
@@ -92,14 +102,14 @@ public class Optimizer {
 	}
 
 	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction,
-																					  Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+			Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
 		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
 	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
-								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+			SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
 		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
@@ -128,7 +138,6 @@ public class Optimizer {
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
 
 		return solver.evaluate(solPerJob);
-
 
 	}
 

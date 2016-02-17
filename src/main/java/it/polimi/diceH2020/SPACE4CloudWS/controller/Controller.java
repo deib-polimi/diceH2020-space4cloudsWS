@@ -61,7 +61,8 @@ public class Controller {
 	@RequestMapping(method = RequestMethod.GET, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
 	public Solution endpointSolution() throws Exception {
-		if (stateHandler.getState().getId() == States.CHARGED_INITSOLUTION)
+		String state = stateHandler.getState().getId().toString();
+		if (state.equals("CHARGED_INITSOLUTION") || state.equals("FINISH"))
 			return engineService.getSolution();
 		return null;
 	}
