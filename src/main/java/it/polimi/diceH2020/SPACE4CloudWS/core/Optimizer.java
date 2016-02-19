@@ -17,6 +17,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
@@ -29,6 +30,8 @@ import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
 
 @Component
@@ -44,6 +47,9 @@ public class Optimizer {
 	@Autowired
 	private S4CSettings settings;
 
+	@Autowired
+	private StateMachine<States, Events> stateHandler;
+	
 	@PostConstruct
 	private void setSolver() {
 		solver = solverFactory.create();
@@ -134,14 +140,17 @@ public class Optimizer {
 
 	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
 		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() < deadline) && (nVM < maxVM)
-				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1);
+				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
 	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
 		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() > deadline) && (nVM < maxVM)
-				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1);
+				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
+	private boolean checkState(){
+		return  !stateHandler.getState().getId().equals(States.RUNNING_LS);
+	}
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
 
 		return solver.evaluate(solPerJob);

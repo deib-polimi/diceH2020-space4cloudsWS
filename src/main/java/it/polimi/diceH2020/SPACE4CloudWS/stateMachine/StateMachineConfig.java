@@ -78,7 +78,12 @@ public class StateMachineConfig
           	.withExternal()
           		.source(States.RUNNING_INIT)
           		.target(States.ERROR)
-          		.event(Events.STOP);
+          		.event(Events.STOP)
+          		.and()
+            .withExternal()
+              	.source(States.RUNNING_INIT)
+              	.target(States.IDLE)
+              	.event(Events.RESET);
           
           
            transitions
@@ -107,7 +112,13 @@ public class StateMachineConfig
            	.withExternal()
            		.source(States.RUNNING_LS)
            		.target(States.ERROR)
-           		.event(Events.STOP);
+           		.event(Events.STOP)
+           		.and()
+           	.withExternal()
+           		.source(States.RUNNING_LS)
+           		.target(States.IDLE)
+           		.event(Events.RESET);
+   
            
            
             transitions

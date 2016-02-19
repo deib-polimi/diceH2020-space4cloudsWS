@@ -1,17 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
-import lombok.NonNull;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -19,6 +7,19 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+import lombok.NonNull;
 
 /**
  * Created by ciavotta on 12/02/16.
@@ -33,8 +34,6 @@ public abstract class AbstractSolver implements Solver {
     @Autowired
     protected Environment environment; // this is to check which is the active
 
-    @Autowired
-    private ApplicationContext ctx;
 
     static double calculateResponseTime(@NonNull double throughput, int numServers, double thinkTime) {
         return (double) numServers / throughput - thinkTime;

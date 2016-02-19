@@ -10,11 +10,13 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.annotation.WithStateMachine;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.Future;
 
 @Service
 @WithStateMachine
@@ -48,22 +50,23 @@ public class EngineService {
 	}
 
 	@Async("workExecutor")
-	public void runningInitSolution() {
+	public Future<String> runningInitSolution() {
 		try {
 			solution = solBuilder.getInitialSolution();
-			stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
+			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());
+		return new AsyncResult<String>("Done");
 	}
 
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
 			optimizer.hillClimbing(solution);
-			stateHandler.sendEvent(Events.FINISH);
+			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.error("Error while performing Local search", e);
 			stateHandler.sendEvent(Events.STOP);
