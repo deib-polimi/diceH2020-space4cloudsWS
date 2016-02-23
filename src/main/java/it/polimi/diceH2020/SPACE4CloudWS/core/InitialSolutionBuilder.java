@@ -36,6 +36,7 @@ public class InitialSolutionBuilder {
 	private MINLPSolver minlpSolver;
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
+	private boolean error = false;
 
 	public Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
@@ -44,36 +45,53 @@ public class InitialSolutionBuilder {
 		// Phase 1
 		// SingleClass
 		dataService.getListJobClass().forEach(jobClass -> {
-			Map<TypeVM, Optional<BigDecimal>> mapResults = new ConcurrentHashMap<TypeVM, Optional<BigDecimal>>();
+			Map<SolutionPerJob, Optional<BigDecimal>> mapResults = new ConcurrentHashMap<SolutionPerJob, Optional<BigDecimal>>();
 			dataService.getListTypeVM(jobClass).forEach(tVM -> {
 				if (checkState()) {
 					logger.info(String.format("---------- Starting optimization jobClass %d considering VM type %s ----------", jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
-					mapResults.put(tVM, minlpSolver.evaluate(solutionPerJob));
+					mapResults.put(solutionPerJob, minlpSolver.evaluate(solutionPerJob));
 				}
 			});
 			if (checkState()) {
-				Map.Entry<TypeVM, Optional<BigDecimal>> min = mapResults.entrySet().stream().min(Map.Entry.comparingByValue((o1, o2) -> ABSENT_LAST.compare(o1, o2))).get();
+				Map.Entry<SolutionPerJob, Optional<BigDecimal>> min = mapResults.entrySet().stream().min(Map.Entry.comparingByValue((o1, o2) -> ABSENT_LAST.compare(o1, o2))).get();
 
-				TypeVM minTVM = min.getKey();
+				Optional<java.math.BigDecimal> selDuration = min.getValue();
+
+				if (!selDuration.isPresent()) this.error = true;
+				TypeVM minTVM = min.getKey().getTypeVMselected();
 				logger.info("For job class " + jobClass.getId() + " has been selected the machine " + minTVM.getId());
-				startingSol.setSolutionPerJob(createSolPerJob(jobClass, minTVM));
+				startingSol.setSolutionPerJob(min.getKey());
 			}
 		});
 
 		// Phase 2
 		// multiClass
-		if (checkState()) {
+		if (checkState() && !error) {
 			minlpSolver.evaluate(startingSol);
 			Evaluator.evaluate(startingSol);
-			Instant after = Instant.now();
-			Phase ph = new Phase();
-			ph.setId(PhaseID.OPTIMIZATION);
-			ph.setDuration(Duration.between(first, after).toMillis());
-			startingSol.addPhase(ph);
-			logger.info("---------- Initial solution correctly created ----------");
-			return startingSol;
-		} else return null;
+		} else if (error) {
+			fallBack(startingSol);
+		}
+		else if (!checkState()) return null;
+
+		Instant after = Instant.now();
+		Phase ph = new Phase();
+		ph.setId(PhaseID.OPTIMIZATION);
+		ph.setDuration(Duration.between(first, after).toMillis());
+		startingSol.addPhase(ph);
+		logger.info("---------- Initial solution correctly created ----------");
+		return startingSol;
+
+	}
+
+	private void fallBack(Solution sol) {
+		// in case fallback is needed
+		sol.getLstSolutions().forEach(s -> {
+			s.setNumberVM(1);
+			s.setNumberUsers(s.getJob().getHup());
+		});
+
 	}
 
 	private boolean checkState() {
