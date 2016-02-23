@@ -82,7 +82,6 @@ public class InitialSolutionBuilder {
 		startingSol.addPhase(ph);
 		logger.info("---------- Initial solution correctly created ----------");
 		return startingSol;
-
 	}
 
 	private void fallBack(Solution sol) {
