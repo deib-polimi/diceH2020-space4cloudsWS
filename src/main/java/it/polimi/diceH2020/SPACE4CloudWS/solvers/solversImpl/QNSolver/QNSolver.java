@@ -68,7 +68,7 @@ public class QNSolver extends AbstractSolver {
 			Double throughput = resultObject.getMeasure().get(0).getMeanValue();
 
 			BigDecimal result = BigDecimal.valueOf(throughput);
-			result.setScale(2, RoundingMode.HALF_EVEN);
+			result.setScale(8, RoundingMode.HALF_EVEN);
 			return result;
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimziation");

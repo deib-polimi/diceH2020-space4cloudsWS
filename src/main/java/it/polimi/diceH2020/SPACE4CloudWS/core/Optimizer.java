@@ -139,17 +139,27 @@ public class Optimizer {
 	}
 
 	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
-		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() < deadline) && (nVM < maxVM)
-				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
+		if (duration.isPresent() && duration.get().doubleValue() <= deadline) return true;
+		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1)) return true;
+		if (nVM > maxVM) return true;
+		if (checkState() == false) return true;
+		return false;
+//		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() < deadline) && (nVM < maxVM)
+//				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
 	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
-		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() > deadline) && (nVM < maxVM)
-				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
+		if (duration.isPresent() && duration.get().doubleValue() >= deadline) return true;
+		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1)) return true;
+		if (nVM == 1 ) return true;
+		if (checkState() == false) return true;
+		return false;
+//		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() > deadline) && (nVM < maxVM && nVM > 1)
+//				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
 	private boolean checkState(){
-		return  !stateHandler.getState().getId().equals(States.RUNNING_LS);
+		return  stateHandler.getState().getId().equals(States.RUNNING_LS);
 	}
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
 

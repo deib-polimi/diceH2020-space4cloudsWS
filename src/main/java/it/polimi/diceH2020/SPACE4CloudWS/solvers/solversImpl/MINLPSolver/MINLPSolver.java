@@ -181,7 +181,7 @@ public class MINLPSolver extends AbstractSolver {
 			logger.info(remoteName + "-> Cleaning result directory");
 			clearResultDir();
 			BigDecimal result = BigDecimal.valueOf(objFunctionValue);
-			result.setScale(2, RoundingMode.HALF_EVEN);
+			result.setScale(8, RoundingMode.HALF_EVEN);
 			return result;
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");

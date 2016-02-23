@@ -40,7 +40,7 @@ public abstract class AbstractSolver implements Solver {
     }
 
     static BigDecimal calculateResponseTime(@NonNull BigDecimal throughput, int numServers, double thinkTime) {
-        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime)).setScale(2, RoundingMode.HALF_EVEN);
+        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime)).setScale(8, RoundingMode.HALF_EVEN);
     }
 
     @PostConstruct
