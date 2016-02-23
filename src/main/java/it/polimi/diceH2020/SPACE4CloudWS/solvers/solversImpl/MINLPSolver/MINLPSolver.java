@@ -123,9 +123,8 @@ public class MINLPSolver extends AbstractSolver {
 		FileOutputStream out = new FileOutputStream(tempFile);
 		IOUtils.copy(in, out);
 		connector.sendFile(tempFile.getAbsolutePath(), remotePath);
-		if (fileUtility.delete(tempFile)) 
+		if (fileUtility.delete(tempFile))
 			logger.debug(tempFile + " deleted");
-		
 	}
 
 	public List<String> clearWorkingDir() throws Exception {
@@ -165,8 +164,9 @@ public class MINLPSolver extends AbstractSolver {
 				logger.info(remoteName + "-> The remote optimization process completed correctly");
 			} else {
 				logger.info("Remote exit status: " + remoteMsg);
-				if (remoteMsg.contains("error processing")) {
+				if (remoteMsg.get(0).contains("error processing param")) {
 					iteration = MAX_ITERATIONS;
+					logger.info(remoteName + "-> Wrong parameters. Aborting");
 				} else {
 					iteration = iteration + 1;
 					logger.info(remoteName + "-> Restarted. Iteration " + iteration);
@@ -180,9 +180,7 @@ public class MINLPSolver extends AbstractSolver {
 
 			logger.info(remoteName + "-> Cleaning result directory");
 			clearResultDir();
-			BigDecimal result = BigDecimal.valueOf(objFunctionValue);
-			result.setScale(8, RoundingMode.HALF_EVEN);
-			return result;
+			return BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");
 			logger.info(remoteName + "-> Cleaning result directory");

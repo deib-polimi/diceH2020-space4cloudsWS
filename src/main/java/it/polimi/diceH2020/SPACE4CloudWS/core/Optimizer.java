@@ -1,25 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.Triple;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.statemachine.StateMachine;
-import org.springframework.stereotype.Component;
-
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
@@ -33,6 +13,24 @@ import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class Optimizer {
@@ -49,7 +47,7 @@ public class Optimizer {
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-	
+
 	@PostConstruct
 	private void setSolver() {
 		solver = solverFactory.create();
@@ -115,14 +113,14 @@ public class Optimizer {
 	}
 
 	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction,
-			Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+																					  Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
 		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
 	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
-			SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
 		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
@@ -138,22 +136,32 @@ public class Optimizer {
 		}
 	}
 
-	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
-		if (duration.isPresent() && duration.get().doubleValue() <= deadline) return true;
-		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1)) return true;
-		if (nVM > maxVM) return true;
-		if (checkState() == false) return true;
-		return false;
+	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration,
+												Optional<BigDecimal> duration, double deadline,
+												Integer nVM, Integer maxVM) {
+		boolean returnValue = false;
+		if (duration.isPresent() && duration.get().doubleValue() <= deadline) returnValue = true;
+		if (previousDuration.isPresent() && duration.isPresent() &&
+				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1))
+			returnValue = true;
+		if (nVM > maxVM) returnValue = true;
+		if (! checkState()) returnValue = true;
+		return returnValue;
 //		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() < deadline) && (nVM < maxVM)
 //				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
-	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
-		if (duration.isPresent() && duration.get().doubleValue() >= deadline) return true;
-		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1)) return true;
-		if (nVM == 1 ) return true;
-		if (checkState() == false) return true;
-		return false;
+	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration,
+												  Optional<BigDecimal> duration, double deadline,
+												  Integer nVM, Integer maxVM) {
+		boolean returnValue = false;
+		if (duration.isPresent() && duration.get().doubleValue() >= deadline) returnValue = true;
+		if (previousDuration.isPresent() && duration.isPresent() &&
+				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1))
+			returnValue = true;
+		if (nVM == 1 ) returnValue = true;
+		if (! checkState()) returnValue = true;
+		return returnValue;
 //		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() > deadline) && (nVM < maxVM && nVM > 1)
 //				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}

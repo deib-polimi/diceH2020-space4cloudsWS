@@ -1,20 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.statemachine.StateMachine;
-import org.springframework.stereotype.Service;
-
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
@@ -25,6 +10,19 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class InitialSolutionBuilder {
@@ -36,25 +34,29 @@ public class InitialSolutionBuilder {
 	private MINLPSolver minlpSolver;
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-	private boolean error = false;
+	private boolean error;
 
 	public Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
+		error = false;
 		Solution startingSol = new Solution(dataService.getData().getId());
 		startingSol.setGamma(dataService.getGamma());
 		// Phase 1
 		// SingleClass
 		dataService.getListJobClass().forEach(jobClass -> {
-			Map<SolutionPerJob, Optional<BigDecimal>> mapResults = new ConcurrentHashMap<SolutionPerJob, Optional<BigDecimal>>();
+			Map<SolutionPerJob, Optional<BigDecimal>> mapResults = new ConcurrentHashMap<>();
 			dataService.getListTypeVM(jobClass).forEach(tVM -> {
 				if (checkState()) {
-					logger.info(String.format("---------- Starting optimization jobClass %d considering VM type %s ----------", jobClass.getId(), tVM.getId()));
+					logger.info(String.format(
+							"---------- Starting optimization jobClass %d considering VM type %s ----------",
+							jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
 					mapResults.put(solutionPerJob, minlpSolver.evaluate(solutionPerJob));
 				}
 			});
 			if (checkState()) {
-				Map.Entry<SolutionPerJob, Optional<BigDecimal>> min = mapResults.entrySet().stream().min(Map.Entry.comparingByValue((o1, o2) -> ABSENT_LAST.compare(o1, o2))).get();
+				Map.Entry<SolutionPerJob, Optional<BigDecimal>> min = mapResults.entrySet().stream().min(
+						Map.Entry.comparingByValue(ABSENT_LAST::compare)).get();
 
 				Optional<java.math.BigDecimal> selDuration = min.getValue();
 
