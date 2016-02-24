@@ -7,6 +7,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
@@ -37,11 +38,12 @@ import java.util.stream.Stream;
 public class Optimizer {
 
 	private static Logger logger = Logger.getLogger(Optimizer.class.getName());
-	Solver solver;
+	
 	@Autowired
 	private DataService dataService;
+
 	@Autowired
-	private SolverFactory solverFactory;
+	SolverProxy solverCache;
 
 	@Autowired
 	private S4CSettings settings;
@@ -49,14 +51,10 @@ public class Optimizer {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	@PostConstruct
-	private void setSolver() {
-		solver = solverFactory.create();
-	}
 
 	// read an input file and type value of accuracy and cycles
-	public void setAccuracy(Settings settings) {
-		solver.setAccuracy(settings.getAccuracy());
+	public void setAccuracy(Settings settings){
+		solverCache.setAccuracy(settings.getAccuracy());
 	}
 
 	public void parallelLocalSearch(Solution solution) throws Exception {
@@ -148,8 +146,6 @@ public class Optimizer {
 		if (nVM > maxVM) returnValue = true;
 		if (! checkState()) returnValue = true;
 		return returnValue;
-//		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() < deadline) && (nVM < maxVM)
-//				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
 	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration,
@@ -163,17 +159,15 @@ public class Optimizer {
 		if (nVM == 1 ) returnValue = true;
 		if (! checkState()) returnValue = true;
 		return returnValue;
-//		return previousDuration.isPresent() && duration.isPresent() && (duration.get().doubleValue() > deadline) && (nVM < maxVM && nVM > 1)
-//				&& (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1) || checkState();
 	}
 
 	private boolean checkState(){
 		return  stateHandler.getState().getId().equals(States.RUNNING_LS);
 	}
 	
-	@Cacheable(value="cachedEval")
+	
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
-		return solver.evaluate(solPerJob);
+		return solverCache.evaluate(solPerJob);
 	}
 
 	public Optional<Double> executeMock(SolutionPerJob solPerJob) {

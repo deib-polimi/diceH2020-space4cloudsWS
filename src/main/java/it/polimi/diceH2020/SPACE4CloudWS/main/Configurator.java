@@ -29,7 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
-@ComponentScan("it.polimi.diceH2020.SPACE4CloudWS.core")
+@ComponentScan("it.polimi.diceH2020.SPACE4CloudWS.services")
 @EnableCaching
 public class Configurator {
 
