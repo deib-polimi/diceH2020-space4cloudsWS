@@ -17,6 +17,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
@@ -169,10 +170,10 @@ public class Optimizer {
 	private boolean checkState(){
 		return  stateHandler.getState().getId().equals(States.RUNNING_LS);
 	}
+	
+	@Cacheable(value="cachedEval")
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
-
 		return solver.evaluate(solPerJob);
-
 	}
 
 	public Optional<Double> executeMock(SolutionPerJob solPerJob) {

@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;

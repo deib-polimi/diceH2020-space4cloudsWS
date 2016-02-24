@@ -2,6 +2,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.main;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.cache.CacheBuilder;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.generators.InstanceDataGenerator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.generators.SolutionGenerator;
@@ -9,9 +10,17 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.guava.GuavaCacheManager;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.task.TaskExecutor;
@@ -20,6 +29,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
+@ComponentScan("it.polimi.diceH2020.SPACE4CloudWS.core")
+@EnableCaching
 public class Configurator {
 
 	@Value("${pool.size:10}")
@@ -71,7 +82,14 @@ public class Configurator {
 		SimpleModule module = new SimpleModule();
 		module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
 		jackson2ObjectMapperBuilder.modules(module);
-//		jackson2ObjectMapperBuilder.modules(new JavaTimeModule());
 	}
+	
+	@Bean
+	public CacheManager cacheManager() {
+	 GuavaCacheManager guavaCacheManager =  new GuavaCacheManager();
+	 guavaCacheManager.setCacheBuilder(CacheBuilder.newBuilder());
+	 return guavaCacheManager;
+	}
+	
 
 }

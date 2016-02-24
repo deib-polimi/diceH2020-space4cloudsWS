@@ -16,21 +16,21 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class CacheService {
 
-    LoadingCache cache;
-
-    private ResultCacheLoader loader;
-
-    @Autowired
-    public void CacheService(ResultCacheLoader loader) {
-        this.loader = loader;
-        cache = CacheBuilder.newBuilder().
-                maximumSize(100).
-                build(loader);
-    }
-
-    public Optional<BigDecimal> get(SolutionPerJob solutionPerJob) throws ExecutionException {
-        return (Optional<BigDecimal>) cache.get(solutionPerJob);
-    }
+//    LoadingCache cache;
+//
+//    private ResultCacheLoader loader;
+//
+//    @Autowired
+//    public void CacheService(ResultCacheLoader loader) {
+//        this.loader = loader;
+//        cache = CacheBuilder.newBuilder().
+//                maximumSize(1000).
+//                build(loader);
+//    }
+//
+//    public Optional<BigDecimal> get(SolutionPerJob solutionPerJob) throws ExecutionException {
+//        return (Optional<BigDecimal>) cache.get(solutionPerJob);
+//    }
 
 
 }
