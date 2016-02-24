@@ -86,7 +86,7 @@ public class Configurator {
 	
 	@Bean
 	public CacheManager cacheManager() {
-	 GuavaCacheManager guavaCacheManager =  new GuavaCacheManager();
+	 GuavaCacheManager guavaCacheManager =  new GuavaCacheManager("cachedEval");
 	 guavaCacheManager.setCacheBuilder(CacheBuilder.newBuilder());
 	 return guavaCacheManager;
 	}
