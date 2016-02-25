@@ -59,7 +59,7 @@ public class EngineService {
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());
-		return new AsyncResult<String>("Done");
+		return new AsyncResult<>("Done");
 	}
 
 	@Async("workExecutor")
@@ -77,8 +77,7 @@ public class EngineService {
 	public Optional<Solution> generateInitialSolution() {
 		try {
 			solution = solBuilder.getInitialSolution();
-			Optional<Solution> res = Optional.of(solution);
-			return res;
+			return Optional.of(solution);
 		} catch (Exception e) {
 			logger.error("Error while performing initial solution", e);
 			stateHandler.sendEvent(Events.STOP);

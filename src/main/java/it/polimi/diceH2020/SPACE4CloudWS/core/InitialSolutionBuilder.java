@@ -39,8 +39,11 @@ public class InitialSolutionBuilder {
 	public Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
 		error = false;
-		Solution startingSol = new Solution(dataService.getData().getId());
+		String instanceId = dataService.getData().getId();
+		Solution startingSol = new Solution(instanceId);
 		startingSol.setGamma(dataService.getGamma());
+		logger.info(String.format(
+				"---------- Starting optimization for instance %s ----------", instanceId));
 		// Phase 1
 		// SingleClass
 		dataService.getListJobClass().forEach(jobClass -> {

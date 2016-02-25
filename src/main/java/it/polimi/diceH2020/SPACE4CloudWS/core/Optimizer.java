@@ -7,10 +7,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
-import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
@@ -18,11 +16,9 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,7 +34,7 @@ import java.util.stream.Stream;
 public class Optimizer {
 
 	private static Logger logger = Logger.getLogger(Optimizer.class.getName());
-	
+
 	@Autowired
 	private DataService dataService;
 
@@ -67,6 +63,8 @@ public class Optimizer {
 
 	public void hillClimbing(Solution solution) {
 		Instant first = Instant.now();
+		logger.info(String.format(
+				"---------- Starting hill climbing for instance %s ----------", solution.getId()));
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		strm.forEach(this::hillClimbing);
@@ -164,8 +162,7 @@ public class Optimizer {
 	private boolean checkState(){
 		return  stateHandler.getState().getId().equals(States.RUNNING_LS);
 	}
-	
-	
+
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
 		return solverCache.evaluate(solPerJob);
 	}
