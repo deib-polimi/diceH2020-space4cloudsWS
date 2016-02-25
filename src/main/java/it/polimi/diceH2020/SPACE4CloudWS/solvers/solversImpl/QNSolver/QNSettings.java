@@ -21,4 +21,14 @@ public class QNSettings extends AbstractConnectionSettings {
     public void setMaxTime(Integer maxTime) {
         this.maxTime = maxTime;
     }
+
+    private Double significance = 0.01;
+
+    public Double getSignificance() {
+        return significance;
+    }
+
+    public void setSignificance(Double significance) {
+        this.significance = significance;
+    }
 }

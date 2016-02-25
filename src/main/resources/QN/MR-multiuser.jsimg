@@ -205,7 +205,7 @@
 </parameter>
 </section>
 </node>
-<measure alpha="0.01" name="Delay 1_Class1_Throughput" nodeType="station" precision="0.10" referenceNode="Delay 1" referenceUserClass="Class1" type="Throughput" verbose="false"/>
+<measure alpha="@@ALPHA@@" name="Delay 1_Class1_Throughput" nodeType="station" precision="@@ACCURACY@@" referenceNode="Delay 1" referenceUserClass="Class1" type="Throughput" verbose="false"/>
 <connection source="Delay 1" target="Fork 1"/>
 <connection source="Queue 1" target="Join 1"/>
 <connection source="Fork 1" target="Queue 1"/>
@@ -250,37 +250,4 @@
 <position rotate="false" x="855.0" y="187.0"/>
 </station>
 </jmodel>
-<results pollingInterval="1.0" xsi:noNamespaceSchemaLocation="Results.xsd">
-<measure alpha="0.99" analyzedSamples="377" finalValue="0.27465984230498514" name="Delay 1_Class1_Throughput" nodeType="station" precision="0.10" referenceClass="Class1" referenceStation="Delay 1" state="2" type="3">
-<sample lastIntervalAvgValue="0.26672350088792507" meanValue="0.26672350088792507" simulationTime="56.23801408599114"/>
-<sample lastIntervalAvgValue="0.24511538420258308" meanValue="0.25420080175302484" simulationTime="133.75252857397967"/>
-<sample lastIntervalAvgValue="0.34346888667389247" meanValue="0.27933107620521985" simulationTime="186.15902214115437"/>
-<sample lastIntervalAvgValue="0.2210770232363911" meanValue="0.2679434301185426" simulationTime="231.39212621324646"/>
-<sample lastIntervalAvgValue="0.25942329892960225" meanValue="0.2662400513629226" simulationTime="289.2126845898109"/>
-<sample lastIntervalAvgValue="0.27018867309092726" meanValue="0.2669111434722767" simulationTime="348.4305630336474"/>
-<sample lastIntervalAvgValue="0.35564601435835086" meanValue="0.27705821913527684" simulationTime="393.41911725340117"/>
-<sample lastIntervalAvgValue="0.2554783175156117" meanValue="0.27393628773822076" simulationTime="459.96096771380735"/>
-<sample lastIntervalAvgValue="0.28655862965395096" meanValue="0.2755265748550659" simulationTime="526.2650257104011"/>
-<sample lastIntervalAvgValue="0.2995206406784985" meanValue="0.27798572179922915" simulationTime="586.3610510101098"/>
-<sample lastIntervalAvgValue="0.3111936487563212" meanValue="0.28050820255946707" simulationTime="634.5625488875478"/>
-<sample lastIntervalAvgValue="0.23086085479372745" meanValue="0.2745444014591614" simulationTime="721.1948192993933"/>
-<sample lastIntervalAvgValue="0.29029304275959494" meanValue="0.2759176827389529" simulationTime="790.0907177676281"/>
-<sample lastIntervalAvgValue="0.3035106160131514" meanValue="0.2779434318409506" simulationTime="852.6914934820984"/>
-<sample lastIntervalAvgValue="0.21998953896552645" meanValue="0.27473322677706025" simulationTime="902.6938711029895"/>
-<sample lastIntervalAvgValue="0.2680841612418428" meanValue="0.27444413460507355" simulationTime="943.7257617937519"/>
-<sample lastIntervalAvgValue="0.2926394358054037" meanValue="0.2750799529580793" simulationTime="977.8975061879343"/>
-<sample lastIntervalAvgValue="0.18362255399741403" meanValue="0.27071476964436625" simulationTime="1026.9110930489837"/>
-<sample lastIntervalAvgValue="0.32267811220850284" meanValue="0.2720888080213524" simulationTime="1054.8026656703846"/>
-<sample lastIntervalAvgValue="0.241950415776147" meanValue="0.270952410500011" simulationTime="1096.1334481281094"/>
-<sample lastIntervalAvgValue="0.5540392547850364" meanValue="0.2746330398279682" simulationTime="1110.5728582076424"/>
-<sample lastIntervalAvgValue="0.32784281065322907" meanValue="0.2756367452799551" simulationTime="1131.9245541196328"/>
-<sample lastIntervalAvgValue="0.18068891676816082" meanValue="0.2720626798184572" simulationTime="1176.1995442136001"/>
-<sample lastIntervalAvgValue="0.6149188759289979" meanValue="0.2753491385816094" simulationTime="1187.5831596367316"/>
-<sample lastIntervalAvgValue="0.4137663177381228" meanValue="0.2781098520442976" simulationTime="1211.7513907645468"/>
-<sample lastIntervalAvgValue="0.3014993099995322" meanValue="0.27867218543065464" simulationTime="1241.602205348547"/>
-<sample lastIntervalAvgValue="0.24566582217549868" meanValue="0.27752329965012074" simulationTime="1286.378478672159"/>
-<sample lastIntervalAvgValue="0.2534170604931118" meanValue="0.2768058312426315" simulationTime="1325.839121063565"/>
-<sample lastIntervalAvgValue="0.21382233883974175" meanValue="0.27465984230498514" simulationTime="1372.6069192939217"/>
-</measure>
-</results>
 </archive>

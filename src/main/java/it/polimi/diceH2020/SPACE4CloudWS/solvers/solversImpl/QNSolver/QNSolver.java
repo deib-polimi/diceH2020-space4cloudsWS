@@ -67,9 +67,7 @@ public class QNSolver extends AbstractSolver {
 
 			Double throughput = resultObject.getMeasure().get(0).getMeanValue();
 
-			BigDecimal result = BigDecimal.valueOf(throughput);
-			result.setScale(8, RoundingMode.HALF_EVEN);
-			return result;
+			return BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimziation");
 			throw new Exception("Error in the QN server");
@@ -145,8 +143,11 @@ public class QNSolver extends AbstractSolver {
 		String rsFileName = lst.get(1).getName();
 		String remoteMapFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), mapFileName);
 		String remoteRSFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), rsFileName);
-		String jsimgfileContent = new QNFileBuilder().setCores(nContainers).setConcurrency(concurrency).setNumberOfMapTasks(numMap).setNumberOfReduceTasks(numReduce).setMapFilePath(remoteMapFilePath)
-				.setRsFilePath(remoteRSFilePath).setThinkRate(1 / think).build();
+		String jsimgfileContent = new QNFileBuilder().setCores(nContainers).setConcurrency(concurrency)
+				.setNumberOfMapTasks(numMap).setNumberOfReduceTasks(numReduce).setMapFilePath(remoteMapFilePath)
+				.setRsFilePath(remoteRSFilePath).setThinkRate(1 / think)
+				.setAccuracy(connSettings.getAccuracy() / 100)
+				.setSignificance(((QNSettings) connSettings).getSignificance()).build();
 
 		File jsimgTempFile;
 		if (iteration.isPresent()) jsimgTempFile = fileUtility.provideTemporaryFile(String.format("MR-multiuser%d-iter%d-", jobID, iteration), ".jsimg");

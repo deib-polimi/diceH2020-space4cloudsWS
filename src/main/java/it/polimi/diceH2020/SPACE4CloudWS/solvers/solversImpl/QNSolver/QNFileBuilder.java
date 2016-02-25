@@ -19,7 +19,8 @@ public class QNFileBuilder {
     private String RSFilePath = "";
     private Double thinkRate;
     private Integer cores;
-
+    private Double significance;
+    private Double accuracy;
 
     public QNFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
         this.numberOfReduceTasks = numberOfReduceTasks;
@@ -46,19 +47,32 @@ public class QNFileBuilder {
         return this;
     }
 
+    public QNFileBuilder setSignificance(Double significance) {
+        this.significance = significance;
+        return this;
+    }
+
+    public QNFileBuilder setAccuracy(Double accuracy) {
+        this.accuracy = accuracy;
+        return this;
+    }
+
     public String build() throws IOException {
         InputStream inputStream = getClass().getResourceAsStream("/QN/MR-multiuser.jsimg");
         List<String> lines = new LinkedList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String inputLine;
         while ((inputLine = reader.readLine()) != null) {
-            String outputLine = inputLine.replace("@@CONCURRENCY@@", concurrency.toString())
+            String outputLine = inputLine
+                    .replace("@@CONCURRENCY@@", concurrency.toString())
                     .replace("@@NUM_MAP@@", numberOfMapTasks.toString())
                     .replace("@@NUM_REDUCE@@", numberOfReduceTasks.toString())
                     .replace("@@MAPPATH@@", mapFilePath)
                     .replace("@@REDUCESHUFFLEPATH@@", RSFilePath)
                     .replace("@@NCORES@@", cores.toString())
-                    .replace("@@THINK_RATE@@", thinkRate.toString());
+                    .replace("@@THINK_RATE@@", thinkRate.toString())
+                    .replace("@@ALPHA@@", significance.toString())
+                    .replace("@@ACCURACY@@", accuracy.toString());
             lines.add(outputLine);
         }
         return String.join("\n", lines);
