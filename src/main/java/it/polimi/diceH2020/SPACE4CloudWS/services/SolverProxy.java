@@ -1,23 +1,20 @@
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.Optimizer;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
-import lombok.NonNull;
+import java.math.BigDecimal;
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import javax.annotation.PostConstruct;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import lombok.NonNull;
 
 /**
  * Created by ciavotta on 15/02/16.
@@ -35,8 +32,12 @@ public class SolverProxy {
 		solver = solverFactory.create();
 	}
 
-	public void setAccuracy(double accuracy){
-		solver.setAccuracy(accuracy);
+	public void changeSettings(Settings settings){
+		solverFactory.setType(settings.getSolver());
+		solver = solverFactory.create();
+		solver.setAccuracy(settings.getAccuracy());
+		solver.setMaxDuration(settings.getSimDuration());
+		
 	}
 	
 	@Cacheable(value="cachedEval")

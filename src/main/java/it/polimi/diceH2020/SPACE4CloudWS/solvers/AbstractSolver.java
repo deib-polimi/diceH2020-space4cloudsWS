@@ -78,6 +78,13 @@ public abstract class AbstractSolver implements Solver {
     public void setAccuracy(double accuracy) {
         connSettings.setAccuracy(accuracy);
     }
+    
+    @Override
+    public void setMaxDuration(Integer duration){
+        connSettings.setMaxDuration(duration);
+    }
+    
+    
 
     @Override
     public List<String> pwd() throws Exception {

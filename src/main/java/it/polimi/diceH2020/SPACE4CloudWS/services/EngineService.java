@@ -89,8 +89,8 @@ public class EngineService {
 		return Optional.empty();
 	}
 
-	public void setAccuracyAndCycles(Settings settings) {
-		optimizer.setAccuracy(settings);
+	public void changeDefaultSettings(Settings settings) {
+		optimizer.changeDefaultSettings(settings);
 	}
 
 	/**

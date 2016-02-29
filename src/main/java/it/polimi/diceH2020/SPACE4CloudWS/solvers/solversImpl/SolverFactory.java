@@ -1,5 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.QNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
@@ -16,13 +17,13 @@ import org.springframework.stereotype.Component;
 public class SolverFactory {
     @Autowired
     private ApplicationContext ctx;
-    private Type type = Type.SPNSolver;
+    private SolverType type = SolverType.SPNSolver;
 
-    public Type getType() {
+    public SolverType getType() {
         return this.type;
     }
 
-    public void setType(Type type) {
+    public void setType(SolverType type) {
         this.type = type;
     }
 
@@ -38,6 +39,5 @@ public class SolverFactory {
         }
     }
 
-    public enum Type {SPNSolver, QNSolver}
 
 }

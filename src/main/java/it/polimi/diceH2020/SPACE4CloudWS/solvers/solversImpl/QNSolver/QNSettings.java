@@ -12,16 +12,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "QN")
 public class QNSettings extends AbstractConnectionSettings {
 
-    private Integer maxTime = Integer.MIN_VALUE;
-
-    public Integer getMaxTime() {
-        return maxTime;
-    }
-
-    public void setMaxTime(Integer maxTime) {
-        this.maxTime = maxTime;
-    }
-
     private Double significance = 0.01;
 
     public Double getSignificance() {

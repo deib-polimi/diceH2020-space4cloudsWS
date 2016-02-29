@@ -21,6 +21,16 @@ public abstract class AbstractConnectionSettings implements ConnectionSettings {
     private String remoteWorkDir;
 
     private double accuracy = 0.1; //default value
+    
+    private Integer maxDuration = Integer.MIN_VALUE;
+
+    public Integer getMaxDuration() {
+        return maxDuration;
+    }
+
+    public void setMaxDuration(Integer maxTime) {
+        this.maxDuration = maxTime;
+    }
 
     private String solverPath;
 

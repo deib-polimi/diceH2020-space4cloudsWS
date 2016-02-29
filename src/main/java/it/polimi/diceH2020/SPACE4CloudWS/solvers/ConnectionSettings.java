@@ -20,6 +20,8 @@ public interface ConnectionSettings {
     double getAccuracy();
 
     void setAccuracy(double accuracy);
+    
+    void setMaxDuration(Integer duration);
 
     String getSolverPath();
 }

@@ -50,8 +50,8 @@ public class Optimizer {
 	private StateMachine<States, Events> stateHandler;
 
 	// read an input file and type value of accuracy and cycles
-	public void setAccuracy(Settings settings) {
-		solverCache.setAccuracy(settings.getAccuracy());
+	public void changeDefaultSettings(Settings settings) {
+		solverCache.changeSettings(settings);
 	}
 
 	public void parallelLocalSearch(Solution solution) throws Exception {

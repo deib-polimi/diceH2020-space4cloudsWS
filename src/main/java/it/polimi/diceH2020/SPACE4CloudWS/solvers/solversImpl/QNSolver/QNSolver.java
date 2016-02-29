@@ -45,8 +45,8 @@ public class QNSolver extends AbstractSolver {
 			logger.debug(remoteName + "-> Working files sent");
 
 			String command;
-			if (((QNSettings) connSettings).getMaxTime() == Integer.MIN_VALUE) command = String.format("java -cp %s jmt.commandline.Jmt sim %s ", connSettings.getSolverPath(), remotePath);
-			else command = String.format("java -cp %s jmt.commandline.Jmt sim %s -maxtime %d", connSettings.getSolverPath(), remotePath, ((QNSettings) connSettings).getMaxTime());
+			if (((QNSettings) connSettings).getMaxDuration() == Integer.MIN_VALUE) command = String.format("java -cp %s jmt.commandline.Jmt sim %s ", connSettings.getSolverPath(), remotePath);
+			else command = String.format("java -cp %s jmt.commandline.Jmt sim %s -maxtime %d", connSettings.getSolverPath(), remotePath, ((QNSettings) connSettings).getMaxDuration());
 
 			logger.debug(remoteName + "-> Starting JMT model...");
 			List<String> remoteMsg = connector.exec(command);

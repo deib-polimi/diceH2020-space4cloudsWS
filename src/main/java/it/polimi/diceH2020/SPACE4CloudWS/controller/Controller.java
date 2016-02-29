@@ -54,7 +54,7 @@ public class Controller {
 
 	@RequestMapping(method = RequestMethod.POST, value = "/settings")
 	public @ResponseBody String changeState(@RequestBody Settings settings) {
-		if (getWebServiceState().equals("IDLE")) engineService.setAccuracyAndCycles(settings);
+		if (getWebServiceState().equals("IDLE")) engineService.changeDefaultSettings(settings);
 		return getWebServiceState();
 	}
 
@@ -82,7 +82,7 @@ public class Controller {
 	@ResponseStatus(value = HttpStatus.OK)
 	public Solution endpointSolution() throws Exception {
 		String state = stateHandler.getState().getId().toString();
-		if (state.equals("CHARGED_INITSOLUTION") || state.equals("FINISH")) return engineService.getSolution();
+		if (state.equals("CHARGED_INITSOLUTION") || state.equals("EVALUATED_INITSOLUTION")  || state.equals("FINISH")) return engineService.getSolution();
 		return null;
 	}
 
