@@ -46,6 +46,7 @@ public class Controller {
 		stateHandler.sendEvent(event);		
 		States currentState = stateHandler.getState().getId();
 		if (currentState.equals(States.RUNNING_INIT)) runningInit = engineService.runningInitSolution();
+		if(currentState.equals(States.EVALUATING_INIT)) engineService.evaluatingInitSolution();
 		if (currentState.equals(States.RUNNING_LS)) engineService.localSearch();
 
 		return getWebServiceState();

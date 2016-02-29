@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
+import com.beust.jcommander.converters.BigDecimalConverter;
+
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -47,9 +49,8 @@ public class Optimizer {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-
 	// read an input file and type value of accuracy and cycles
-	public void setAccuracy(Settings settings){
+	public void setAccuracy(Settings settings) {
 		solverCache.setAccuracy(settings.getAccuracy());
 	}
 
@@ -63,8 +64,7 @@ public class Optimizer {
 
 	public void hillClimbing(Solution solution) {
 		Instant first = Instant.now();
-		logger.info(String.format(
-				"---------- Starting hill climbing for instance %s ----------", solution.getId()));
+		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		strm.forEach(this::hillClimbing);
@@ -110,14 +110,14 @@ public class Optimizer {
 	}
 
 	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction,
-																					  Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+			Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
 		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
 	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
-								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+			SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
 		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
@@ -133,34 +133,26 @@ public class Optimizer {
 		}
 	}
 
-	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration,
-												Optional<BigDecimal> duration, double deadline,
-												Integer nVM, Integer maxVM) {
+	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
 		boolean returnValue = false;
 		if (duration.isPresent() && duration.get().doubleValue() <= deadline) returnValue = true;
-		if (previousDuration.isPresent() && duration.isPresent() &&
-				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1))
-			returnValue = true;
+		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1)) returnValue = true;
 		if (nVM > maxVM) returnValue = true;
-		if (! checkState()) returnValue = true;
+		if (!checkState()) returnValue = true;
 		return returnValue;
 	}
 
-	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration,
-												  Optional<BigDecimal> duration, double deadline,
-												  Integer nVM, Integer maxVM) {
+	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
 		boolean returnValue = false;
 		if (duration.isPresent() && duration.get().doubleValue() >= deadline) returnValue = true;
-		if (previousDuration.isPresent() && duration.isPresent() &&
-				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1))
-			returnValue = true;
-		if (nVM == 1 ) returnValue = true;
-		if (! checkState()) returnValue = true;
+		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) == 1)) returnValue = true;
+		if (nVM == 1) returnValue = true;
+		if (!checkState()) returnValue = true;
 		return returnValue;
 	}
 
-	private boolean checkState(){
-		return  stateHandler.getState().getId().equals(States.RUNNING_LS);
+	private boolean checkState() {
+		return stateHandler.getState().getId().equals(States.RUNNING_LS);
 	}
 
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
@@ -177,6 +169,17 @@ public class Optimizer {
 		Optional<Double> res = Optional.of(10.0);
 		logger.info("Local search num " + solPerJob.getPos() + " finished");
 		return res;
+	}
+
+	public void evaluate(@NonNull Solution sol) {
+		sol.getLstSolutions().forEach(s -> {
+			Optional<BigDecimal> duration = calculateDuration(s);
+			if (duration.isPresent()) s.setDuration(duration.get().doubleValue());
+			else s.setDuration(Double.MAX_VALUE);
+		});
+		sol.setEvaluated(false);
+		Evaluator.evaluate(sol);
+		
 	}
 
 }

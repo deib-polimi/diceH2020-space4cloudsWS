@@ -62,6 +62,9 @@ public class EngineService {
 		return new AsyncResult<>("Done");
 	}
 
+	
+	
+	
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
@@ -96,6 +99,13 @@ public class EngineService {
 	 */
 	public void setInstanceData(InstanceData inputData) {
 		this.dataService.setInstanceData(inputData);
+	}
+
+	@Async("workExecutor")
+	public void evaluatingInitSolution() {
+		optimizer.evaluate(solution); //TODO this has to be changed. Evaluation must be placed into the evaluator
+		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
+		logger.info(stateHandler.getState().getId());
 	}
 
 }

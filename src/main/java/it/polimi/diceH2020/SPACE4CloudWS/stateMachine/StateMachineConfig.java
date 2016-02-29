@@ -89,8 +89,8 @@ public class StateMachineConfig
            transitions
             .withExternal()
                 .source(States.CHARGED_INITSOLUTION)
-                .target(States.RUNNING_LS)
-                .event(Events.TO_RUNNING_LS)
+                .target(States.EVALUATING_INIT)
+                .event(Events.TO_EVALUATING_INIT)
                 .and()
             .withExternal()
                 .source(States.CHARGED_INITSOLUTION)
@@ -101,7 +101,40 @@ public class StateMachineConfig
                 .source(States.CHARGED_INITSOLUTION)
                 .target(States.IDLE)
                 .event(Events.RESET);
+           
+           
+           transitions
+           .withExternal()
+               .source(States.EVALUATING_INIT)
+               .target(States.EVALUATED_INITSOLUTION)
+               .event(Events.TO_EVALUATED_INITSOLUTION)
+               .and()
+           .withExternal()
+               .source(States.EVALUATING_INIT)
+               .target(States.ERROR)
+               .event(Events.STOP)
+               .and()           
+           .withExternal()
+               .source(States.EVALUATING_INIT)
+               .target(States.IDLE)
+               .event(Events.RESET);
 
+           transitions
+           .withExternal()
+               .source(States.EVALUATED_INITSOLUTION)
+               .target(States.RUNNING_LS)
+               .event(Events.TO_RUNNING_LS)
+               .and()
+           .withExternal()
+               .source(States.EVALUATED_INITSOLUTION)
+               .target(States.ERROR)
+               .event(Events.STOP)
+               .and()           
+           .withExternal()
+               .source(States.EVALUATED_INITSOLUTION)
+               .target(States.IDLE)
+               .event(Events.RESET);
+           
            
            transitions
            .withExternal()
