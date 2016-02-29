@@ -1,7 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
-import java.util.concurrent.Future;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
@@ -32,7 +29,6 @@ public class Controller {
 
 	private static Logger logger = Logger.getLogger(Controller.class.getName());
 	
-	private Future<String> runningInit = null;
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/event")
 	public @ResponseBody String changeState(@RequestBody Events event) throws Exception {
@@ -45,7 +41,7 @@ public class Controller {
 		}
 		stateHandler.sendEvent(event);		
 		States currentState = stateHandler.getState().getId();
-		if (currentState.equals(States.RUNNING_INIT)) runningInit = engineService.runningInitSolution();
+		if (currentState.equals(States.RUNNING_INIT))  engineService.runningInitSolution();
 		if(currentState.equals(States.EVALUATING_INIT)) engineService.evaluatingInitSolution();
 		if (currentState.equals(States.RUNNING_LS)) engineService.localSearch();
 
@@ -55,7 +51,9 @@ public class Controller {
 	@RequestMapping(method = RequestMethod.POST, value = "/settings")
 	public @ResponseBody String changeState(@RequestBody Settings settings) {
 		if (getWebServiceState().equals("IDLE")) engineService.changeDefaultSettings(settings);
-		return getWebServiceState();
+		String msg = "settings changed";
+		logger.info(msg);
+		return msg;
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "/inputdata")
