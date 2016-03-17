@@ -71,7 +71,7 @@ public class EngineService {
 			optimizer.hillClimbing(solution);
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
-			logger.error("Error while performing Local search", e);
+			logger.error("Error while performing local search", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());

@@ -50,7 +50,7 @@ public class QNSolver extends AbstractSolver {
 
 			logger.debug(remoteName + "-> Starting JMT model...");
 			List<String> remoteMsg = connector.exec(command);
-			if (remoteMsg.contains("exit-status: 0")) logger.info(remoteName + "-> The remote optimization proces completed correctly");
+			if (remoteMsg.contains("exit-status: 0")) logger.info(remoteName + "-> The remote optimization process completed correctly");
 			else {
 				logger.debug(remoteName + "-> Remote exit status: " + remoteMsg);
 				iteration = iteration + 1;
@@ -69,7 +69,7 @@ public class QNSolver extends AbstractSolver {
 
 			return BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN);
 		} else {
-			logger.debug(remoteName + "-> Error in remote optimziation");
+			logger.debug(remoteName + "-> Error in remote optimization");
 			throw new Exception("Error in the QN server");
 		}
 	}

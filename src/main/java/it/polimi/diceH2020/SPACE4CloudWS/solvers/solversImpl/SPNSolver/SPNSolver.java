@@ -67,7 +67,7 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> Starting GreatSPN model...");
             List<String> remoteMsg = connector.exec(command);
             if (remoteMsg.contains("exit-status: 0")) {
-                logger.info(remoteName + "-> The remote optimization proces completed correctly");
+                logger.info(remoteName + "-> The remote optimization process completed correctly");
             } else {
                 logger.debug(remoteName + "-> Remote exit status: " + remoteMsg);
                 iter = iter + 1;
@@ -90,7 +90,7 @@ public class SPNSolver extends AbstractSolver {
             result.setScale(8, RoundingMode.HALF_EVEN);
             return result;
         } else {
-            logger.debug(remoteName + "-> Error in remote optimziation");
+            logger.debug(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
         }
     }

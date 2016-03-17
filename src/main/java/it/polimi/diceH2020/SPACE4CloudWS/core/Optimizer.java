@@ -105,7 +105,7 @@ public class Optimizer {
 				return true;
 			}
 		}
-		logger.info("class" + solPerJob.getJob().getId() + "-> MakeFisible ended with ERROR");
+		logger.info("class" + solPerJob.getJob().getId() + "-> MakeFeasible ended with ERROR");
 		return false;
 	}
 
