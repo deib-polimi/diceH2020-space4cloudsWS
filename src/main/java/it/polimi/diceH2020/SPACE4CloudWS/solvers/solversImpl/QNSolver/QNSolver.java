@@ -143,10 +143,12 @@ public class QNSolver extends AbstractSolver {
 		String rsFileName = lst.get(1).getName();
 		String remoteMapFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), mapFileName);
 		String remoteRSFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), rsFileName);
-		String jsimgfileContent = new QNFileBuilder().setCores(nContainers).setConcurrency(concurrency)
-				.setNumberOfMapTasks(numMap).setNumberOfReduceTasks(numReduce).setMapFilePath(remoteMapFilePath)
-				.setRsFilePath(remoteRSFilePath).setThinkRate(1 / think)
-				.setAccuracy(connSettings.getAccuracy() / 100)
+		String jsimgfileContent = new QNFileBuilder()
+				.setQueueingNetworkModel(((QNSettings) connSettings).getModel())
+				.setCores(nContainers).setConcurrency(concurrency)
+				.setNumberOfMapTasks(numMap).setNumberOfReduceTasks(numReduce)
+				.setMapFilePath(remoteMapFilePath).setRsFilePath(remoteRSFilePath)
+				.setThinkRate(1 / think).setAccuracy(connSettings.getAccuracy() / 100)
 				.setSignificance(((QNSettings) connSettings).getSignificance()).build();
 
 		File jsimgTempFile;

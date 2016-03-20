@@ -21,6 +21,7 @@ public class QNFileBuilder {
     private Integer cores;
     private Double significance;
     private Double accuracy;
+    private QueueingNetworkModel model = QueueingNetworkModel.SIMPLE;
 
     public QNFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
         this.numberOfReduceTasks = numberOfReduceTasks;
@@ -58,7 +59,16 @@ public class QNFileBuilder {
     }
 
     public String build() throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream("/QN/MR-multiuser.jsimg");
+        String fileName;
+        switch (model) {
+            case CLASS_SWITCH:
+                fileName = "/QN/MR-multiUser-classSwitch.jsimg";
+                break;
+            case SIMPLE:
+            default:
+                fileName = "/QN/MR-multiuser.jsimg";
+        }
+        InputStream inputStream = getClass().getResourceAsStream(fileName);
         List<String> lines = new LinkedList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String inputLine;
@@ -85,6 +95,11 @@ public class QNFileBuilder {
 
     public QNFileBuilder setRsFilePath(String rsFilePath) {
         this.RSFilePath = rsFilePath;
+        return this;
+    }
+
+    public QNFileBuilder setQueueingNetworkModel(QueueingNetworkModel queueingNetworkModel) {
+        model = queueingNetworkModel;
         return this;
     }
 }

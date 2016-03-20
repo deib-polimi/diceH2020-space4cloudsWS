@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class QNSettings extends AbstractConnectionSettings {
 
     private Double significance = 0.01;
+    private QueueingNetworkModel model = QueueingNetworkModel.SIMPLE;
 
     public Double getSignificance() {
         return significance;
@@ -20,5 +21,13 @@ public class QNSettings extends AbstractConnectionSettings {
 
     public void setSignificance(Double significance) {
         this.significance = significance;
+    }
+
+    public QueueingNetworkModel getModel() {
+        return model;
+    }
+
+    public void setModel(QueueingNetworkModel newModel) {
+        model = newModel;
     }
 }
