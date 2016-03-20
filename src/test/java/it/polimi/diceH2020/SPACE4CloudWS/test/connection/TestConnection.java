@@ -33,12 +33,12 @@ public class TestConnection {
 		Assert.assertTrue(res.contains("exit-status: 0"));
 		String wd = milpSolver.getRemoteWorkingDirectory();
 		res = milpSolver.getConnector().exec("mkdir " + wd);
-		Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
+		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		res = milpSolver.getConnector().exec("cd " + wd);
-		Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
+		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		System.out.println(milpSolver.pwd());
 		res = milpSolver.getConnector().exec("cd " + wd + " && mkdir problems utils solve");
-		Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
+		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		System.out.println(ClassPath.getClassPath());
 	}
 
@@ -47,9 +47,9 @@ public class TestConnection {
 		List<String> res = spnSolver.pwd();
 		Assert.assertTrue(res.size() == 2 && res.get(0).contains("/home/user") && res.contains("exit-status: 0"));
 		res = spnSolver.getConnector().exec("rm -rf ./Experiments");
-		Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
+		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		res = spnSolver.getConnector().exec("mkdir ./Experiments");
-		Assert.assertTrue(res.size() == 1 && res.contains("exit-status: 0"));
+		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 	}
 
 }
