@@ -28,6 +28,9 @@ public class ConnectionCreator {
             session.setPassword(settings.getPassword());
         }
 
+        session.setServerAliveCountMax(3);
+        session.setServerAliveInterval(20000);
+
         /* Jsch 0.1.53 supports ecdsa-sha2-nistp256 key, but default
            configuration looks for RSA key. Here we override with the
            correct key type. */
