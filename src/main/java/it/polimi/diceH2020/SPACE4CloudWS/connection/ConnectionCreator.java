@@ -1,19 +1,16 @@
 package it.polimi.diceH2020.SPACE4CloudWS.connection;
 
-import com.jcraft.jsch.HostKey;
-import com.jcraft.jsch.HostKeyRepository;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 
-public class ConnectionCreator {
+class ConnectionCreator {
     private final ConnectionSettings settings;
 
-    public ConnectionCreator(ConnectionSettings settings) {
+    ConnectionCreator(ConnectionSettings settings) {
         this.settings = settings;
     }
 
-    public Session createSession() throws Exception {
+    Session createSession() throws JSchException {
         JSch jsch = new JSch();
         jsch.setKnownHosts(settings.getKnownHosts());
 
@@ -31,7 +28,7 @@ public class ConnectionCreator {
         session.setServerAliveCountMax(3);
         session.setServerAliveInterval(20000);
 
-        /* Jsch 0.1.53 supports ecdsa-sha2-nistp256 key, but default
+        /* Jsch 0.1.53 supports ecdsa-sha2-nistp256 keys, but the default
            configuration looks for RSA key. Here we override with the
            correct key type. */
         HostKeyRepository hkr = jsch.getHostKeyRepository();
