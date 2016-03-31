@@ -19,6 +19,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Class that manages the interactions with GreatSPN solver
@@ -38,13 +39,6 @@ public class SPNSolver extends AbstractSolver {
         return run(inputFiles, remoteName, 0);
     }
 
-    /**
-     * @param pFiles
-     * @param remoteName
-     * @param iter
-     * @return
-     * @throws Exception
-     */
     private BigDecimal run(Pair<File, File> pFiles, String remoteName, Integer iter) throws Exception {
         if (iter < MAX_ITERATIONS) {
             File netFile = pFiles.getLeft();
@@ -55,7 +49,8 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def");
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            File statFile = fileUtility.provideTemporaryFile("S4C-stat-", ".stat");
+            String prefix = Pattern.compile("([\\w-]*)(?:\\d*)\\.net").matcher(netFile.getName()).group(1);
+            File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
             fileUtility.writeContentToFile("end\n", statFile);
             connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat");
             logger.debug(remoteName + "-> GreatSPN .stat file sent");
@@ -74,7 +69,7 @@ public class SPNSolver extends AbstractSolver {
                 return run(pFiles, remoteName, iter);
             }
 
-            File solFile = fileUtility.provideTemporaryFile("S4C-" + remoteName, ".sta");
+            File solFile = fileUtility.provideTemporaryFile(prefix, ".sta");
             connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta");
             String solFileInString = FileUtils.readFileToString(solFile);
             if (fileUtility.delete(solFile))
@@ -119,22 +114,23 @@ public class SPNSolver extends AbstractSolver {
         int NM = prof.getNM();
         int NR = prof.getNR();
 
-        String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
+        String prefix;
+        if (iteration.isPresent()) {
+            prefix = String.format("PN-%s-class%d-iter%d-", solPerJob.getParentID(), jobID, iteration.get());
+        } else {
+            prefix = String.format("PN-%s-class%d-", solPerJob.getParentID(), jobID);
+        }
 
-        File netFile;
-        if (iteration.isPresent())
-            netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration), ".net");
-        else netFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".net");
-
+        String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
+                .setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
+        File netFile = fileUtility.provideTemporaryFile(prefix, ".net");
         fileUtility.writeContentToFile(netFileContent, netFile);
 
-        String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM).setNumberOfReduceTasks(NR).build();
-        File defFile;
-        if (iteration.isPresent())
-            defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-iter%d-", jobID, iteration.get()), ".def");
-        else defFile = fileUtility.provideTemporaryFile(String.format("S4C-class%d-", jobID), ".def");
-
+        String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
+                .setNumberOfReduceTasks(NR).build();
+        File defFile = fileUtility.provideTemporaryFile(prefix, ".def");
         fileUtility.writeContentToFile(defFileContent, defFile);
+
         List<File> lst = new ArrayList<>(2);
         lst.add(netFile);
         lst.add(defFile);

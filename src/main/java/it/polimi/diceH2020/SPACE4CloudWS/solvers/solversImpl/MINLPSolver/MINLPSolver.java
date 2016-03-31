@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Component
 public class MINLPSolver extends AbstractSolver {
@@ -117,7 +118,6 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	private void sendFile(String localPath, String remotePath) throws Exception {
-
 		InputStream in = this.getClass().getResourceAsStream(localPath);
 		File tempFile = fileUtility.provideTemporaryFile("S4C-temp", null);
 		FileOutputStream out = new FileOutputStream(tempFile);
@@ -147,8 +147,10 @@ public class MINLPSolver extends AbstractSolver {
 
 			String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 			String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
-			File runFile = fileUtility.provideTemporaryFile("S4C-run-", ".run");
-			String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath).setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath).build();
+			String prefix = Pattern.compile("([\\w-]*)(?:\\d*)\\.dat").matcher(dataFile.getName()).group(1);
+			File runFile = fileUtility.provideTemporaryFile(prefix, ".run");
+			String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
+					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath).build();
 			fileUtility.writeContentToFile(runFileContent, runFile);
 
 			fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
@@ -158,7 +160,8 @@ public class MINLPSolver extends AbstractSolver {
 
 			logger.info(remoteName + "-> Processing execution...");
 			clearResultDir();
-			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(), REMOTE_SCRATCH, ((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
+			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(),
+					REMOTE_SCRATCH, ((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
 			List<String> remoteMsg = connector.exec(command);
 			if (remoteMsg.contains("exit-status: 0")) {
 				logger.info(remoteName + "-> The remote optimization process completed correctly");
@@ -203,9 +206,11 @@ public class MINLPSolver extends AbstractSolver {
 		AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass, tVM, prof);
 		builder.setArrayParameter("w", Ints.asList(dataService.getNumCores(tVM))).setArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
 				.setArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM))).setArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
-		File dataFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".dat");
+
+		String prefix = String.format("AMPL-%s-class%d-vm%s-", solPerJob.getParentID(), jobClass.getId(), tVM.getId());
+		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
 		fileUtility.writeContentToFile(builder.build(), dataFile);
-		File resultsFile = fileUtility.provideTemporaryFile(String.format("partial_class%d_vm%s_", jobClass.getId(), tVM.getId()), ".sol");
+		File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");
 		List<File> lst = new ArrayList<>(2);
 		lst.add(dataFile);
 		lst.add(resultsFile);
@@ -331,8 +336,6 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	private List<File> createWorkingFiles(@NotNull Solution sol) throws IOException {
-		// private Pair<File, File> createMultiClassWorkingFiles(@NotNull
-		// Solution sol) throws IOException {
 		AMPLDataFileBuilder builder = AMPLDataFileUtils.multiClassBuilder(dataService.getData(), sol.getPairsTypeVMJobClass());
 
 		builder.setArrayParameter("w", sol.getLstNumberCores());
@@ -342,9 +345,10 @@ public class MINLPSolver extends AbstractSolver {
 		builder.setArrayParameter("rhobar", sol.getListRhobar());
 		builder.setArrayParameter("sigmabar", sol.getListSigmaBar());
 
-		File dataFile = fileUtility.provideTemporaryFile("S4C-multi-class-", ".dat");
+		String prefix = String.format("AMPL-%s-complete-", sol.getId());
+		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
 		fileUtility.writeContentToFile(builder.build(), dataFile);
-		File resultsFile = fileUtility.provideTemporaryFile("S4C-multi-class-", ".sol");
+		File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");
 		List<File> lst = new ArrayList<>(2);
 		lst.add(dataFile);
 		lst.add(resultsFile);

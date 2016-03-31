@@ -131,7 +131,7 @@ public class QNSolver extends AbstractSolver {
 		return null;
 	}
 
-	private List<File> createWorkingFiles(SolutionPerJob solPerJob, Optional<Object> iteration) throws IOException {
+	private List<File> createWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration) throws IOException {
 		List<File> lst = createProfileFiles(solPerJob);
 		Integer nContainers = solPerJob.getNumberContainers();
 		Integer concurrency = solPerJob.getNumberUsers();
@@ -152,8 +152,10 @@ public class QNSolver extends AbstractSolver {
 				.setSignificance(((QNSettings) connSettings).getSignificance()).build();
 
 		File jsimgTempFile;
-		if (iteration.isPresent()) jsimgTempFile = fileUtility.provideTemporaryFile(String.format("MR-multiuser%d-iter%d-", jobID, iteration), ".jsimg");
-		else jsimgTempFile = fileUtility.provideTemporaryFile(String.format("MR-multiuser%d", jobID), ".jsimg");
+		if (iteration.isPresent()) jsimgTempFile = fileUtility.provideTemporaryFile(String
+				.format("QN-%s-class%d-it%d-", solPerJob.getParentID(), jobID, iteration.get()), ".jsimg");
+		else jsimgTempFile = fileUtility.provideTemporaryFile(String.format("QN-%s-class%d-",
+				solPerJob.getParentID(), jobID), ".jsimg");
 
 		fileUtility.writeContentToFile(jsimgfileContent, jsimgTempFile);
 		lst.add(jsimgTempFile);
