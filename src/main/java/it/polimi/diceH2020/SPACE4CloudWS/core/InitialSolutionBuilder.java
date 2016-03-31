@@ -82,7 +82,7 @@ public class InitialSolutionBuilder {
 
 		Instant after = Instant.now();
 		Phase ph = new Phase();
-		ph.setId(PhaseID.OPTIMIZATION);
+		ph.setId(PhaseID.INIT_SOLUTION);
 		ph.setDuration(Duration.between(first, after).toMillis());
 		startingSol.addPhase(ph);
 		logger.info("---------- Initial solution correctly created ----------");
