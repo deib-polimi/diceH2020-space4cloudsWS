@@ -2,10 +2,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
@@ -16,17 +13,14 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class InitialSolutionBuilder {
-	private static final AbsentLast<BigDecimal> ABSENT_LAST = new AbsentLast<>();
 	private static Logger logger = Logger.getLogger(InitialSolutionBuilder.class.getName());
 	@Autowired
 	private DataService dataService;
@@ -34,6 +28,8 @@ public class InitialSolutionBuilder {
 	private MINLPSolver minlpSolver;
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
+	@Autowired
+	private IEvaluator evaluator;
 	private boolean error;
 
 	public Solution getInitialSolution() throws Exception {
@@ -44,29 +40,31 @@ public class InitialSolutionBuilder {
 		startingSol.setGamma(dataService.getGamma());
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
+
 		// Phase 1
 		// SingleClass
 		dataService.getListJobClass().forEach(jobClass -> {
-			Map<SolutionPerJob, Optional<BigDecimal>> mapResults = new ConcurrentHashMap<>();
+			Map<SolutionPerJob, Double> mapResults = new ConcurrentHashMap<>();
 			dataService.getListTypeVM(jobClass).forEach(tVM -> {
 				if (checkState()) {
 					logger.info(String.format(
 							"---------- Starting optimization jobClass %d considering VM type %s ----------",
 							jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
-					mapResults.put(solutionPerJob, minlpSolver.evaluate(solutionPerJob));
+					minlpSolver.evaluate(solutionPerJob);
+					mapResults.put(solutionPerJob, evaluator.evaluate(solutionPerJob));
 				}
 			});
 			if (checkState()) {
-				Map.Entry<SolutionPerJob, Optional<BigDecimal>> min = mapResults.entrySet().stream().min(
-						Map.Entry.comparingByValue(ABSENT_LAST::compare)).get();
-
-				Optional<java.math.BigDecimal> selDuration = min.getValue();
-
-				if (!selDuration.isPresent()) this.error = true;
-				TypeVM minTVM = min.getKey().getTypeVMselected();
-				logger.info("For job class " + jobClass.getId() + " has been selected the machine " + minTVM.getId());
-				startingSol.setSolutionPerJob(min.getKey());
+				Optional<SolutionPerJob> min = mapResults.entrySet().stream().min(
+						Map.Entry.comparingByValue()).map(Map.Entry::getKey);
+				error = true;
+				min.ifPresent(s -> {
+					error = false;
+					TypeVM minTVM = s.getTypeVMselected();
+					logger.info("For job class " + jobClass.getId() + " has been selected the machine " + minTVM.getId());
+					startingSol.setSolutionPerJob(s);
+				});
 			}
 		});
 
@@ -74,7 +72,7 @@ public class InitialSolutionBuilder {
 		// multiClass
 		if (checkState() && !error) {
 			minlpSolver.evaluate(startingSol);
-			Evaluator.evaluate(startingSol);
+			evaluator.evaluate(startingSol);
 		} else if (error) {
 			fallBack(startingSol);
 		}
@@ -90,48 +88,31 @@ public class InitialSolutionBuilder {
 	}
 
 	private void fallBack(Solution sol) {
-		// in case fallback is needed
 		sol.getLstSolutions().forEach(s -> {
 			s.setNumberVM(1);
 			s.setNumberUsers(s.getJob().getHup());
 			s.setAlfa(0.0);
 			s.setBeta(0.0);
 		});
-
 	}
 
 	private boolean checkState() {
 		return !stateHandler.getState().getId().equals(States.IDLE);
 	}
 
-	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass, @NotNull TypeVM minTVM) {
+	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass, @NotNull TypeVM typeVM) {
 		SolutionPerJob solPerJob = new SolutionPerJob();
 		solPerJob.setChanged(Boolean.TRUE);
 		solPerJob.setFeasible(Boolean.FALSE);
 		solPerJob.setDuration(Double.MAX_VALUE);
 		solPerJob.setJob(jobClass);
-		solPerJob.setTypeVMselected(minTVM);
-		solPerJob.setNumCores(dataService.getNumCores(minTVM));
-		solPerJob.setDeltaBar(dataService.getDeltaBar(minTVM));
-		solPerJob.setRhoBar(dataService.getRhoBar(minTVM));
-		solPerJob.setSigmaBar(dataService.getSigmaBar(minTVM));
-		solPerJob.setProfile(dataService.getProfile(jobClass, minTVM));
+		solPerJob.setTypeVMselected(typeVM);
+		solPerJob.setNumCores(dataService.getNumCores(typeVM));
+		solPerJob.setDeltaBar(dataService.getDeltaBar(typeVM));
+		solPerJob.setRhoBar(dataService.getRhoBar(typeVM));
+		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM));
+		solPerJob.setProfile(dataService.getProfile(jobClass, typeVM));
 		return solPerJob;
-
-	}
-
-	private interface OptionalComparator<T extends Comparable<T>> extends Comparator<Optional<T>> {
-	}
-
-	private static class AbsentLast<BigDecimal extends Comparable<BigDecimal>> implements OptionalComparator<BigDecimal> {
-		@Override
-		public int compare(Optional<BigDecimal> obj1, Optional<BigDecimal> obj2) {
-			if (obj1.isPresent() && obj2.isPresent()) return obj1.get().compareTo(obj2.get());
-			else if (obj1.isPresent()) return 1;
-			else if (obj2.isPresent()) return -1;
-			else return 0;
-		}
-
 	}
 
 }

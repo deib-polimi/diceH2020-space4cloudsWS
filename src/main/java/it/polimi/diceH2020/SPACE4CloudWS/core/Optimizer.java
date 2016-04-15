@@ -2,10 +2,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
@@ -18,8 +15,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
-
-import com.beust.jcommander.converters.BigDecimalConverter;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -49,6 +44,9 @@ public class Optimizer {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
+	@Autowired
+	private IEvaluator evaluator;
+
 	// read an input file and type value of accuracy and cycles
 	public void changeDefaultSettings(Settings settings) {
 		solverCache.changeSettings(settings);
@@ -69,7 +67,7 @@ public class Optimizer {
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		strm.forEach(this::hillClimbing);
 		solution.setEvaluated(false);
-		Evaluator.evaluate(solution);
+		evaluator.evaluate(solution);
 		Instant after = Instant.now();
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
@@ -110,14 +108,14 @@ public class Optimizer {
 	}
 
 	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction,
-			Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+																					  Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
 		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
 	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
-			SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
 		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
@@ -159,7 +157,7 @@ public class Optimizer {
 		return solverCache.evaluate(solPerJob);
 	}
 
-	public Optional<Double> executeMock(SolutionPerJob solPerJob) {
+	private Optional<Double> executeMock(SolutionPerJob solPerJob) {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
@@ -178,8 +176,7 @@ public class Optimizer {
 			else s.setDuration(Double.MAX_VALUE);
 		});
 		sol.setEvaluated(false);
-		Evaluator.evaluate(sol);
-		
+		evaluator.evaluate(sol);
 	}
 
 }

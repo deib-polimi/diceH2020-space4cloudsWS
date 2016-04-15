@@ -20,10 +20,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -222,7 +219,7 @@ public class MINLPSolver extends AbstractSolver {
 
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
-		if (!solPerJob.getChanged()) return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
+		if (! solPerJob.getChanged()) return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
 
 		JobClass jobClass = solPerJob.getJob();
 		int jobID = jobClass.getId();
@@ -230,6 +227,8 @@ public class MINLPSolver extends AbstractSolver {
 		try {
 			pFiles = createWorkingFiles(solPerJob);
 			BigDecimal duration = run(pFiles, "class" + jobID);
+			File resultsFile = pFiles.get(1);
+			updateResults(Collections.singletonList(solPerJob), resultsFile);
 			delete(pFiles);
 			return Optional.of(duration);
 		} catch (Exception e) {
@@ -239,103 +238,82 @@ public class MINLPSolver extends AbstractSolver {
 
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
-
 		List<File> pFiles;
 		try {
 			pFiles = createWorkingFiles(solution);
 			BigDecimal duration = run(pFiles, "full solution");
-			delete(pFiles);
 			File resultsFile = pFiles.get(1);
-			updateWithFinalValues(solution, resultsFile);
-			if (fileUtility.delete(pFiles)) logger.info("Working files correctly deleted");
-
+			updateResults(solution.getLstSolutions(), resultsFile);
+			delete(pFiles);
 			return Optional.of(duration);
 		} catch (Exception e) {
 			return Optional.empty();
 		}
 	}
 
-	private void updateWithFinalValues(Solution sol, File solutionFile) throws IOException {
-		int numJobs = dataService.getJobNumber();
-		int ncontainers = 0;
-		int nusers;
-		List<Integer> numCores = dataService.getNumCores(sol.getTypeVMSelected());
+	private void updateResults(List<SolutionPerJob> solutions, File solutionFile) throws IOException {
+		try (BufferedReader reader = new BufferedReader(new FileReader(solutionFile))) {
+			String line = reader.readLine();
 
-		BufferedReader reader = new BufferedReader(new FileReader(solutionFile));
+			while (! line.contains("solve_result ")) {
+				line = reader.readLine();
+			}
 
-		String line = reader.readLine();
-		String[] bufferStr = new String[7];
+			String[] bufferStr = line.split("\\s+");
+			if (bufferStr[2].equals("infeasible")) {
+				logger.info("The problem is infeasible");
+				return;
+			}
 
-		// looking for the line with solve_result info
-		while (!line.contains("solve_result ")) {
+			while (! line.contains("t [*]")) {
+				line = reader.readLine();
+			}
+			for (SolutionPerJob solutionPerJob : solutions) {
+				line = reader.readLine();
+				bufferStr = line.split("\\s+");
+
+				String localStr = bufferStr[1].replaceAll("\\s+", "");
+				solutionPerJob.setDuration(Double.parseDouble(localStr));
+			}
+
+			while (! line.contains("Variables")) {
+				line = reader.readLine();
+			}
 			line = reader.readLine();
+			while (line.contains(":")) {
+				line = reader.readLine();
+			}
+
+			for (SolutionPerJob solutionPerJob : solutions) {
+				bufferStr = line.split("\\s+");
+				String x = bufferStr[2].replaceAll("\\s+", "");
+				int numContainers = Math.round(Float.parseFloat(x));
+				int numCores = dataService.getNumCores(solutionPerJob.getTypeVMselected());
+				int numVM = -Math.floorDiv(-numContainers, numCores);
+				solutionPerJob.setNumberVM(numVM);
+				x = bufferStr[5].replaceAll("\\s+", "");
+				double users = 1 / Double.parseDouble(x);
+				int numUsers = (int) users;
+				solutionPerJob.setNumberUsers(numUsers);
+				line = reader.readLine();
+			}
+
+			while (! line.contains("### alphabeta")) {
+				line = reader.readLine();
+			}
+
+			reader.readLine();
+			for (SolutionPerJob solutionPerJob : solutions) {
+				line = reader.readLine();
+				bufferStr = line.split("\\s+");
+
+				String x = bufferStr[2].replaceAll("\\s+", "");
+				solutionPerJob.setAlfa(Double.parseDouble(x));
+
+				x = bufferStr[3].replaceAll("\\s+", "");
+				solutionPerJob.setBeta(Double.parseDouble(x));
+			}
 		}
-
-		bufferStr = line.split("\\s+");
-		if (bufferStr[2] == "infeasible") {
-			logger.info("The problem is infeasible");
-			reader.close();
-			return;
-		}
-
-		while (!line.contains("t [*]")) {
-			line = reader.readLine();
-			// System.out.println(line);
-		}
-
-		for (int i = 0; i < numJobs; i++) {
-			line = reader.readLine();
-			bufferStr = line.split("\\s+");
-			// System.out.println(bufferStr[1]);
-
-			String localStr = bufferStr[1].replaceAll("\\s+", "");
-			sol.getLstSolutions().get(i).setDuration(Double.parseDouble(localStr));
-		}
-		while (!line.contains("Variables")) {
-			line = reader.readLine();
-			// System.out.println(line);
-		}
-		line = reader.readLine();
-		// System.out.println(line);
-		while (line.contains(":")) {
-			line = reader.readLine();
-			// System.out.println(line);
-		}
-		double users;
-
-		for (int i = 0; i < numJobs; i++) {
-			bufferStr = line.split("\\s+");
-			String x = bufferStr[2].replaceAll("\\s+", "");
-			ncontainers = Math.round(Float.parseFloat(x));
-			int numVM = -Math.floorDiv(-ncontainers, numCores.get(i));
-			SolutionPerJob solPerJob = sol.getSolutionPerJob(i);
-			solPerJob.setNumberVM(numVM);
-			x = bufferStr[5].replaceAll("\\s+", "");
-			users = Double.parseDouble(x);
-			users = 1 / users;
-			nusers = (int) users;
-			solPerJob.setNumberUsers(nusers);
-			line = reader.readLine();
-		}
-
-		while (!line.contains("### alphabeta"))
-			line = reader.readLine();
-
-		reader.readLine();
-		for (int i = 0; i < numJobs; i++) {
-			line = reader.readLine();
-			bufferStr = line.split("\\s+");
-
-			String x = bufferStr[2].replaceAll("\\s+", "");
-			SolutionPerJob solPerJob = sol.getSolutionPerJob(i);
-			solPerJob.setAlfa(Double.parseDouble(x));
-
-			x = bufferStr[3].replaceAll("\\s+", "");
-			solPerJob.setBeta(Double.parseDouble(x));
-
-		}
-		reader.close();
-
 	}
 
 	private List<File> createWorkingFiles(@NotNull Solution sol) throws IOException {

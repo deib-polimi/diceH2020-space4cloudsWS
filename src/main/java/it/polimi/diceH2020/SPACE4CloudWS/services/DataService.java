@@ -1,9 +1,12 @@
 /**
- * 
+ *
  */
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.*;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
@@ -14,8 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author ciavotta
@@ -42,30 +43,22 @@ public class DataService {
 		return this.mapTypeVM.get(key).getDeltabar();
 	}
 
-	//
 	public Double getRhoBar(TypeVM tVM) {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
 		return this.mapTypeVM.get(key).getRhoBar();
 	}
 
-	//
 	public Double getSigmaBar(TypeVM tVM) {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
 		return this.mapTypeVM.get(key).getSigmaBar();
 	}
 
-	public List<Integer> getNumCores(List<TypeVM> tVM) {
-		return tVM.stream().map(vm->
-			getNumCores(vm)).collect(toList());
-
-	}
-	
 	public Integer getNumCores(TypeVM tVM) {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
 		return this.mapTypeVM.get(key).getNumCores();
 	}
 
-	public void setInstanceData(InstanceData inputData) {
+	void setInstanceData(InstanceData inputData) {
 		this.data = inputData;
 		this.jobNumber = data.getNumberJobs();
 		this.NameProvider = data.getProvider();
@@ -75,15 +68,6 @@ public class DataService {
 	private void loadDataFromDB(EntityProvider provider) {
 		this.mapTypeVM = daoService.typeVMFindAllToMap(provider);
 	}
-
-	public Double getEta(TypeVMJobClassKey key) {
-		return data.getEta(key);
-	}
-
-	public int getR(TypeVMJobClassKey key) {
-		return data.getR(key);
-	}
-
 
 	public List<JobClass> getListJobClass() {
 		return data.getLstClass();
@@ -99,10 +83,6 @@ public class DataService {
 
 	public int getGamma() {
 		return data.getGamma();
-	}
-	
-	public Double getD(JobClass jobClass){
-		return data.getD(jobClass);
 	}
 
 }
