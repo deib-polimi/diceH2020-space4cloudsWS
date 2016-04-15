@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
@@ -147,7 +148,11 @@ public class MINLPSolver extends AbstractSolver {
 
 			String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 			String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
-			String prefix = Pattern.compile("([\\w-]*)(?:\\d*)\\.dat").matcher(dataFile.getName()).group(1);
+			Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.dat").matcher(dataFile.getName());
+			if (! matcher.matches()) {
+				throw new RuntimeException(String.format("problem matching %s", dataFile.getName()));
+			}
+			String prefix = matcher.group(1);
 			File runFile = fileUtility.provideTemporaryFile(prefix, ".run");
 			String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
 					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath).build();
@@ -158,8 +163,10 @@ public class MINLPSolver extends AbstractSolver {
 			logger.info(remoteName + "-> AMPL .run file sent");
 			if (fileUtility.delete(runFile)) logger.debug(runFile + " deleted");
 
-			logger.info(remoteName + "-> Processing execution...");
+			logger.debug(remoteName + "-> Cleaning result directory");
 			clearResultDir();
+
+			logger.info(remoteName + "-> Processing execution...");
 			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(),
 					REMOTE_SCRATCH, ((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
 			List<String> remoteMsg = connector.exec(command);
@@ -181,13 +188,9 @@ public class MINLPSolver extends AbstractSolver {
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
-			logger.info(remoteName + "-> Cleaning result directory");
-			clearResultDir();
 			return BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");
-			logger.info(remoteName + "-> Cleaning result directory");
-			clearResultDir();
 			throw new Exception("Error in the initial solution creation process");
 		}
 

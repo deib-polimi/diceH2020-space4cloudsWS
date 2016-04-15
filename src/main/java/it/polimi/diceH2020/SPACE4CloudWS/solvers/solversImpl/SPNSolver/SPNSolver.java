@@ -19,6 +19,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -49,7 +50,11 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def");
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            String prefix = Pattern.compile("([\\w-]*)(?:\\d*)\\.net").matcher(netFile.getName()).group(1);
+            Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
+            if (! matcher.matches()) {
+                throw new RuntimeException(String.format("problem matching %s", netFile.getName()));
+            }
+            String prefix = matcher.group(1);
             File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
             fileUtility.writeContentToFile("end\n", statFile);
             connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat");
