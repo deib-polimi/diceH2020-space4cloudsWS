@@ -83,8 +83,7 @@ public class MINLPSolver extends AbstractSolver {
 				String makeRemoteDirectoryTree = "mkdir -p " + root + "/{problems,utils,solve,scratch,results}";
 				connector.exec(makeRemoteDirectoryTree);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("error preparing remote work directory", e);
 			}
 
 			logger.info("Sending AMPL files");

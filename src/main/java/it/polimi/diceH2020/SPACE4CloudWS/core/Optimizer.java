@@ -161,8 +161,7 @@ public class Optimizer {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// pass
 		}
 		Optional<Double> res = Optional.of(10.0);
 		logger.info("Local search num " + solPerJob.getPos() + " finished");
