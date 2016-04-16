@@ -57,6 +57,10 @@ public class InitialSolutionBuilder {
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(solutionPerJob);
+					} else {
+						// as in this::fallback
+						solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
+						solutionPerJob.setNumberVM(1);
 					}
 					mapResults.put(solutionPerJob, cost);
 				}
