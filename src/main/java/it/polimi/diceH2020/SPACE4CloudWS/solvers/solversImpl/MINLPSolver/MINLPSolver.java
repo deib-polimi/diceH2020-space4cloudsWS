@@ -231,6 +231,7 @@ public class MINLPSolver extends AbstractSolver {
 			delete(pFiles);
 			return Optional.of(duration);
 		} catch (Exception e) {
+			logger.debug("no result due to an exception", e);
 			return Optional.empty();
 		}
 	}
@@ -246,6 +247,7 @@ public class MINLPSolver extends AbstractSolver {
 			delete(pFiles);
 			return Optional.of(duration);
 		} catch (Exception e) {
+			logger.debug("no result due to an exception", e);
 			return Optional.empty();
 		}
 	}

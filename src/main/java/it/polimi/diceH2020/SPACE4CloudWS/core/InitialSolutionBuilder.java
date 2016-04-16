@@ -13,6 +13,7 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -51,8 +52,13 @@ public class InitialSolutionBuilder {
 							"---------- Starting optimization jobClass %d considering VM type %s ----------",
 							jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
-					minlpSolver.evaluate(solutionPerJob);
-					mapResults.put(solutionPerJob, evaluator.evaluate(solutionPerJob));
+					Optional<BigDecimal> result = minlpSolver.evaluate(solutionPerJob);
+					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
+					double cost = Double.MAX_VALUE;
+					if (result.isPresent()) {
+						cost = evaluator.evaluate(solutionPerJob);
+					}
+					mapResults.put(solutionPerJob, cost);
 				}
 			});
 			if (checkState()) {
