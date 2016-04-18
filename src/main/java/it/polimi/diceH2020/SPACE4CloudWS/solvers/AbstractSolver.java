@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,7 +103,19 @@ public abstract class AbstractSolver implements Solver {
 
     @Override
     public void initRemoteEnvironment() throws Exception {
-        throw new Exception();
+        List<String> lstProfiles = Arrays.asList(environment.getActiveProfiles());
+        logger.info("------------------------------------------------");
+        logger.info(String.format("Starting %s service initialization phase", this.getClass().getSimpleName()));
+        logger.info("------------------------------------------------");
+        if (lstProfiles.contains("test") && ! connSettings.isForceClean()) {
+            logger.info("Test phase: the remote work directory tree is assumed to be ok.");
+        } else {
+            logger.info("Clearing remote work directory tree");
+            connector.exec("rm -rf " + connSettings.getRemoteWorkDir(), getClass());
+            logger.info("Creating new remote work directory tree");
+            connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(), getClass());
+            logger.info("Done");
+        }
     }
 
     public String getRemoteWorkingDirectory() {
@@ -110,4 +123,5 @@ public abstract class AbstractSolver implements Solver {
     }
 
     public abstract Optional<BigDecimal> evaluate(@NonNull Solution solution);
+
 }

@@ -65,6 +65,7 @@ public class MINLPSolver extends AbstractSolver {
 		logger.info(theString);
 	}
 
+	@Override
 	public void initRemoteEnvironment() throws Exception {
 		List<String> lstProfiles = Arrays.asList(this.environment.getActiveProfiles());
 		String localPath = AMPL_FILES;
