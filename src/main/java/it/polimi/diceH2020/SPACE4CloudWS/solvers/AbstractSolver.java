@@ -1,5 +1,17 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
+import lombok.NonNull;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -8,45 +20,35 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.core.env.Environment;
-
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
-import lombok.NonNull;
-
 /**
  * Created by ciavotta on 12/02/16.
  */
 public abstract class AbstractSolver implements Solver {
     protected final Integer MAX_ITERATIONS = 3;
+
     protected Logger logger = Logger.getLogger(this.getClass().getName());
-    protected SshConnector connector;
     protected ConnectionSettings connSettings;
     @Autowired
     protected FileUtility fileUtility;
     @Autowired
     protected Environment environment; // this is to check which is the active
+    @Autowired
+    protected SshConnectorProxy connector;
 
 
-    static double calculateResponseTime(@NonNull double throughput, int numServers, double thinkTime) {
+    private static double calculateResponseTime(@NonNull double throughput, int numServers, double thinkTime) {
         return (double) numServers / throughput - thinkTime;
     }
 
-    static BigDecimal calculateResponseTime(@NonNull BigDecimal throughput, int numServers, double thinkTime) {
-        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime)).setScale(8, RoundingMode.HALF_EVEN);
+    private static BigDecimal calculateResponseTime(@NonNull BigDecimal throughput, int numServers, double thinkTime) {
+        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime))
+                .setScale(8, RoundingMode.HALF_EVEN);
     }
 
     @PostConstruct
     private void init() {
-        connector = new SshConnector(connSettings);
+        SshConnector sshConnector = new SshConnector(connSettings);
+        connector.setConnector(sshConnector);
     }
 
     @Override
@@ -78,13 +80,11 @@ public abstract class AbstractSolver implements Solver {
     public void setAccuracy(double accuracy) {
         connSettings.setAccuracy(accuracy);
     }
-    
+
     @Override
     public void setMaxDuration(Integer duration){
         connSettings.setMaxDuration(duration);
     }
-    
-    
 
     @Override
     public List<String> pwd() throws Exception {
@@ -92,7 +92,7 @@ public abstract class AbstractSolver implements Solver {
     }
 
     @Override
-    public SshConnector getConnector() {
+    public SshConnectorProxy getConnector() {
         return connector;
     }
 
@@ -108,7 +108,6 @@ public abstract class AbstractSolver implements Solver {
         logger.info("------------------------------------------------");
         if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
             logger.info("Test phase: the remote work directory tree is assumed to be ok.");
-
         } else {
             logger.info("Clearing remote work directory tree");
             connector.exec("rm -rf " + connSettings.getRemoteWorkDir());
@@ -119,11 +118,9 @@ public abstract class AbstractSolver implements Solver {
         }
     }
 
-
     public String getRemoteWorkingDirectory() {
         return connSettings.getRemoteWorkDir();
     }
-
 
     public abstract Optional<BigDecimal> evaluate(@NonNull Solution solution);
 }
