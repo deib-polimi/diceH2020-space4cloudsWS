@@ -143,7 +143,7 @@ public class Optimizer {
 
 	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
 		boolean returnValue = false;
-		if (duration.isPresent() && duration.get().doubleValue() >= deadline) returnValue = true;
+		if (duration.isPresent() && duration.get().doubleValue() > deadline) returnValue = true;
 		//|previousDuration-duration|≤0.1 return true
 		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
 		if (nVM == 1) returnValue = true;
