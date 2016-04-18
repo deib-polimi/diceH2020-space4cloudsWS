@@ -187,6 +187,10 @@
 			<artifactId>jcommander</artifactId>
 			<version>1.47</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>

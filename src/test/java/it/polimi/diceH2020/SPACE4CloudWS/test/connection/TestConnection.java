@@ -29,15 +29,15 @@ public class TestConnection {
 		List<String> res = milpSolver.clearWorkingDir();
 		Assert.assertTrue(res.contains("exit-status: 0"));
 		res.clear();
-		res = milpSolver.getConnector().exec("ls");
+		res = milpSolver.getConnector().exec("ls",milpSolver.getClass().getName());
 		Assert.assertTrue(res.contains("exit-status: 0"));
 		String wd = milpSolver.getRemoteWorkingDirectory();
-		res = milpSolver.getConnector().exec("mkdir " + wd);
+		res = milpSolver.getConnector().exec("mkdir " + wd,milpSolver.getClass().getName());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
-		res = milpSolver.getConnector().exec("cd " + wd);
+		res = milpSolver.getConnector().exec("cd " + wd,milpSolver.getClass().getName());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		System.out.println(milpSolver.pwd());
-		res = milpSolver.getConnector().exec("cd " + wd + " && mkdir problems utils solve");
+		res = milpSolver.getConnector().exec("cd " + wd + " && mkdir problems utils solve",milpSolver.getClass().getName());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		System.out.println(ClassPath.getClassPath());
 	}
@@ -46,9 +46,9 @@ public class TestConnection {
 	public void testSPN() throws Exception{
 		List<String> res = spnSolver.pwd();
 		Assert.assertTrue(res.size() == 2 && res.get(0).contains("/home/user") && res.contains("exit-status: 0"));
-		res = spnSolver.getConnector().exec("rm -rf ./Experiments");
+		res = spnSolver.getConnector().exec("rm -rf ./Experiments",spnSolver.getClass().getName());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
-		res = spnSolver.getConnector().exec("mkdir ./Experiments");
+		res = spnSolver.getConnector().exec("mkdir ./Experiments",spnSolver.getClass().getName());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 	}
 

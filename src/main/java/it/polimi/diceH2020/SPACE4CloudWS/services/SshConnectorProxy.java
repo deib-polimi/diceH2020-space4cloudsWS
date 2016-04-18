@@ -2,6 +2,8 @@ package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+import lombok.Getter;
 import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.springframework.retry.annotation.Backoff;
@@ -9,7 +11,11 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 @Service
 public class SshConnectorProxy {
@@ -19,32 +25,44 @@ public class SshConnectorProxy {
     private final int retry = 3;
     private final long delay = 200L; // [ms]
     private final long maxDelay = 1000L;
-
+    
+    @Setter
+    @Getter
+    private Map<String,SshConnector> connectorsMap;
+    
     @Setter
     private SshConnector connector;
-
+    
+    public SshConnectorProxy() {
+		this.connectorsMap = new HashMap<String,SshConnector>();
+	}
+    
+    public void setConnector(SshConnector connector,String name){
+    	connectorsMap.put(name, connector);
+    }
+    
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, maxDelay = maxDelay))
-    public void sendFile(String localFile, String remoteFile) throws JSchException, IOException {
+    public void sendFile(String localFile, String remoteFile, String className) throws JSchException, IOException {
         logger.debug("attempt to send file");
-        connector.sendFile(localFile, remoteFile);
+        connectorsMap.get(className).sendFile(localFile, remoteFile);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, maxDelay = maxDelay))
-    public List<String> exec(String command) throws JSchException, IOException {
+    public List<String> exec(String command, String className) throws JSchException, IOException {
         logger.debug("attempt to execute command");
-        return connector.exec(command);
+        return connectorsMap.get(className).exec(command);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, maxDelay = maxDelay))
-    public void receiveFile(String localFile, String remoteFile) throws JSchException, IOException {
+    public void receiveFile(String localFile, String remoteFile, String className) throws JSchException, IOException {
         logger.debug("attempt to receive file");
-        connector.receiveFile(localFile, remoteFile);
+        connectorsMap.get(className).receiveFile(localFile, remoteFile);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, maxDelay = maxDelay))
-    public List<String> pwd() throws JSchException, IOException {
+    public List<String> pwd(String className) throws JSchException, IOException {
         logger.debug("attempt to get working directory");
-        return connector.pwd();
+        return connectorsMap.get(className).pwd();
     }
 
 }

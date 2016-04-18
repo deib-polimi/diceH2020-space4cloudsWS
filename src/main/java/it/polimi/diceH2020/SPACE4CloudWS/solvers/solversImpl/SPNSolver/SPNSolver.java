@@ -4,6 +4,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
@@ -17,10 +18,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Class that manages the interactions with GreatSPN solver
@@ -30,9 +34,9 @@ public class SPNSolver extends AbstractSolver {
 
     @Autowired
     public SPNSolver(SPNSettings settings) {
-        this.connSettings = settings;
+    	this.connSettings = settings;
     }
-
+    
     public BigDecimal run(List<File> pFiles, String remoteName) throws Exception {
         if (pFiles.size() != 2) throw new Exception();
 
@@ -46,9 +50,9 @@ public class SPNSolver extends AbstractSolver {
             File defFile = pFiles.getRight();
             String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
             logger.info(remoteName + "-> Starting Stochastic Petri Net simulation on the server");
-            connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net");
+            connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net",this.getClass().getName());
             logger.debug(remoteName + "-> GreatSPN .net file sent");
-            connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def");
+            connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def",this.getClass().getName());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
             Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
             if (! matcher.matches()) {
@@ -57,7 +61,7 @@ public class SPNSolver extends AbstractSolver {
             String prefix = matcher.group(1);
             File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
             fileUtility.writeContentToFile("end\n", statFile);
-            connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat");
+            connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat",this.getClass().getName());
             logger.debug(remoteName + "-> GreatSPN .stat file sent");
             if (fileUtility.delete(statFile))
                 logger.debug(statFile + " deleted");
@@ -65,7 +69,7 @@ public class SPNSolver extends AbstractSolver {
             String command = connSettings.getSolverPath() + " " + remotePath + " -a " + connSettings.getAccuracy()
                     + " -c 6";
             logger.debug(remoteName + "-> Starting GreatSPN model...");
-            List<String> remoteMsg = connector.exec(command);
+            List<String> remoteMsg = connector.exec(command,this.getClass().getName());
             if (remoteMsg.contains("exit-status: 0")) {
                 logger.info(remoteName + "-> The remote optimization process completed correctly");
             } else {
@@ -75,7 +79,7 @@ public class SPNSolver extends AbstractSolver {
             }
 
             File solFile = fileUtility.provideTemporaryFile(prefix, ".sta");
-            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta");
+            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta",this.getClass().getName());
             String solFileInString = FileUtils.readFileToString(solFile);
             if (fileUtility.delete(solFile))
                 logger.debug(solFile + " deleted");
@@ -141,6 +145,27 @@ public class SPNSolver extends AbstractSolver {
         lst.add(defFile);
         return lst;
 
+    }
+    
+    public List<String> pwd() throws Exception {
+        return connector.pwd(this.getClass().getName());
+    }
+
+    public void initRemoteEnvironment() throws Exception {
+        List<String> lstProfiles = Arrays.asList(environment.getActiveProfiles());
+        logger.info("------------------------------------------------");
+        logger.info(String.format("Starting %s service initialization phase", this.getClass().getSimpleName()));
+        logger.info("------------------------------------------------");
+        if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
+            logger.info("Test phase: the remote work directory tree is assumed to be ok.");
+        } else {
+            logger.info("Clearing remote work directory tree");
+            connector.exec("rm -rf " + connSettings.getRemoteWorkDir(),this.getClass().getName());
+            logger.info("Creating new remote work directory tree");
+            connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(),this.getClass().getName());
+
+            logger.info("Done");
+        }
     }
 
 

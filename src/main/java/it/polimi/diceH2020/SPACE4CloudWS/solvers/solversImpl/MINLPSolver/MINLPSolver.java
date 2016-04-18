@@ -7,7 +7,9 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
@@ -15,6 +17,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.math.BigDecimal;
@@ -41,7 +44,7 @@ public class MINLPSolver extends AbstractSolver {
 	public MINLPSolver(MINLPSettings settings) {
 		this.connSettings = settings;
 	}
-
+	
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
 		String centralized = "centralized_obj = ";
@@ -77,11 +80,11 @@ public class MINLPSolver extends AbstractSolver {
 			try {
 				String root = connSettings.getRemoteWorkDir();
 				String cleanRemoteDirectoryTree = "rm -rf " + root;
-				connector.exec(cleanRemoteDirectoryTree);
+				connector.exec(cleanRemoteDirectoryTree,this.getClass().getName());
 
 				logger.info("Creating new remote work directory tree");
 				String makeRemoteDirectoryTree = "mkdir -p " + root + "/{problems,utils,solve,scratch,results}";
-				connector.exec(makeRemoteDirectoryTree);
+				connector.exec(makeRemoteDirectoryTree,this.getClass().getName());
 			} catch (Exception e) {
 				logger.error("error preparing remote work directory", e);
 			}
@@ -119,19 +122,19 @@ public class MINLPSolver extends AbstractSolver {
 		File tempFile = fileUtility.provideTemporaryFile("S4C-temp", null);
 		FileOutputStream out = new FileOutputStream(tempFile);
 		IOUtils.copy(in, out);
-		connector.sendFile(tempFile.getAbsolutePath(), remotePath);
+		connector.sendFile(tempFile.getAbsolutePath(), remotePath,this.getClass().getName());
 		if (fileUtility.delete(tempFile))
 			logger.debug(tempFile + " deleted");
 	}
 
 	public List<String> clearWorkingDir() throws Exception {
 		String command = "rm -rf " + connSettings.getRemoteWorkDir();
-		return connector.exec(command);
+		return connector.exec(command,this.getClass().getName());
 	}
 
 	private void clearResultDir() throws Exception {
 		String command = "rm -rf " + connSettings.getRemoteWorkDir() + REMOTE_RESULTS + "/*";
-		connector.exec(command);
+		connector.exec(command,this.getClass().getName());
 	}
 
 	private BigDecimal run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
@@ -139,7 +142,7 @@ public class MINLPSolver extends AbstractSolver {
 			File dataFile = pFiles.get(0);
 			File solutionFile = pFiles.get(1);
 			String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
-			connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath);
+			connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath,this.getClass().getName());
 			logger.info(remoteName + "-> AMPL .data file sent");
 
 			String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
@@ -155,7 +158,7 @@ public class MINLPSolver extends AbstractSolver {
 			fileUtility.writeContentToFile(runFileContent, runFile);
 
 			fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
-			connector.sendFile(runFile.getAbsolutePath(), fullRemotePath);
+			connector.sendFile(runFile.getAbsolutePath(), fullRemotePath,this.getClass().getName());
 			logger.info(remoteName + "-> AMPL .run file sent");
 			if (fileUtility.delete(runFile)) logger.debug(runFile + " deleted");
 
@@ -165,7 +168,7 @@ public class MINLPSolver extends AbstractSolver {
 			logger.info(remoteName + "-> Processing execution...");
 			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(),
 					REMOTE_SCRATCH, ((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
-			List<String> remoteMsg = connector.exec(command);
+			List<String> remoteMsg = connector.exec(command,this.getClass().getName());
 			if (remoteMsg.contains("exit-status: 0")) {
 				logger.info(remoteName + "-> The remote optimization process completed correctly");
 			} else {
@@ -180,7 +183,7 @@ public class MINLPSolver extends AbstractSolver {
 				return run(pFiles, remoteName, iteration);
 			}
 			fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
-			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath);
+			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath,this.getClass().getName());
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
@@ -336,5 +339,15 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(resultsFile);
 		return lst;
 	}
+	
+    @Override
+    public List<String> pwd() throws Exception {
+        return connector.pwd(this.getClass().getName());
+    }
+
+    @Override
+    public SshConnectorProxy getConnector() {
+        return connector;
+    }
 
 }
