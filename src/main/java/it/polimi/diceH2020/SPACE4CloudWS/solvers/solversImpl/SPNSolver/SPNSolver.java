@@ -4,7 +4,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
@@ -24,8 +23,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
-
 /**
  * Class that manages the interactions with GreatSPN solver
  */
@@ -34,9 +31,9 @@ public class SPNSolver extends AbstractSolver {
 
     @Autowired
     public SPNSolver(SPNSettings settings) {
-    	this.connSettings = settings;
+        this.connSettings = settings;
     }
-    
+
     public BigDecimal run(List<File> pFiles, String remoteName) throws Exception {
         if (pFiles.size() != 2) throw new Exception();
 
@@ -50,9 +47,9 @@ public class SPNSolver extends AbstractSolver {
             File defFile = pFiles.getRight();
             String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
             logger.info(remoteName + "-> Starting Stochastic Petri Net simulation on the server");
-            connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net",this.getClass().getName());
+            connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net", getClass());
             logger.debug(remoteName + "-> GreatSPN .net file sent");
-            connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def",this.getClass().getName());
+            connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
             Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
             if (! matcher.matches()) {
@@ -61,7 +58,7 @@ public class SPNSolver extends AbstractSolver {
             String prefix = matcher.group(1);
             File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
             fileUtility.writeContentToFile("end\n", statFile);
-            connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat",this.getClass().getName());
+            connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat", getClass());
             logger.debug(remoteName + "-> GreatSPN .stat file sent");
             if (fileUtility.delete(statFile))
                 logger.debug(statFile + " deleted");
@@ -69,7 +66,7 @@ public class SPNSolver extends AbstractSolver {
             String command = connSettings.getSolverPath() + " " + remotePath + " -a " + connSettings.getAccuracy()
                     + " -c 6";
             logger.debug(remoteName + "-> Starting GreatSPN model...");
-            List<String> remoteMsg = connector.exec(command,this.getClass().getName());
+            List<String> remoteMsg = connector.exec(command, getClass());
             if (remoteMsg.contains("exit-status: 0")) {
                 logger.info(remoteName + "-> The remote optimization process completed correctly");
             } else {
@@ -79,7 +76,7 @@ public class SPNSolver extends AbstractSolver {
             }
 
             File solFile = fileUtility.provideTemporaryFile(prefix, ".sta");
-            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta",this.getClass().getName());
+            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta", getClass());
             String solFileInString = FileUtils.readFileToString(solFile);
             if (fileUtility.delete(solFile))
                 logger.debug(solFile + " deleted");
@@ -146,9 +143,9 @@ public class SPNSolver extends AbstractSolver {
         return lst;
 
     }
-    
+
     public List<String> pwd() throws Exception {
-        return connector.pwd(this.getClass().getName());
+        return connector.pwd(getClass());
     }
 
     public void initRemoteEnvironment() throws Exception {
@@ -160,13 +157,12 @@ public class SPNSolver extends AbstractSolver {
             logger.info("Test phase: the remote work directory tree is assumed to be ok.");
         } else {
             logger.info("Clearing remote work directory tree");
-            connector.exec("rm -rf " + connSettings.getRemoteWorkDir(),this.getClass().getName());
+            connector.exec("rm -rf " + connSettings.getRemoteWorkDir(), getClass());
             logger.info("Creating new remote work directory tree");
-            connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(),this.getClass().getName());
+            connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(), getClass());
 
             logger.info("Done");
         }
     }
-
 
 }

@@ -1,5 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.connection;
 
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 import org.aspectj.apache.bcel.util.ClassPath;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,9 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 
 import java.util.List;
 
@@ -29,15 +28,15 @@ public class TestConnection {
 		List<String> res = milpSolver.clearWorkingDir();
 		Assert.assertTrue(res.contains("exit-status: 0"));
 		res.clear();
-		res = milpSolver.getConnector().exec("ls",milpSolver.getClass().getName());
+		res = milpSolver.getConnector().exec("ls", milpSolver.getClass());
 		Assert.assertTrue(res.contains("exit-status: 0"));
 		String wd = milpSolver.getRemoteWorkingDirectory();
-		res = milpSolver.getConnector().exec("mkdir " + wd,milpSolver.getClass().getName());
+		res = milpSolver.getConnector().exec("mkdir " + wd, milpSolver.getClass());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
-		res = milpSolver.getConnector().exec("cd " + wd,milpSolver.getClass().getName());
+		res = milpSolver.getConnector().exec("cd " + wd, milpSolver.getClass());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		System.out.println(milpSolver.pwd());
-		res = milpSolver.getConnector().exec("cd " + wd + " && mkdir problems utils solve",milpSolver.getClass().getName());
+		res = milpSolver.getConnector().exec("cd " + wd + " && mkdir problems utils solve", milpSolver.getClass());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 		System.out.println(ClassPath.getClassPath());
 	}
@@ -45,10 +44,10 @@ public class TestConnection {
 	@Test
 	public void testSPN() throws Exception{
 		List<String> res = spnSolver.pwd();
-		Assert.assertTrue(res.size() == 2 && res.get(0).contains("/home/user") && res.contains("exit-status: 0"));
-		res = spnSolver.getConnector().exec("rm -rf ./Experiments",spnSolver.getClass().getName());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
-		res = spnSolver.getConnector().exec("mkdir ./Experiments",spnSolver.getClass().getName());
+		res = spnSolver.getConnector().exec("rm -rf ./Experiments", spnSolver.getClass());
+		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
+		res = spnSolver.getConnector().exec("mkdir ./Experiments", spnSolver.getClass());
 		Assert.assertTrue(res.size() == 2 && res.contains("exit-status: 0"));
 	}
 

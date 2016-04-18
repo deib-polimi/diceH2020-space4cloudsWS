@@ -25,38 +25,38 @@ public class SshConnectorProxy {
 
     @Setter
     @Getter
-    private Map<String, SshConnector> connectorsMap;
+    private Map<Class<?>, SshConnector> connectorsMap;
 
     public SshConnectorProxy() {
         this.connectorsMap = new HashMap<>();
     }
 
-    public void setConnector(SshConnector connector, String name){
-        connectorsMap.put(name, connector);
+    public void registerConnector(SshConnector connector, Class<?> aClass){
+        connectorsMap.put(aClass, connector);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
-    public void sendFile(String localFile, String remoteFile, String className) throws JSchException, IOException {
+    public void sendFile(String localFile, String remoteFile, Class<?> aClass) throws JSchException, IOException {
         logger.debug("attempt to send file");
-        connectorsMap.get(className).sendFile(localFile, remoteFile);
+        connectorsMap.get(aClass).sendFile(localFile, remoteFile);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
-    public List<String> exec(String command, String className) throws JSchException, IOException {
+    public List<String> exec(String command, Class<?> aClass) throws JSchException, IOException {
         logger.debug("attempt to execute command");
-        return connectorsMap.get(className).exec(command);
+        return connectorsMap.get(aClass).exec(command);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
-    public void receiveFile(String localFile, String remoteFile, String className) throws JSchException, IOException {
+    public void receiveFile(String localFile, String remoteFile, Class<?> aClass) throws JSchException, IOException {
         logger.debug("attempt to receive file");
-        connectorsMap.get(className).receiveFile(localFile, remoteFile);
+        connectorsMap.get(aClass).receiveFile(localFile, remoteFile);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
-    public List<String> pwd(String className) throws JSchException, IOException {
+    public List<String> pwd(Class<?> aClass) throws JSchException, IOException {
         logger.debug("attempt to get working directory");
-        return connectorsMap.get(className).pwd();
+        return connectorsMap.get(aClass).pwd();
     }
 
 }

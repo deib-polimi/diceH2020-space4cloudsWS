@@ -11,15 +11,13 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Created by ciavotta on 12/02/16.
@@ -32,19 +30,18 @@ public abstract class AbstractSolver implements Solver {
     protected FileUtility fileUtility;
     @Autowired
     protected Environment environment; // this is to check which is the active
-    
+
     @Autowired
     protected SshConnectorProxy connector;
-    
+
     protected ConnectionSettings connSettings;
-    
+
     @PostConstruct
     private void init() {
         SshConnector sshConnector = new SshConnector(connSettings);
-	    connector.setConnector(sshConnector, this.getClass().getName());
-        //connector.setConnector(sshConnector);
+        connector.registerConnector(sshConnector, getClass());
     }
-    
+
     private static double calculateResponseTime(@NonNull double throughput, int numServers, double thinkTime) {
         return (double) numServers / throughput - thinkTime;
     }
@@ -86,12 +83,12 @@ public abstract class AbstractSolver implements Solver {
 
     @Override
     public void setMaxDuration(Integer duration){
-    	connSettings.setMaxDuration(duration);
+        connSettings.setMaxDuration(duration);
     }
 
     @Override
     public List<String> pwd() throws Exception {
-    	throw new Exception();
+        throw new Exception();
     }
 
     @Override
@@ -105,7 +102,7 @@ public abstract class AbstractSolver implements Solver {
 
     @Override
     public void initRemoteEnvironment() throws Exception {
-    	throw new Exception();
+        throw new Exception();
     }
 
     public String getRemoteWorkingDirectory() {

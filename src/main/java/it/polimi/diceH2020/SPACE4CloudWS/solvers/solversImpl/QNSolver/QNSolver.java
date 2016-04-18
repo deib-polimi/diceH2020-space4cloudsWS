@@ -2,7 +2,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.generated.Solutions;
 import lombok.NonNull;
@@ -10,7 +9,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
@@ -34,7 +32,7 @@ public class QNSolver extends AbstractSolver {
 	public QNSolver(QNSettings settings) {
 		this.connSettings = settings;
 	}
-	
+
 	private BigDecimal run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
 		if (iteration < MAX_ITERATIONS) {
 			File jmtFile = pFiles.get(2); // it is the third in the list
@@ -52,7 +50,7 @@ public class QNSolver extends AbstractSolver {
 			else command = String.format("java -cp %s jmt.commandline.Jmt sim %s -maxtime %d", connSettings.getSolverPath(), remotePath, ((QNSettings) connSettings).getMaxDuration());
 
 			logger.debug(remoteName + "-> Starting JMT model...");
-			List<String> remoteMsg = connector.exec(command,this.getClass().getName());
+			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) logger.info(remoteName + "-> The remote optimization process completed correctly");
 			else {
 				logger.debug(remoteName + "-> Remote exit status: " + remoteMsg);
@@ -61,7 +59,7 @@ public class QNSolver extends AbstractSolver {
 			}
 
 			File solFile = fileUtility.provideTemporaryFile(jmtFileName + "-result", ".jsim");
-			connector.receiveFile(solFile.getAbsolutePath(), remotePath + "-result" + ".jsim",this.getClass().getName());
+			connector.receiveFile(solFile.getAbsolutePath(), remotePath + "-result" + ".jsim", getClass());
 			JAXBContext jaxbContext = JAXBContext.newInstance(Solutions.class);
 
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
@@ -118,7 +116,8 @@ public class QNSolver extends AbstractSolver {
 	private void sendFiles(List<File> lstFiles) {
 		lstFiles.stream().forEach((File file) -> {
 			try {
-				connector.sendFile(file.getAbsolutePath(), connSettings.getRemoteWorkDir() + "/" + file.getName(),this.getClass().getName());
+				connector.sendFile(file.getAbsolutePath(), connSettings.getRemoteWorkDir() + "/" + file.getName(),
+						getClass());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -164,26 +163,26 @@ public class QNSolver extends AbstractSolver {
 		lst.add(jsimgTempFile);
 		return lst;
 	}
-	
-    public List<String> pwd() throws Exception {
-        return connector.pwd(this.getClass().getName());
-    }
 
-    public void initRemoteEnvironment() throws Exception {
-        List<String> lstProfiles = Arrays.asList(environment.getActiveProfiles());
-        logger.info("------------------------------------------------");
-        logger.info(String.format("Starting %s service initialization phase", this.getClass().getSimpleName()));
-        logger.info("------------------------------------------------");
-        if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
-            logger.info("Test phase: the remote work directory tree is assumed to be ok.");
-        } else {
-            logger.info("Clearing remote work directory tree");
-            connector.exec("rm -rf " + connSettings.getRemoteWorkDir(),this.getClass().getName());
-            logger.info("Creating new remote work directory tree");
-            connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(),this.getClass().getName());
+	public List<String> pwd() throws Exception {
+		return connector.pwd(getClass());
+	}
 
-            logger.info("Done");
-        }
-    }
+	public void initRemoteEnvironment() throws Exception {
+		List<String> lstProfiles = Arrays.asList(environment.getActiveProfiles());
+		logger.info("------------------------------------------------");
+		logger.info(String.format("Starting %s service initialization phase", this.getClass().getSimpleName()));
+		logger.info("------------------------------------------------");
+		if (lstProfiles.contains("test") && !connSettings.isForceClean()) {
+			logger.info("Test phase: the remote work directory tree is assumed to be ok.");
+		} else {
+			logger.info("Clearing remote work directory tree");
+			connector.exec("rm -rf " + connSettings.getRemoteWorkDir(), getClass());
+			logger.info("Creating new remote work directory tree");
+			connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(), getClass());
+
+			logger.info("Done");
+		}
+	}
 
 }
