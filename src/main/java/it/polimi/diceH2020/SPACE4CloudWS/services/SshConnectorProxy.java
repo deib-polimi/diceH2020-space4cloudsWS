@@ -2,8 +2,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -23,8 +21,6 @@ public class SshConnectorProxy {
     private final long delay = 500L; // [ms]
     private final double multiplier = 2.;
 
-    @Setter
-    @Getter
     private Map<Class<?>, SshConnector> connectorsMap;
 
     public SshConnectorProxy() {
@@ -37,19 +33,19 @@ public class SshConnectorProxy {
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
     public void sendFile(String localFile, String remoteFile, Class<?> aClass) throws JSchException, IOException {
-        logger.debug("attempt to send file");
+        logger.debug(String.format("attempt to send file: %s -> %s", localFile, remoteFile));
         connectorsMap.get(aClass).sendFile(localFile, remoteFile);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
     public List<String> exec(String command, Class<?> aClass) throws JSchException, IOException {
-        logger.debug("attempt to execute command");
+        logger.debug(String.format("attempt to execute command: %s", command));
         return connectorsMap.get(aClass).exec(command);
     }
 
     @Retryable(maxAttempts = retry, backoff = @Backoff(delay = delay, multiplier = multiplier, random = true))
     public void receiveFile(String localFile, String remoteFile, Class<?> aClass) throws JSchException, IOException {
-        logger.debug("attempt to receive file");
+        logger.debug(String.format("attempt to receive file: %s <- %s", localFile, remoteFile));
         connectorsMap.get(aClass).receiveFile(localFile, remoteFile);
     }
 
