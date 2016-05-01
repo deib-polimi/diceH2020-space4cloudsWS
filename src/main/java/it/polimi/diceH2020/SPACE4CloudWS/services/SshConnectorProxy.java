@@ -15,10 +15,10 @@ import java.util.Map;
 @Service
 public class SshConnectorProxy {
 
-    private final Logger logger = Logger.getLogger(this.getClass());
+    private final Logger logger = Logger.getLogger(getClass());
 
-    private final int retry = 3;
-    private final long delay = 500L; // [ms]
+    private final int retry = 5;
+    private final long delay = 2000L; // [ms]
     private final double multiplier = 2.;
 
     private Map<Class<?>, SshConnector> connectorsMap;
