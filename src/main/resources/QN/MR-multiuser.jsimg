@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
-<archive xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="MR-multiuser.jsimg" timestamp="Thu Feb 11 05:36:45 PST 2016" xsi:noNamespaceSchemaLocation="Archive.xsd">
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<archive xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="MR-multiuser.jsimg" timestamp="Tue May 03 11:11:32 CEST 2016" xsi:noNamespaceSchemaLocation="Archive.xsd">
     <sim disableStatisticStop="false" logDecimalSeparator="." logDelimiter=";" logPath="/home/user/JMT/" logReplaceMode="0" maxSamples="1000000" name="MR-multiuser.jsimg" polling="1.0" xsi:noNamespaceSchemaLocation="SIMmodeldefinition.xsd">
         <userClass customers="@@CONCURRENCY@@" name="Class1" priority="0" referenceSource="Delay 1" type="closed"/>
         <node name="Delay 1">
@@ -110,10 +110,28 @@
                 <parameter classPath="java.lang.Integer" name="block">
                     <value>-1</value>
                 </parameter>
+                <parameter classPath="java.lang.Boolean" name="isSimplifiedFork">
+                    <value>true</value>
+                </parameter>
+                <parameter array="true" classPath="jmt.engine.NetStrategies.ForkStrategy" name="ForkStrategy">
+                    <refClass>Class1</refClass>
+                    <subParameter classPath="jmt.engine.NetStrategies.ForkStrategies.ProbabilitiesFork" name="Branch Probabilities">
+                        <subParameter array="true" classPath="jmt.engine.NetStrategies.ForkStrategies.OutPath" name="EmpiricalEntryArray"/>
+                    </subParameter>
+                </parameter>
             </section>
         </node>
         <node name="Join 1">
-            <section className="Join"/>
+            <section className="Join">
+                <parameter array="true" classPath="jmt.engine.NetStrategies.JoinStrategy" name="JoinStrategy">
+                    <refClass>Class1</refClass>
+                    <subParameter classPath="jmt.engine.NetStrategies.JoinStrategies.NormalJoin" name="Standard Join">
+                        <subParameter classPath="java.lang.Integer" name="numRequired">
+                            <value>-1</value>
+                        </subParameter>
+                    </subParameter>
+                </parameter>
+            </section>
             <section className="ServiceTunnel"/>
             <section className="Router">
                 <parameter array="true" classPath="jmt.engine.NetStrategies.RoutingStrategy" name="RoutingStrategy">
@@ -193,10 +211,28 @@
                 <parameter classPath="java.lang.Integer" name="block">
                     <value>-1</value>
                 </parameter>
+                <parameter classPath="java.lang.Boolean" name="isSimplifiedFork">
+                    <value>true</value>
+                </parameter>
+                <parameter array="true" classPath="jmt.engine.NetStrategies.ForkStrategy" name="ForkStrategy">
+                    <refClass>Class1</refClass>
+                    <subParameter classPath="jmt.engine.NetStrategies.ForkStrategies.ProbabilitiesFork" name="Branch Probabilities">
+                        <subParameter array="true" classPath="jmt.engine.NetStrategies.ForkStrategies.OutPath" name="EmpiricalEntryArray"/>
+                    </subParameter>
+                </parameter>
             </section>
         </node>
         <node name="Join 1_1">
-            <section className="Join"/>
+            <section className="Join">
+                <parameter array="true" classPath="jmt.engine.NetStrategies.JoinStrategy" name="JoinStrategy">
+                    <refClass>Class1</refClass>
+                    <subParameter classPath="jmt.engine.NetStrategies.JoinStrategies.NormalJoin" name="Standard Join">
+                        <subParameter classPath="java.lang.Integer" name="numRequired">
+                            <value>-1</value>
+                        </subParameter>
+                    </subParameter>
+                </parameter>
+            </section>
             <section className="ServiceTunnel"/>
             <section className="Router">
                 <parameter array="true" classPath="jmt.engine.NetStrategies.RoutingStrategy" name="RoutingStrategy">
@@ -217,7 +253,10 @@
             <regionNode nodeName="Queue 1"/>
             <regionNode nodeName="Queue 1_1"/>
             <globalConstraint maxJobs="@@NCORES@@"/>
+            <globalMemoryConstraint maxMemory="-1"/>
             <classConstraint jobClass="Class1" maxJobsPerClass="@@NCORES@@"/>
+            <classWeight jobClass="Class1" weight="1"/>
+            <classMemorySize jobClass="Class1" size="1"/>
             <dropRules dropThisClass="false" jobClass="Class1"/>
         </blockingRegion>
         <preload>
