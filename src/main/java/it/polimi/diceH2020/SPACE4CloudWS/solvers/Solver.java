@@ -2,7 +2,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
-import lombok.NonNull;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,6 +22,6 @@ public interface Solver {
 
     SshConnectorProxy getConnector();
 
-    Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob);
+    Optional<BigDecimal> evaluate(SolutionPerJob solPerJob);
 
 }

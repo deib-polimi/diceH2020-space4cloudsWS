@@ -43,7 +43,7 @@ public abstract class AbstractSolver implements Solver {
         connector.registerConnector(sshConnector, getClass());
     }
 
-    private static double calculateResponseTime(@NonNull double throughput, int numServers, double thinkTime) {
+    private static double calculateResponseTime(double throughput, int numServers, double thinkTime) {
         return (double) numServers / throughput - thinkTime;
     }
 
@@ -122,6 +122,6 @@ public abstract class AbstractSolver implements Solver {
         return connSettings.getRemoteWorkDir();
     }
 
-    public abstract Optional<BigDecimal> evaluate(@NonNull Solution solution);
+    public abstract Optional<BigDecimal> evaluate(Solution solution);
 
 }
