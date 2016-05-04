@@ -289,13 +289,11 @@ public class MINLPSolver extends AbstractSolver {
 
 			for (SolutionPerJob solutionPerJob : solutions) {
 				bufferStr = line.split("\\s+");
-				String x = bufferStr[2].replaceAll("\\s+", "");
-				int numContainers = Math.round(Float.parseFloat(x));
-				int numCores = dataService.getNumCores(solutionPerJob.getTypeVMselected());
-				int numVM = -Math.floorDiv(-numContainers, numCores);
+				double gamma = Double.parseDouble(bufferStr[2]);
+				int numVM = (int) Math.ceil(gamma);
 				solutionPerJob.setNumberVM(numVM);
-				x = bufferStr[5].replaceAll("\\s+", "");
-				double users = 1 / Double.parseDouble(x);
+				double psi = Double.parseDouble(bufferStr[5]);
+				double users = 1 / psi;
 				int numUsers = (int) users;
 				solutionPerJob.setNumberUsers(numUsers);
 				line = reader.readLine();
