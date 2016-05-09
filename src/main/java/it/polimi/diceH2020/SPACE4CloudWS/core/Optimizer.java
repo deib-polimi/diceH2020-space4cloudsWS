@@ -36,7 +36,7 @@ public class Optimizer {
 	private DataService dataService;
 
 	@Autowired
-	SolverProxy solverCache;
+	private SolverProxy solverCache;
 
 	@Autowired
 	private S4CSettings settings;
@@ -156,7 +156,9 @@ public class Optimizer {
 	}
 
 	private Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
-		return solverCache.evaluate(solPerJob);
+		Optional<BigDecimal> result = solverCache.evaluate(solPerJob);
+		if (! result.isPresent()) solverCache.invalidate(solPerJob);
+		return result;
 	}
 
 	private Optional<Double> executeMock(SolutionPerJob solPerJob) {
