@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <archive xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="MR-multiUser-classSwitch.jsimg" timestamp="Tue May 03 05:17:11 PDT 2016" xsi:noNamespaceSchemaLocation="Archive.xsd">
-    <sim disableStatisticStop="false" logDecimalSeparator="." logDelimiter=";" logPath="/home/user/JMT/" logReplaceMode="0" maxSamples="10000000" name="MR-multiUser-classSwitch.jsimg" polling="1.0" seed="23000" xsi:noNamespaceSchemaLocation="SIMmodeldefinition.xsd">
+    <sim disableStatisticStop="false" logDecimalSeparator="." logDelimiter=";" logPath="/home/user/JMT/" logReplaceMode="0" maxSamples="10000000" name="MR-multiUser-classSwitch.jsimg" polling="1.0" xsi:noNamespaceSchemaLocation="SIMmodeldefinition.xsd">
         <userClass customers="@@CONCURRENCY@@" name="ClassA" priority="0" referenceSource="Delay 1" type="closed"/>
         <userClass customers="0" name="ClassB" priority="1" referenceSource="Delay 1" type="closed"/>
         <node name="Fork 1">

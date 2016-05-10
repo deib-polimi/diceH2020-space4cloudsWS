@@ -3,14 +3,12 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.generated.Solutions;
 import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,7 +30,7 @@ public class QNSolver extends AbstractSolver {
 		this.connSettings = settings;
 	}
 
-	private BigDecimal run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
+	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
 		if (iteration < MAX_ITERATIONS) {
 			File jmtFile = pFiles.get(2); // it is the third in the list
 
@@ -44,9 +42,10 @@ public class QNSolver extends AbstractSolver {
 			sendFiles(pFiles);
 			logger.debug(remoteName + "-> Working files sent");
 
-			String command;
-			if (((QNSettings) connSettings).getMaxDuration() == Integer.MIN_VALUE) command = String.format("java -cp %s jmt.commandline.Jmt sim %s ", connSettings.getSolverPath(), remotePath);
-			else command = String.format("java -cp %s jmt.commandline.Jmt sim %s -maxtime %d", connSettings.getSolverPath(), remotePath, ((QNSettings) connSettings).getMaxDuration());
+			String command = ((QNSettings) connSettings).getMaxDuration() == Integer.MIN_VALUE
+					? String.format("java -cp %s jmt.commandline.Jmt sim %s ", connSettings.getSolverPath(), remotePath)
+					: String.format("java -cp %s jmt.commandline.Jmt sim %s -maxtime %d",
+					connSettings.getSolverPath(), remotePath, ((QNSettings) connSettings).getMaxDuration());
 
 			logger.debug(remoteName + "-> Starting JMT model...");
 			List<String> remoteMsg = connector.exec(command, getClass());
@@ -59,15 +58,13 @@ public class QNSolver extends AbstractSolver {
 
 			File solFile = fileUtility.provideTemporaryFile(jmtFileName + "-result", ".jsim");
 			connector.receiveFile(solFile.getAbsolutePath(), remotePath + "-result" + ".jsim", getClass());
-			JAXBContext jaxbContext = JAXBContext.newInstance(Solutions.class);
-
-			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-			Solutions resultObject = (Solutions) jaxbUnmarshaller.unmarshal(solFile);
+			SolutionsWrapper resultObject = SolutionsWrapper.unMarshal(solFile);
 			if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
 
-			Double throughput = resultObject.getMeasure().get(0).getMeanValue();
+			Double throughput = resultObject.getMeanValue();
+			boolean failure = resultObject.isFailed();
 
-			return BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN);
+			return Pair.of(BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN), failure);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");
 			throw new Exception("Error in the QN server");
@@ -75,7 +72,7 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected BigDecimal run(List<File> pFiles, String s) throws Exception {
+	protected Pair<BigDecimal, Boolean> run(List<File> pFiles, String s) throws Exception {
 		return run(pFiles, s, 0);
 	}
 

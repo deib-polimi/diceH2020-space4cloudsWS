@@ -13,6 +13,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +56,6 @@ public class MINLPSolver extends AbstractSolver {
 			logger.info(objFunctionValue);
 		}
 		return objFunctionValue;
-
 	}
 
 	public void test() throws IOException {
@@ -136,7 +136,7 @@ public class MINLPSolver extends AbstractSolver {
 		connector.exec(command, getClass());
 	}
 
-	private BigDecimal run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
+	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
 		if (iteration < MAX_ITERATIONS) {
 			File dataFile = pFiles.get(0);
 			File solutionFile = pFiles.get(1);
@@ -186,7 +186,8 @@ public class MINLPSolver extends AbstractSolver {
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
-			return BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN);
+			// TODO: this always returns false, should check if every error just throws
+			return Pair.of(BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN), false);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");
 			throw new Exception("Error in the initial solution creation process");
@@ -195,7 +196,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected BigDecimal run(@NotNull List<File> pFiles, String s) throws Exception {
+	protected Pair<BigDecimal, Boolean> run(@NotNull List<File> pFiles, String s) throws Exception {
 		return run(pFiles, s, 0);
 	}
 
@@ -205,8 +206,10 @@ public class MINLPSolver extends AbstractSolver {
 		JobClass jobClass = solPerJob.getJob();
 		TypeVM tVM = solPerJob.getTypeVMselected();
 		AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass, tVM, prof);
-		builder.setArrayParameter("w", Ints.asList(dataService.getNumCores(tVM))).setArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
-				.setArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM))).setArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
+		builder.setArrayParameter("w", Ints.asList(dataService.getNumCores(tVM)))
+				.setArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
+				.setArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM)))
+				.setArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
 
 		String prefix = String.format("AMPL-%s-class%d-vm%s-", solPerJob.getParentID(), jobClass.getId(), tVM.getId());
 		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
@@ -227,11 +230,11 @@ public class MINLPSolver extends AbstractSolver {
 		List<File> pFiles;
 		try {
 			pFiles = createWorkingFiles(solPerJob);
-			BigDecimal duration = run(pFiles, "class" + jobID);
+			Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
 			File resultsFile = pFiles.get(1);
 			updateResults(Collections.singletonList(solPerJob), resultsFile);
 			delete(pFiles);
-			return Optional.of(duration);
+			return Optional.of(result.getLeft());
 		} catch (Exception e) {
 			logger.debug("no result due to an exception", e);
 			return Optional.empty();
@@ -243,11 +246,11 @@ public class MINLPSolver extends AbstractSolver {
 		List<File> pFiles;
 		try {
 			pFiles = createWorkingFiles(solution);
-			BigDecimal duration = run(pFiles, "full solution");
+			Pair<BigDecimal, Boolean> result = run(pFiles, "full solution");
 			File resultsFile = pFiles.get(1);
 			updateResults(solution.getLstSolutions(), resultsFile);
 			delete(pFiles);
-			return Optional.of(duration);
+			return Optional.of(result.getLeft());
 		} catch (Exception e) {
 			logger.debug("no result due to an exception", e);
 			return Optional.empty();

@@ -7,6 +7,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import lombok.NonNull;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -64,9 +65,10 @@ public abstract class AbstractSolver implements Solver {
         List<File> pFiles;
         try {
             pFiles = createWorkingFiles(solPerJob);
-            BigDecimal throughput = run(pFiles, "class" + jobID);
+            Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
             delete(pFiles);
-            BigDecimal duration = calculateResponseTime(throughput, nUsers, think);
+            BigDecimal duration = calculateResponseTime(result.getLeft(), nUsers, think);
+            solPerJob.setError(result.getRight());
             return Optional.of(duration);
         } catch (Exception e) {
             return Optional.empty();
@@ -97,7 +99,7 @@ public abstract class AbstractSolver implements Solver {
         return connector;
     }
 
-    protected abstract BigDecimal run(List<File> pFiles, String s) throws Exception;
+    protected abstract Pair<BigDecimal, Boolean> run(List<File> pFiles, String s) throws Exception;
 
     protected abstract List<File> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
 

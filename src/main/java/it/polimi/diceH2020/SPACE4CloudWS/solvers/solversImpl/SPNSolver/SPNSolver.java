@@ -33,14 +33,13 @@ public class SPNSolver extends AbstractSolver {
         this.connSettings = settings;
     }
 
-    public BigDecimal run(List<File> pFiles, String remoteName) throws Exception {
-        if (pFiles.size() != 2) throw new Exception();
-
+    public Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName) throws Exception {
+        if (pFiles.size() != 2) throw new IllegalArgumentException("wrong number of input files");
         Pair<File, File> inputFiles = new ImmutablePair<>(pFiles.get(0), pFiles.get(1));
         return run(inputFiles, remoteName, 0);
     }
 
-    private BigDecimal run(Pair<File, File> pFiles, String remoteName, Integer iter) throws Exception {
+    private Pair<BigDecimal, Boolean> run(Pair<File, File> pFiles, String remoteName, Integer iter) throws Exception {
         if (iter < MAX_ITERATIONS) {
             File netFile = pFiles.getLeft();
             File defFile = pFiles.getRight();
@@ -86,9 +85,9 @@ public class SPNSolver extends AbstractSolver {
             double throughput = Double
                     .parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
             logger.debug(remoteName + "-> GreatSPN model run.");
-            BigDecimal result = BigDecimal.valueOf(throughput);
-            result.setScale(8, RoundingMode.HALF_EVEN);
-            return result;
+            BigDecimal result = BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN);
+            // TODO: this always returns false, should check if every error just throws
+            return Pair.of(result, false);
         } else {
             logger.debug(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
@@ -140,7 +139,6 @@ public class SPNSolver extends AbstractSolver {
         lst.add(netFile);
         lst.add(defFile);
         return lst;
-
     }
 
     public List<String> pwd() throws Exception {
