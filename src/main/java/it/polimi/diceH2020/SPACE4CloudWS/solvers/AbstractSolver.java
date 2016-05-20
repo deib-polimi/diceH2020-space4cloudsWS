@@ -71,6 +71,7 @@ public abstract class AbstractSolver implements Solver {
             solPerJob.setError(result.getRight());
             return Optional.of(duration);
         } catch (Exception e) {
+            solPerJob.setError(Boolean.TRUE);
             return Optional.empty();
         }
     }

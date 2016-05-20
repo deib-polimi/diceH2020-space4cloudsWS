@@ -176,7 +176,10 @@ public class Optimizer {
 		sol.getLstSolutions().forEach(s -> {
 			Optional<BigDecimal> duration = calculateDuration(s);
 			if (duration.isPresent()) s.setDuration(duration.get().doubleValue());
-			else s.setDuration(Double.MAX_VALUE);
+			else {
+				s.setDuration(Double.MAX_VALUE);
+				s.setError(Boolean.TRUE);
+			}
 		});
 		sol.setEvaluated(false);
 		evaluator.evaluate(sol);
