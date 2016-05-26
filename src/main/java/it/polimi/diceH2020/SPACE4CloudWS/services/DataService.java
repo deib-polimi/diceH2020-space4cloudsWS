@@ -7,6 +7,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
@@ -34,6 +35,8 @@ public class DataService {
 	private int jobNumber;
 
 	private Solution currentSolution;
+	
+	private CloudType cloudType;
 
 	private Map<EntityKey, EntityTypeVM> mapTypeVM;
 	private String NameProvider;

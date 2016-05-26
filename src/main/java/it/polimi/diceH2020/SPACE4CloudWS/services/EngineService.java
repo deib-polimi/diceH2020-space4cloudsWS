@@ -91,6 +91,7 @@ public class EngineService {
 
 	public void changeDefaultSettings(Settings settings) {
 		optimizer.changeDefaultSettings(settings);
+		dataService.setCloudType(settings.getCloud());
 	}
 
 	/**
