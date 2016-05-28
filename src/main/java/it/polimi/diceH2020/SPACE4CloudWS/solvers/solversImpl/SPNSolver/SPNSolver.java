@@ -5,11 +5,11 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 @Component
 public class SPNSolver extends AbstractSolver {
 
-    @Autowired
-    public SPNSolver(SPNSettings settings) {
-        this.connSettings = settings;
+    @Override
+    protected Class<? extends ConnectionSettings> getSettingsClass() {
+        return SPNSettings.class;
     }
 
     public Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName) throws Exception {

@@ -25,9 +25,11 @@ import java.util.Optional;
  * Created by ciavotta on 12/02/16.
  */
 public abstract class AbstractSolver implements Solver {
+
     protected final Integer MAX_ITERATIONS = 3;
 
-    protected Logger logger = Logger.getLogger(this.getClass().getName());
+    protected Logger logger = Logger.getLogger(getClass());
+
     @Autowired
     protected FileUtility fileUtility;
     @Autowired
@@ -36,12 +38,21 @@ public abstract class AbstractSolver implements Solver {
     @Autowired
     protected SshConnectorProxy connector;
 
+    @Autowired
+    protected SettingsDealer settingsDealer;
+
     protected ConnectionSettings connSettings;
 
+    protected abstract Class<? extends ConnectionSettings> getSettingsClass();
+
     @PostConstruct
-    private void init() {
+    @Override
+    public void restoreDefaults() {
+        connSettings = settingsDealer.getConnectionDefaults(getSettingsClass());
         SshConnector sshConnector = new SshConnector(connSettings);
         connector.registerConnector(sshConnector, getClass());
+        logger.debug(String.format("<%s> Restored default solver settings",
+                getClass().getCanonicalName()));
     }
 
     private static double calculateResponseTime(double throughput, int numServers, double thinkTime) {

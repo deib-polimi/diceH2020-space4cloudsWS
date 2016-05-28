@@ -9,7 +9,7 @@ public interface ConnectionSettings {
 
     String getUsername();
 
-    String getPubKeyFile();
+    String getPrivateKeyFile();
 
     String getKnownHosts();
 
@@ -19,9 +19,11 @@ public interface ConnectionSettings {
 
     double getAccuracy();
 
-    void setAccuracy(double accuracy);
-    
-    void setMaxDuration(Integer duration);
-
     String getSolverPath();
+
+    Integer getMaxDuration();
+
+    void setAccuracy(double accuracy);
+
+    void setMaxDuration(Integer duration);
 }

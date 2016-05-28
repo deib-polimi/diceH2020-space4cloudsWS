@@ -10,6 +10,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -39,9 +40,9 @@ public class MINLPSolver extends AbstractSolver {
 	@Autowired
 	private DataService dataService;
 
-	@Autowired
-	public MINLPSolver(MINLPSettings settings) {
-		this.connSettings = settings;
+	@Override
+	protected Class<? extends ConnectionSettings> getSettingsClass() {
+		return MINLPSettings.class;
 	}
 
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {

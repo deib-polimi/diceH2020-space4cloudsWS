@@ -20,7 +20,8 @@ import java.util.Optional;
  */
 @Service
 public class SolverProxy {
-	private static Logger logger = Logger.getLogger(SolverProxy.class.getName());
+	private final Logger logger = Logger.getLogger(getClass());
+
 	@Autowired
 	private SolverFactory solverFactory;
 
@@ -33,10 +34,19 @@ public class SolverProxy {
 
 	public void changeSettings(Settings settings){
 		solverFactory.setType(settings.getSolver());
-		solver = solverFactory.create();
+		refreshSolver();
 		solver.setAccuracy(settings.getAccuracy());
 		solver.setMaxDuration(settings.getSimDuration());
+	}
 
+	public void restoreDefaults() {
+		solverFactory.restoreDefaults();
+		refreshSolver();
+	}
+
+	private void refreshSolver() {
+		solver = solverFactory.create();
+		solver.restoreDefaults();
 	}
 
 	@Cacheable(value="cachedEval")

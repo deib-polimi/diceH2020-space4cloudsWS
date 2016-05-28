@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 @Component
 public class Optimizer {
 
-	private static Logger logger = Logger.getLogger(Optimizer.class.getName());
+	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
 	private DataService dataService;
@@ -47,8 +47,12 @@ public class Optimizer {
 	@Autowired
 	private IEvaluator evaluator;
 
+	public void restoreDefaults() {
+		solverCache.restoreDefaults();
+	}
+
 	// read an input file and type value of accuracy and cycles
-	public void changeDefaultSettings(Settings settings) {
+	public void changeSettings(Settings settings) {
 		solverCache.changeSettings(settings);
 	}
 

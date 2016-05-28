@@ -24,4 +24,6 @@ public interface Solver {
 
     Optional<BigDecimal> evaluate(SolutionPerJob solPerJob);
 
+    void restoreDefaults();
+
 }

@@ -14,7 +14,7 @@ class ConnectionCreator {
         JSch jsch = new JSch();
         jsch.setKnownHosts(settings.getKnownHosts());
 
-        String key = settings.getPubKeyFile();
+        String key = settings.getPrivateKeyFile();
         if (key != null) {
             jsch.addIdentity(key, settings.getPassword());
         }

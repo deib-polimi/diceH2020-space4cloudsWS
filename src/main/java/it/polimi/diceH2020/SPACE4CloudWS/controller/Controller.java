@@ -1,56 +1,55 @@
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.statemachine.StateMachine;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.statemachine.StateMachine;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class Controller {
+class Controller {
 
 	@Autowired
-	EngineService engineService;
+	private EngineService engineService;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	private static Logger logger = Logger.getLogger(Controller.class.getName());
-	
-	
+	private final Logger logger = Logger.getLogger(getClass());
+
 	@RequestMapping(method = RequestMethod.POST, value = "/event")
 	public @ResponseBody String changeState(@RequestBody Events event) throws Exception {
-		
-		if (event.equals(Events.RESET)) {
-			//runningInit.cancel(true);
-			stateHandler.sendEvent(event);
-			logger.info(getWebServiceState());
-			return getWebServiceState();
+		stateHandler.sendEvent(event);
+		switch (stateHandler.getState().getId()) {
+			case RUNNING_INIT:
+				engineService.runningInitSolution();
+				break;
+			case EVALUATING_INIT:
+				engineService.evaluatingInitSolution();
+				break;
+			case RUNNING_LS:
+				engineService.localSearch();
+				break;
+			case IDLE:
+				engineService.restoreDefaults();
+				break;
+			default:
 		}
-		stateHandler.sendEvent(event);		
-		States currentState = stateHandler.getState().getId();
-		if (currentState.equals(States.RUNNING_INIT))  engineService.runningInitSolution();
-		if(currentState.equals(States.EVALUATING_INIT)) engineService.evaluatingInitSolution();
-		if (currentState.equals(States.RUNNING_LS)) engineService.localSearch();
 
-		return getWebServiceState();
+		String WSState = getWebServiceState();
+		logger.info(WSState);
+		return WSState;
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "/settings")
 	public @ResponseBody String changeState(@RequestBody Settings settings) {
-		if (getWebServiceState().equals("IDLE")) engineService.changeDefaultSettings(settings);
+		if (getWebServiceState().equals("IDLE")) engineService.changeSettings(settings);
 		String msg = "settings changed";
 		logger.info(msg);
 		return msg;

@@ -3,10 +3,10 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -25,9 +25,9 @@ import java.util.Optional;
 @Component
 public class QNSolver extends AbstractSolver {
 
-	@Autowired
-	public QNSolver(QNSettings settings) {
-		this.connSettings = settings;
+	@Override
+	protected Class<? extends ConnectionSettings> getSettingsClass() {
+		return QNSettings.class;
 	}
 
 	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {

@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
 @WithStateMachine
 public class EngineService {
 
-	private static Logger logger = Logger.getLogger(EngineService.class.getName());
+	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
 	private Optimizer optimizer;
@@ -37,9 +37,6 @@ public class EngineService {
 	private StateMachine<States, Events> stateHandler;
 
 	private Solution solution;
-
-	public EngineService() {
-	}
 
 	public Solution getSolution() {
 		return solution;
@@ -62,9 +59,6 @@ public class EngineService {
 		return new AsyncResult<>("Done");
 	}
 
-	
-	
-	
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
@@ -89,9 +83,12 @@ public class EngineService {
 		return Optional.empty();
 	}
 
-	public void changeDefaultSettings(Settings settings) {
-		optimizer.changeDefaultSettings(settings);
-		dataService.setCloudType(settings.getCloud());
+	public void changeSettings(Settings settings) {
+		optimizer.changeSettings(settings);
+	}
+
+	public void restoreDefaults() {
+		optimizer.restoreDefaults();
 	}
 
 	/**
