@@ -3,6 +3,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 public class AMPLDataFileBuilder {
 
@@ -26,7 +27,7 @@ public class AMPLDataFileBuilder {
         int idx = 1;
         for (N value: values) {
             if (value instanceof Double) {
-                currentLine = String.format("%d %f", idx++, value.doubleValue());
+                currentLine = String.format(Locale.UK,"%d %f", idx++, value.doubleValue());//UK to have . instead of , as separator
             } else if (value instanceof Integer) {
                 currentLine = String.format("%d %d", idx++, value.intValue());
             }
