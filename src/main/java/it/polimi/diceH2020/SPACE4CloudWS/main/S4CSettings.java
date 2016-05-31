@@ -13,5 +13,5 @@ import lombok.Data;
 public class S4CSettings {
 	private boolean parallel= false;
 	@Min(1)
-	private int availableCores = 1; //for fine Grained Optimization
+	private Integer availableCores = 1; //for fine Grained Optimization
 }

@@ -1,11 +1,13 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
+import it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization.WrapperDispatcher;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -22,7 +24,9 @@ public class Initializator {
 	@Autowired
 	private MINLPSolver milpSolver;
 
-
+	@Autowired
+	WrapperDispatcher dispatcher;
+	
 	private Solver solver;
 
 	@Autowired

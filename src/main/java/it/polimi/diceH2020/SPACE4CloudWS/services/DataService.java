@@ -36,7 +36,7 @@ public class DataService {
 
 	private Solution currentSolution;
 	
-	private CloudType cloudType;
+	private CloudType cloudType = CloudType.Public;
 
 	private Map<EntityKey, EntityTypeVM> mapTypeVM;
 	private String NameProvider;

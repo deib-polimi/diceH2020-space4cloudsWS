@@ -1,10 +1,12 @@
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.InitialSolutionBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.core.Optimizer;
+import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
@@ -26,6 +28,9 @@ public class EngineService {
 
 	@Autowired
 	private Optimizer optimizer;
+	
+	@Autowired
+	private FineGrainedOptimizer fineGrainedOptimizer;
 
 	@Autowired
 	private InitialSolutionBuilder solBuilder;
@@ -61,14 +66,29 @@ public class EngineService {
 
 	@Async("workExecutor")
 	public void localSearch() {
-		try {
-			optimizer.hillClimbing(solution);
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
-		} catch (Exception e) {
-			logger.error("Error while performing local search", e);
-			stateHandler.sendEvent(Events.STOP);
+		
+		if(!dataService.getCloudType().equals(CloudType.Private)){
+			
+			try {
+				optimizer.hillClimbing(solution);
+				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
+			} catch (Exception e) {
+				logger.error("Error while performing local search", e);
+				stateHandler.sendEvent(Events.STOP);
+			}
+			logger.info(stateHandler.getState().getId());
+		
+		}else{
+			
+			try {
+				fineGrainedOptimizer.hillClimbing(solution);
+				//if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
+			} catch (Exception e) {
+				logger.error("Error while performing local search", e);
+				stateHandler.sendEvent(Events.STOP);
+			}
+			logger.info(stateHandler.getState().getId());
 		}
-		logger.info(stateHandler.getState().getId());
 	}
 
 	public Optional<Solution> generateInitialSolution() {
