@@ -5,7 +5,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;

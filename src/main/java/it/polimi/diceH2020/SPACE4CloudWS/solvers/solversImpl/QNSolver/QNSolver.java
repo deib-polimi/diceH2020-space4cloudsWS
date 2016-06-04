@@ -3,7 +3,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;

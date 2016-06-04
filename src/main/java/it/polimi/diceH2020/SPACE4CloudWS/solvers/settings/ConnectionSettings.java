@@ -1,6 +1,6 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
-public interface ConnectionSettings {
+public interface ConnectionSettings extends ShallowCopyable<ConnectionSettings> {
     String getAddress();
 
     String getPassword();

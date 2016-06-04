@@ -1,8 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.SettingsDealer;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.QNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 import lombok.Setter;
@@ -38,7 +38,7 @@ public class SolverFactory {
             case QNSolver:
                 return ctx.getBean(QNSolver.class);
             default:
-                throw new RuntimeException("Mis-configured deletion policy");
+                throw new RuntimeException("Unrecognized solver type");
         }
     }
 }

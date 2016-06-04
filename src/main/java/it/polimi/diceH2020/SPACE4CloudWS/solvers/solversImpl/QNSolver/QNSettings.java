@@ -1,6 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.AbstractConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,18 +15,25 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "QN")
-public class QNSettings extends AbstractConnectionSettings {
+final class QNSettings extends AbstractConnectionSettings {
 
     private Double significance = 0.01;
     private QueueingNetworkModel model = QueueingNetworkModel.SIMPLE;
 
-    public QNSettings(QNSettings that) {
+    private QNSettings(QNSettings that) {
         super(that);
         significance = that.getSignificance();
         model = that.getModel();
     }
 
+    // Used by Spring Boot
+    @SuppressWarnings("unused")
     QNSettings() {
         super();
+    }
+
+    @Override
+    public ConnectionSettings shallowCopy() {
+        return new QNSettings(this);
     }
 }

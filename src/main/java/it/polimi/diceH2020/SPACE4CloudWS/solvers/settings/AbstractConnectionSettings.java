@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +31,8 @@ public abstract class AbstractConnectionSettings implements ConnectionSettings {
 
     private String solverPath;
 
-    public AbstractConnectionSettings(AbstractConnectionSettings that) {
+    protected AbstractConnectionSettings(AbstractConnectionSettings that) {
+        super();
         address = that.getAddress();
         port = that.getPort();
         username = that.getUsername();
@@ -45,7 +46,7 @@ public abstract class AbstractConnectionSettings implements ConnectionSettings {
         solverPath = that.getSolverPath();
     }
 
-    public AbstractConnectionSettings() {
+    protected AbstractConnectionSettings() {
         super();
     }
 }

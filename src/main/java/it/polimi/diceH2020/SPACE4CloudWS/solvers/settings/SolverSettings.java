@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
 import lombok.Getter;

@@ -10,7 +10,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;

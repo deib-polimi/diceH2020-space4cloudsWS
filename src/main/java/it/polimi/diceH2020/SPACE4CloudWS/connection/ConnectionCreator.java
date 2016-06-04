@@ -1,7 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.connection;
 
 import com.jcraft.jsch.*;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 
 class ConnectionCreator {
     private final ConnectionSettings settings;

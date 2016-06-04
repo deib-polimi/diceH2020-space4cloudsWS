@@ -6,6 +6,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
 import lombok.NonNull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -137,5 +139,4 @@ public abstract class AbstractSolver implements Solver {
     }
 
     public abstract Optional<BigDecimal> evaluate(Solution solution);
-
 }

@@ -122,13 +122,16 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
 		</dependency>
-		
 		<dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-bus</artifactId>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+		</dependency>
 	</dependencies>
 
 	<repositories>

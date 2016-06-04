@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.solvers;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
 public interface SettingsDealer {
 

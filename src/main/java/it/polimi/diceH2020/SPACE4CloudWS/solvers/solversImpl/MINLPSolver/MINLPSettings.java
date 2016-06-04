@@ -1,6 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.AbstractConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -10,18 +11,25 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "minlp")
-public class MINLPSettings extends AbstractConnectionSettings {
+final class MINLPSettings extends AbstractConnectionSettings {
 
     private String amplDirectory;
     private boolean verbose = false;
 
-    public MINLPSettings(MINLPSettings that) {
+    private MINLPSettings(MINLPSettings that) {
         super(that);
         amplDirectory = that.getAmplDirectory();
         verbose = that.isVerbose();
     }
 
+    // Used by Spring Boot
+    @SuppressWarnings("unused")
     MINLPSettings() {
         super();
+    }
+
+    @Override
+    public ConnectionSettings shallowCopy() {
+        return new MINLPSettings(this);
     }
 }

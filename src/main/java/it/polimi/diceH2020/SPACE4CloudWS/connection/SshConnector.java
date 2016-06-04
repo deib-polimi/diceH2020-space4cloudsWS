@@ -1,7 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.connection;
 
 import com.jcraft.jsch.JSchException;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 
 import java.io.File;
 import java.io.IOException;
