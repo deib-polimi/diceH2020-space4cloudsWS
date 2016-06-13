@@ -7,28 +7,34 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 
-public class AMPLRunFileBuilder {
+class AMPLRunFileBuilder {
     private String dataFile;
     private String solutionFile;
     private String solverPath;
+    private AMPLModelType model = AMPLModelType.CENTRALIZED;
 
-    public AMPLRunFileBuilder setDataFile(String dataFile) {
+    AMPLRunFileBuilder setDataFile(String dataFile) {
         this.dataFile = dataFile;
         return this;
     }
 
-    public AMPLRunFileBuilder setSolutionFile(String solutionFile) {
+    AMPLRunFileBuilder setSolutionFile(String solutionFile) {
         this.solutionFile = solutionFile;
         return this;
     }
 
-    public AMPLRunFileBuilder setSolverPath(String solverPath) {
+    AMPLRunFileBuilder setSolverPath(String solverPath) {
         this.solverPath = solverPath;
         return this;
     }
 
-    public String build() throws IOException {
-        InputStream runTemplate = getResourceFileStream("/AMPL/main.run.template");
+    AMPLRunFileBuilder setModelType(AMPLModelType amplModelType) {
+        model = amplModelType;
+        return this;
+    }
+
+    String build() throws IOException {
+        InputStream runTemplate = getResourceFileStream();
         BufferedReader reader = new BufferedReader(new InputStreamReader(runTemplate));
         String line;
         List<String> outputLines = new LinkedList<>();
@@ -41,7 +47,18 @@ public class AMPLRunFileBuilder {
         return String.join("\n", outputLines);
     }
 
-    private InputStream getResourceFileStream(String resourceFilePath) throws IOException {
+    private InputStream getResourceFileStream() throws IOException {
+        String resourceFilePath;
+        switch (model) {
+            case CENTRALIZED:
+                resourceFilePath = "/AMPL/main_centralized.template.run";
+                break;
+            case KNAPSACK:
+                resourceFilePath = "/AMPL/main_knapsack.template.run";
+                break;
+            default:
+                throw new AssertionError("The required model is still not implemented");
+        }
         return getClass().getResourceAsStream(resourceFilePath);
     }
 

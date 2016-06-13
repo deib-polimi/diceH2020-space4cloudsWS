@@ -1,0 +1,89 @@
+# vim: set filetype=ampl : #
+#################################################
+### YARN models                               ###
+### liliane tueguem 12/06/2015                ###
+#################################################
+
+### Sets
+param nAM integer >=0;
+set AM := 1..nAM;
+set H {AM};
+
+### Parameters
+param Gamma integer >=0;
+param rhobar {AM} >=0;
+param deltabar {AM} >=0;
+param sigmabar {AM} >=0;
+
+param HUp {AM} integer >=0;
+param HLow {AM} integer >=0;
+param gammaLow {AM} >=0;
+param gammaUp {AM} >=0;
+param psiLow {AM} >=0;
+param psiUp {AM} >=0;
+
+param cM {AM} integer >=0;
+param cR {AM} integer >=0;
+param R {AM} integer >=0;
+param alpha {AM} >=0;
+param beta {AM} >=0;
+param job_penalty {AM} >=0;
+param eta {AM} >= 0;
+
+### Job profile
+param A {AM} >=0;
+param B {AM} >=0;
+param E {AM} <=0;
+param NM {AM} integer >=0;
+param NR {AM} integer >=0;
+param Mavg {AM} >=0;
+param Mmax {AM} >=0;
+param Ravg {AM} >=0;
+param Rmax {AM} >=0;
+param w {AM} >=0;
+param C {AM} >=0;
+param D {AM} >=0;
+param SH1max {AM} >=0;
+param SHtypmax {AM} >=0;
+param SHtypavg {AM} >=0;
+
+param xiM {AM} >=0;
+param xiR {AM} >=0;
+param K {AM} >=0;
+
+### Knapsack
+param bigC {i in AM, H[i]} >=0;
+param nu {i in AM, H[i]} integer >=0;
+param Mtilde {i in AM, H[i]} >=0;
+param Vtilde {i in AM, H[i]} >=0;
+param M >=0;
+param V >=0;
+param N integer >=0;
+
+### Variables
+var r {AM} >=0;
+var d {AM} >=0;
+var s {AM} >=0;
+var psi {AM} >=0;
+var gamma {AM} >=0;
+var sM {AM} >=0;
+var sR {AM} >=0;
+var x {i in AM, H[i]} logical;
+
+### Constraints
+s.t. min_resources {i in AM}: gamma[i] >= gammaLow[i];
+s.t. max_resources {i in AM}: gamma[i] <= gammaUp[i];
+
+s.t. reserved_capacity {i in AM}: r[i] <= R[i];
+
+s.t. capacity: sum {i in AM} (w[i] * gamma[i]) <= Gamma;
+
+s.t. reserved_bound {i in AM}: r[i] <= (1 - eta[i]) * gamma[i];
+
+s.t. one_x {i in AM}: sum {j in H[i]} x[i, j] = 1;
+s.t. RAM: sum {i in AM, j in H[i]} (Mtilde[i, j] * nu[i, j] * x[i, j]) <= M * N;
+s.t. CPU: sum {i in AM, j in H[i]} (Vtilde[i, j] * nu[i, j] * x[i, j]) <= V * N;
+
+### Objectives
+minimize centralized_obj: sum {i in AM} (rhobar[i] * r[i] + deltabar[i] * ((1 - eta[i]) * gamma[i] - r[i]) + sigmabar[i] * eta[i] * gamma[i] + alpha[i] * K[i] / gamma[i] - beta[i]);
+minimize knapsack_obj: sum {i in AM, j in H[i]} (bigC[i, j] * x[i, j]);

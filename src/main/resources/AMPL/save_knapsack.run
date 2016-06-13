@@ -1,0 +1,27 @@
+# vim: set filetype=ampl : #
+
+##############################################
+### Knapsack results saving utility        ###
+### Eugenio Gianniti 13/06/2016            ###
+##############################################
+
+printf "### Saved solution ###\n" > (solfile);
+printf "### Knapsack problem ###\n\n" >> (solfile);
+
+display solve_result >> (solfile);
+
+printf "### Objective\n" >> (solfile);
+display knapsack_obj >> (solfile);
+
+printf "### Variables\n" >> (solfile);
+display x >> (solfile);
+
+printf "### Concurrency\n" >> (solfile);
+printf "param: h :=\n" >> (solfile);
+for {i in AM}
+  {
+    printf "%d %d\n", i, sum {j in H[i]} (j * x[i, j]) >> (solfile);
+  }
+printf ";\n\n" >> (solfile);
+
+close (solfile);

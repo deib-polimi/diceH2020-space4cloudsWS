@@ -1,0 +1,18 @@
+# vim: set filetype=ampl : #
+
+##############################################
+### YARN models - Knapsack problem         ###
+### Eugenio Gianniti 13/06/2016            ###
+##############################################
+
+problem knapsack_prob:
+  ### Variables
+  {i in AM, j in H[i]} x[i, j],
+
+  ### Constraints
+  RAM,
+  CPU,
+  {i in AM} one_x[i],
+
+  ### Objective
+  knapsack_obj;
