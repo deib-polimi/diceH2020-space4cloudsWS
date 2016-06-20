@@ -1,0 +1,16 @@
+reset;
+
+option solver "@@SOLVER_PATH@@";
+
+model ../problems/model.mod;
+data @@DATA_FILE_PATH@@;
+
+option randseed 1;
+
+include ../utils/save_aux.run;
+let solfile := "@@OUTPUT_PATH@@";
+
+include ../problems/bin_packing.run;
+solve bin_packing_prob;
+
+include ../utils/save_bin_packing.run;

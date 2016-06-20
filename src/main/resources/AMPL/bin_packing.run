@@ -1,0 +1,22 @@
+# vim: set filetype=ampl : #
+
+##############################################
+### YARN models - Bin packing problem      ###
+### Eugenio Gianniti 20/06/2016            ###
+##############################################
+
+problem bin_packing_prob:
+  ### Variables
+  {i in AM, j in H[i]} x[i, j],
+  {i in AM, j in H[i], k in P} n[i, j, k],
+  {k in P} y[k],
+
+  ### Constraints
+  {i in AM} one_x[i],
+  {k in P} node_on[k],
+  {i in AM, j in H[i]} required_VMs[i, j],
+  {k in P} physical_RAM[k],
+  {k in P} physical_CPU[k],
+
+  ### Objective
+  bin_packing_obj;

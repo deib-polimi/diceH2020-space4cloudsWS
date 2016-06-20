@@ -1,0 +1,29 @@
+# vim: set filetype=ampl : #
+
+##############################################
+### Bin packing results saving utility     ###
+### Eugenio Gianniti 20/06/2016            ###
+##############################################
+
+printf "### Saved solution ###\n" > (solfile);
+printf "### Bin packing problem ###\n\n" >> (solfile);
+
+display solve_result >> (solfile);
+
+printf "### Objective\n" >> (solfile);
+display bin_packing_obj >> (solfile);
+
+printf "### Variables\n" >> (solfile);
+display x >> (solfile);
+display y >> (solfile);
+display n >> (solfile);
+
+printf "### Concurrency\n" >> (solfile);
+printf "param: h :=\n" >> (solfile);
+for {i in AM}
+  {
+    printf "%d %d\n", i, sum {j in H[i]} (j * x[i, j]) >> (solfile);
+  }
+printf ";\n\n" >> (solfile);
+
+close (solfile);

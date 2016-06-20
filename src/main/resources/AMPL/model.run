@@ -58,7 +58,13 @@ param Mtilde {i in AM, H[i]} >=0;
 param Vtilde {i in AM, H[i]} >=0;
 param M >=0;
 param V >=0;
-param N integer >=0;
+param N integer >=0 default 1;
+
+### Bin Packing
+set P := 1..N;
+param bigP {i in AM, H[i]} >=0;
+param bigE >=0;
+param mu >=0 := max {i in AM, j in H[i]} (max (M / Mtilde[i, j], V / Vtilde[i, j]));
 
 ### Variables
 var r {AM} >=0;
@@ -69,6 +75,8 @@ var gamma {AM} >=0;
 var sM {AM} >=0;
 var sR {AM} >=0;
 var x {i in AM, H[i]} logical;
+var y {P} logical;
+var n {i in AM, H[i], P} integer >=0;
 
 ### Constraints
 s.t. min_resources {i in AM}: gamma[i] >= gammaLow[i];
@@ -84,6 +92,12 @@ s.t. one_x {i in AM}: sum {j in H[i]} x[i, j] = 1;
 s.t. RAM: sum {i in AM, j in H[i]} (Mtilde[i, j] * nu[i, j] * x[i, j]) <= M * N;
 s.t. CPU: sum {i in AM, j in H[i]} (Vtilde[i, j] * nu[i, j] * x[i, j]) <= V * N;
 
+s.t. node_on {k in P}: sum {i in AM, j in H[i]} n[i, j, k] <= mu * y[k];
+s.t. required_VMs {i in AM, j in H[i]}: sum {k in P} n[i, j, k] = nu[i, j] * x[i, j];
+s.t. physical_RAM {k in P}: sum {i in AM, j in H[i]} (Mtilde[i, j] * n[i, j, k]) <= M;
+s.t. physical_CPU {k in P}: sum {i in AM, j in H[i]} (Vtilde[i, j] * n[i, j, k]) <= V;
+
 ### Objectives
 minimize centralized_obj: sum {i in AM} (rhobar[i] * r[i] + deltabar[i] * ((1 - eta[i]) * gamma[i] - r[i]) + sigmabar[i] * eta[i] * gamma[i] + alpha[i] * K[i] / gamma[i] - beta[i]);
 minimize knapsack_obj: sum {i in AM, j in H[i]} (bigC[i, j] * x[i, j]);
+minimize bin_packing_obj: sum {i in AM, j in H[i]} (bigP[i, j] * x[i, j]) + sum {k in P} (bigE * y[k]);
