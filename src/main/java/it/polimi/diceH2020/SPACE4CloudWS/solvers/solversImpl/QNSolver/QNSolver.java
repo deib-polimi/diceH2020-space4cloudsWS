@@ -78,7 +78,7 @@ public class QNSolver extends AbstractSolver {
 
 	private List<File> createProfileFiles(@NonNull SolutionPerJob solutionPerJob) throws IOException {
 		String solID = solutionPerJob.getParentID();
-		Integer jobID = solutionPerJob.getJob().getId();
+		String jobID = solutionPerJob.getJob().getId();
 		String vmID = solutionPerJob.getTypeVMselected().getId();
 
 		InputStream inputStreamMap = getClass().getResourceAsStream(String.format("/QN/%sMapJ%d%s.txt",  solID, jobID, vmID));
@@ -136,7 +136,7 @@ public class QNSolver extends AbstractSolver {
 		Integer numMap = solPerJob.getProfile().getNM();
 		Integer numReduce = solPerJob.getProfile().getNR();
 		Double think = solPerJob.getJob().getThink();
-		Integer jobID = solPerJob.getJob().getId();
+		String jobID = solPerJob.getJob().getId();
 		String mapFileName = lst.get(0).getName();
 		String rsFileName = lst.get(1).getName();
 		String remoteMapFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), mapFileName);

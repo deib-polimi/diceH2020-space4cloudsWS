@@ -108,7 +108,7 @@ public class SPNSolver extends AbstractSolver {
         int nContainers = solPerJob.getNumberContainers();
         JobClass jobClass = solPerJob.getJob();
         Profile prof = solPerJob.getProfile();
-        int jobID = jobClass.getId();
+        String jobID = jobClass.getId();
         double mAvg = prof.getMavg();
         double rAvg = prof.getRavg();
         double shTypAvg = prof.getSHtypavg();

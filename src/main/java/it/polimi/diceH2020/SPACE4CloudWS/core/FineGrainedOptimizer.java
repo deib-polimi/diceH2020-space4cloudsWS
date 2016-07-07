@@ -49,7 +49,7 @@ public class FineGrainedOptimizer {
 	
 	//private int[][] optimalNVMGivenH; 
 	
-	private Map<Integer, SolutionPerJob[]> matrix;
+	private Map<String, SolutionPerJob[]> matrix;
 
 	// read an input file and type value of accuracy and cycles
 	public void changeDefaultSettings(Settings settings) { //TODO
@@ -85,7 +85,7 @@ public class FineGrainedOptimizer {
 	
 	private List<SolutionPerJob> createMatrixCells(Solution solution){
 		List<SolutionPerJob> spjGivenHList = new ArrayList<SolutionPerJob>();
-		matrix = new HashMap<Integer,SolutionPerJob[]>();
+		matrix = new HashMap<String,SolutionPerJob[]>();
 		
 		solution.getLstSolutions().stream().forEach(spj->{
 			int Hup = spj.getJob().getHup();

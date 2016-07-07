@@ -72,7 +72,7 @@ public abstract class AbstractSolver implements Solver {
             return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
         }
         JobClass jobClass = solPerJob.getJob();
-        int jobID = jobClass.getId();
+        String jobID = jobClass.getId();
         int nUsers = solPerJob.getNumberUsers();
         double think = jobClass.getThink();
         List<File> pFiles;

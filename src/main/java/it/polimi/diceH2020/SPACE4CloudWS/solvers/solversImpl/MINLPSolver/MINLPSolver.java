@@ -231,7 +231,7 @@ public class MINLPSolver extends AbstractSolver {
 		if (! solPerJob.getChanged()) return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
 
 		JobClass jobClass = solPerJob.getJob();
-		int jobID = jobClass.getId();
+		String jobID = jobClass.getId();
 		List<File> pFiles;
 		try {
 			pFiles = createWorkingFiles(solPerJob);
