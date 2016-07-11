@@ -13,7 +13,7 @@ public class EntityTypeVM {
 	@ManyToOne
 	@JoinColumn(name = "pId")
 	private EntityProvider provider;
-	private int core;
+	private double core;
 	private double deltabar;
 	// cost reserved
 	private double rhobar;
@@ -36,11 +36,11 @@ public class EntityTypeVM {
 		this.provider = provider;
 	}
 
-	public int getNumCores() {
+	public double getNumCores() {
 		return core;
 	}
 
-	public void setCore(int core) {
+	public void setCore(double core) {
 		this.core = core;
 	}
 

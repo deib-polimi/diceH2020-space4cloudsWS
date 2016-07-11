@@ -1,7 +1,7 @@
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.InitialSolutionBuilder;
@@ -67,7 +67,7 @@ public class EngineService {
 	@Async("workExecutor")
 	public void localSearch() {
 		
-		if(!dataService.getCloudType().equals(CloudType.Private)){
+		if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
 			
 			try {
 				optimizer.hillClimbing(solution);
@@ -90,7 +90,8 @@ public class EngineService {
 			logger.info(stateHandler.getState().getId());
 		}
 	}
-
+	
+	//Used only for Tests
 	public Optional<Solution> generateInitialSolution() {
 		try {
 			solution = solBuilder.getInitialSolution();
@@ -112,6 +113,10 @@ public class EngineService {
 	}
 
 	/**
+	 * Set in DataService: <br>
+	 * &emsp; -inputData <br>
+	 * &emsp; -num job <br>
+	 * &emsp; -the provider and all its available VM retrieved from DB 
 	 * @param inputData
 	 *            the inputData to set
 	 */
@@ -119,6 +124,9 @@ public class EngineService {
 		this.dataService.setInstanceData(inputData);
 	}
 
+	/**
+	 *  Evaluate the Solution with the specified solver (QN, SPN)
+	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
 		optimizer.evaluate(solution); //TODO this has to be changed. Evaluation must be placed into the evaluator

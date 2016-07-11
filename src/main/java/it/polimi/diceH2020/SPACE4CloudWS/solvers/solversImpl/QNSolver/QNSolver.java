@@ -32,7 +32,7 @@ public class QNSolver extends AbstractSolver {
 
 	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
 		if (iteration < MAX_ITERATIONS) {
-			File jmtFile = pFiles.get(2); // it is the third in the list
+			File jmtFile = pFiles.get(2); // it is the third in the list (.jsimg)
 
 			String jmtFileName = jmtFile.getName();
 

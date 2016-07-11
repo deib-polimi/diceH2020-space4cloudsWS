@@ -54,7 +54,6 @@ public class Optimizer {
 	// read an input file and type value of accuracy and cycles
 	public void changeSettings(Settings settings) {
 		solverCache.changeSettings(settings);
-		if(settings.getCloud() != null) dataService.setCloudType(settings.getCloud());
 	}
 
 	public void parallelLocalSearch(Solution solution) throws Exception {
@@ -189,5 +188,5 @@ public class Optimizer {
 		sol.setEvaluated(false);
 		evaluator.evaluate(sol);
 	}
-
+	
 }

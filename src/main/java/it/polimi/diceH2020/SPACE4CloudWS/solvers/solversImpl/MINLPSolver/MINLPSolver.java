@@ -211,7 +211,7 @@ public class MINLPSolver extends AbstractSolver {
 		JobClass jobClass = solPerJob.getJob();
 		TypeVM tVM = solPerJob.getTypeVMselected();
 		AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass, tVM, prof);
-		builder.addArrayParameter("w", Ints.asList(dataService.getNumCores(tVM)))
+		builder.addArrayParameter("w",	Doubles.asList(dataService.getNumCores(tVM)))
 				.addArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
 				.addArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM)))
 				.addArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
