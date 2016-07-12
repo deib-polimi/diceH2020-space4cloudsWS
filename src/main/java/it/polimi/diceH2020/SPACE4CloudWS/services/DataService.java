@@ -99,7 +99,6 @@ public class DataService {
 		}
 		
 		this.mapTypeVM = map ;
-			
 	}
 
 	public List<JobClass> getListJobClass() {

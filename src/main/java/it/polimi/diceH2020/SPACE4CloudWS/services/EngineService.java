@@ -5,8 +5,10 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.InitialSolutionBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
 import it.polimi.diceH2020.SPACE4CloudWS.core.Optimizer;
 import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
+import it.polimi.diceH2020.SPACE4CloudWS.core.InitialMatrixBuilder;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
@@ -34,6 +36,9 @@ public class EngineService {
 
 	@Autowired
 	private InitialSolutionBuilder solBuilder;
+	
+	@Autowired
+	private InitialMatrixBuilder matrixBuilder;
 
 	@Autowired
 	private DataService dataService;
@@ -42,6 +47,8 @@ public class EngineService {
 	private StateMachine<States, Events> stateHandler;
 
 	private Solution solution;
+	
+	private Matrix matrix; //with admission control till now used only in private 
 
 	public Solution getSolution() {
 		return solution;
@@ -54,7 +61,13 @@ public class EngineService {
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {
 		try {
-			solution = solBuilder.getInitialSolution();
+			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+					solution = solBuilder.getInitialSolution();
+					matrix = null;
+			}else{
+				solution = matrixBuilder.getInitialSolution();
+				matrix = matrixBuilder.getInitialMatrix(solution);
+			}
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
@@ -66,29 +79,18 @@ public class EngineService {
 
 	@Async("workExecutor")
 	public void localSearch() {
-		
-		if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
-			
-			try {
+		try {
+			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
 				optimizer.hillClimbing(solution);
-				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
-			} catch (Exception e) {
-				logger.error("Error while performing local search", e);
-				stateHandler.sendEvent(Events.STOP);
+			}else{
+				fineGrainedOptimizer.hillClimbing(matrix);
 			}
-			logger.info(stateHandler.getState().getId());
-		
-		}else{
-			
-			try {
-				fineGrainedOptimizer.hillClimbing(solution);
-				//if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
-			} catch (Exception e) {
-				logger.error("Error while performing local search", e);
-				stateHandler.sendEvent(Events.STOP);
-			}
-			logger.info(stateHandler.getState().getId());
+			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
+		} catch (Exception e) {
+			logger.error("Error while performing local search", e);
+			stateHandler.sendEvent(Events.STOP);
 		}
+		logger.info(stateHandler.getState().getId());
 	}
 	
 	//Used only for Tests
@@ -125,13 +127,20 @@ public class EngineService {
 	}
 
 	/**
-	 *  Evaluate the Solution with the specified solver (QN, SPN)
+	 *  Evaluate the Solution/matrix with the specified solver (QN, SPN)
 	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
-		optimizer.evaluate(solution); //TODO this has to be changed. Evaluation must be placed into the evaluator
+		if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+			optimizer.evaluate(solution); //TODO this has to be changed. Evaluation must be placed into the evaluator
+		}else{
+			optimizer.evaluate(matrix);
+			solution.setEvaluated(false);
+		}
+		
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
 	}
+	
 
 }

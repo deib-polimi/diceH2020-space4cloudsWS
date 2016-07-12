@@ -97,6 +97,7 @@ public class InitialSolutionBuilder {
 		return startingSol;
 	}
 
+	//TODO
 	private void fallBack(Solution sol) {
 		sol.getLstSolutions().forEach(s -> {
 			s.setNumberVM(1);

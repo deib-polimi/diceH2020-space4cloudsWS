@@ -177,7 +177,18 @@ public class Optimizer {
 	}
 
 	public void evaluate(@NonNull Solution sol) {
-		sol.getLstSolutions().forEach(s -> {
+		evaluate(sol.getLstSolutions());
+		
+		sol.setEvaluated(false);
+		evaluator.evaluate(sol);
+	}
+	
+	public void evaluate(@NonNull Matrix matrix){
+		evaluate(matrix.getAllSolutions());
+	}
+	
+	private void evaluate(@NonNull List<SolutionPerJob> spjList){
+		spjList.forEach(s -> {
 			Optional<BigDecimal> duration = calculateDuration(s);
 			if (duration.isPresent()) s.setDuration(duration.get().doubleValue());
 			else {
@@ -185,8 +196,6 @@ public class Optimizer {
 				s.setError(Boolean.TRUE);
 			}
 		});
-		sol.setEvaluated(false);
-		evaluator.evaluate(sol);
 	}
 	
 }
