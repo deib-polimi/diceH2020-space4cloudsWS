@@ -29,8 +29,8 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
 @Service
-public class InitialMatrixBuilder {
-	private static Logger logger = Logger.getLogger(InitialSolutionBuilder.class.getName());
+public class BuilderMatrix {
+	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
 	@Autowired
 	private DataService dataService;
 	@Autowired
@@ -114,6 +114,9 @@ public class InitialMatrixBuilder {
 		return matrix;
 	}
 	
+	public void getFinalSolution(Matrix matrix, Solution solution){
+		minlpSolver.evaluate(matrix,solution);
+	}
 	
 	private Matrix createTmpMatrix(Solution solution){
 		List<SolutionPerJob> spjGivenHList = new ArrayList<SolutionPerJob>();

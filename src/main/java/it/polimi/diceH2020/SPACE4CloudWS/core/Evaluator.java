@@ -43,7 +43,7 @@ class Evaluator implements IEvaluator {
 		solPerJob.setCost(decCost);
 		return decCost;
 	}
-
+	
 	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {
 		if (solPerJob.getDuration() <= solPerJob.getJob().getD()) {
 			solPerJob.setFeasible(true);

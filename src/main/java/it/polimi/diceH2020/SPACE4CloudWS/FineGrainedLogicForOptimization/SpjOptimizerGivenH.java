@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
+import it.polimi.diceH2020.SPACE4CloudWS.core.OptimizerFineGrained;
 
 @Component
 @Scope("prototype")
@@ -25,7 +25,7 @@ public class SpjOptimizerGivenH {
 	private WrapperDispatcher dispatcher;
 	
 	@Autowired
-	private FineGrainedOptimizer optimizer;
+	private OptimizerFineGrained optimizer;
 	
 	private SolutionPerJob initialSpjWithGivenH;
 	
@@ -64,8 +64,7 @@ public class SpjOptimizerGivenH {
 		int initialNVM = getInitialNVM();
 		batchFunctionsList.stream().forEach(fun->{
 			int nVMtmp = fun.apply(initialNVM);
-			if(1<=nVMtmp && nVMtmp<=maxVM)
-			{
+			if(1<=nVMtmp && nVMtmp<=maxVM){
 				SolutionPerJob nextJob = optimizer.cloneSpj(initialSpjWithGivenH);
 				nextJob.setNumberVM(nVMtmp);
 				sendJob(nextJob);

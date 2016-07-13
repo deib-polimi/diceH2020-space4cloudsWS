@@ -1,11 +1,16 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfigurationsMap;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
 
@@ -40,6 +45,50 @@ public class Matrix {
 	public Set<Map.Entry<String,SolutionPerJob[]>> entrySet() {
     	return matrix.entrySet();
     }
+	
+	public ConcurrentHashMap<String,SolutionPerJob[]> get(){
+		return matrix;
+	}
+	
+	public Iterable<Integer> getAllH(String row){
+		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getNumberUsers).collect(Collectors.toSet());
+	}
+	
+	public Iterable<Double> getAllCost(String row){
+		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getCost).collect(Collectors.toSet());
+	}
+	
+	public Set<String> getAllSelectedVMid(String row){
+		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getTypeVMselected).map(TypeVM::getId).collect(Collectors.toSet());
+	}
+	
+	public Set<Double> getAllMtilde(String row,VMConfigurationsMap vmConfigurations){
+		Set<Double> mTildeSet = new HashSet<>();
+		for(String id : getAllSelectedVMid(row)){
+			mTildeSet.add(vmConfigurations.getMapVMConfigurations().get(id).getMemory());
+		}
+		return mTildeSet;
+	}
+	
+	public Set<Double> getAllVtilde(String row,VMConfigurationsMap vmConfigurations){
+		Set<Double> mTildeSet = new HashSet<>();
+		for(String id : getAllSelectedVMid(row)){
+			mTildeSet.add(vmConfigurations.getMapVMConfigurations().get(id).getCore());
+		}
+		return mTildeSet;
+	}
+	
+	public Set<Integer> getAllNu(String row){
+		Set<Integer> nuSet = new HashSet<>();
+		for(SolutionPerJob spj :  matrix.get(row)){
+			nuSet.add(spj.getNumReservedVM()+spj.getNumOnDemandVM()+spj.getNumSpotVM());
+		}
+		return nuSet;
+	}
+	
+	public int getNumRows(){
+		return matrix.size();
+	}
 	
 	public String asString(){
 		matrixNVMString = new String();

@@ -6,6 +6,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
@@ -224,7 +225,22 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(resultsFile);
 		return lst;
 	}
+	
+	protected List<File> createWorkingFiles(Matrix matrix,Solution sol) throws IOException{
+		AMPLDataFileBuilder builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(),matrix);
 
+
+		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
+		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
+		fileUtility.writeContentToFile(builder.build(), dataFile);
+		File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");
+		List<File> lst = new ArrayList<>(2);
+		lst.add(dataFile);
+		lst.add(resultsFile);
+		return lst;
+		
+	}
+	
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
 		if (! solPerJob.getChanged()) return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
@@ -253,6 +269,21 @@ public class MINLPSolver extends AbstractSolver {
 			Pair<BigDecimal, Boolean> result = run(pFiles, "full solution");
 			File resultsFile = pFiles.get(1);
 			updateResults(solution.getLstSolutions(), resultsFile);
+			delete(pFiles);
+			return Optional.of(result.getLeft());
+		} catch (Exception e) {
+			logger.debug("no result due to an exception", e);
+			return Optional.empty();
+		}
+	}
+	
+	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix,@NonNull Solution solution) {
+		List<File> pFiles;
+		try {
+			pFiles = createWorkingFiles(matrix,solution);
+			Pair<BigDecimal, Boolean> result = run(pFiles, "full solution");
+			//File resultsFile = pFiles.get(1);
+			//updateResults(solution.getLstSolutions(), resultsFile);
 			delete(pFiles);
 			return Optional.of(result.getLeft());
 		} catch (Exception e) {
@@ -343,7 +374,7 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(resultsFile);
 		return lst;
 	}
-
+	
 	@Override
 	public List<String> pwd() throws Exception {
 		return connector.pwd(getClass());

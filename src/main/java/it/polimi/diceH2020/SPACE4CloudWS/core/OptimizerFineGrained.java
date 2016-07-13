@@ -9,33 +9,25 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization.SpjOptimizerGivenH;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 
 
 @Component
-public class FineGrainedOptimizer {
+public class OptimizerFineGrained extends Optimizer{
 	
-	private static Logger logger = Logger.getLogger(Optimizer.class.getName());
+	private static Logger logger = Logger.getLogger(OptimizerCourseGrained.class.getName());
 
-	@Autowired
-	private DataService dataService;
-	
 	@Autowired
 	private ApplicationContext context;
 	
 	@Autowired
 	private SolverProxy solverCache;
 
-	@Autowired
-	private IEvaluator evaluator;
-	
 	private Solution solution;
 	
 	private Instant first;
@@ -51,7 +43,8 @@ public class FineGrainedOptimizer {
 		solverCache.changeSettings(settings);
 	}
 	
-	public void hillClimbing(Matrix matrix) {
+	public void hillClimbing(Matrix matrix,Solution solution) {
+		this.solution = solution;
 		first = Instant.now();
 		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", solution.getId()));
 		this.matrix = matrix;
@@ -65,8 +58,25 @@ public class FineGrainedOptimizer {
 		}
 	}
 	
-	//TODO single spj already evaluated... solution aggregation?
-	public void finish(){
+	/**
+	 * Selection of matrix cells to retrieve the best combination.
+	 * One and only one cell per row (one H for each SolutionPerJob).
+	 */
+	private void selection(){
+		
+	}
+	
+	private void aggregateAndFinish(){
+		
+		for(SolutionPerJob spj : matrix.getAllSolutions()){
+			evaluator.evaluate(spj);
+		}
+		
+		selection();
+		finish();
+	}
+	
+	private void finish(){
 		solution.setEvaluated(false); 
 		evaluator.evaluate(solution); 
 		Instant after = Instant.now();
@@ -88,6 +98,7 @@ public class FineGrainedOptimizer {
 		
 		if(finished){
 			System.out.println(matrix.asString());
+			aggregateAndFinish();
 		}
 	}
 	

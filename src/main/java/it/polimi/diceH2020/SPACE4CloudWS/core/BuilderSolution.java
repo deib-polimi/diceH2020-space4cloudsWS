@@ -21,8 +21,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class InitialSolutionBuilder {
-	private static Logger logger = Logger.getLogger(InitialSolutionBuilder.class.getName());
+public class BuilderSolution {
+	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
 	@Autowired
 	private DataService dataService;
 	@Autowired

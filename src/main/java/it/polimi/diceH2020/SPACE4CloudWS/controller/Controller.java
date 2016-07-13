@@ -68,7 +68,7 @@ class Controller {
 	@RequestMapping(method = RequestMethod.POST, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointSolution(@RequestBody Solution sol) throws Exception {
-		if (getWebServiceState().equals("IDLE")) {
+		if(getWebServiceState().equals("IDLE")) {
 			engineService.setSolution(sol);
 			stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		}

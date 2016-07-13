@@ -4,11 +4,11 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.core.InitialSolutionBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.core.BuilderSolution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
-import it.polimi.diceH2020.SPACE4CloudWS.core.Optimizer;
-import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
-import it.polimi.diceH2020.SPACE4CloudWS.core.InitialMatrixBuilder;
+import it.polimi.diceH2020.SPACE4CloudWS.core.OptimizerCourseGrained;
+import it.polimi.diceH2020.SPACE4CloudWS.core.OptimizerFineGrained;
+import it.polimi.diceH2020.SPACE4CloudWS.core.BuilderMatrix;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
@@ -29,16 +29,16 @@ public class EngineService {
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private Optimizer optimizer;
+	private OptimizerCourseGrained optimizer;
 	
 	@Autowired
-	private FineGrainedOptimizer fineGrainedOptimizer;
+	private OptimizerFineGrained fineGrainedOptimizer;
 
 	@Autowired
-	private InitialSolutionBuilder solBuilder;
+	private BuilderSolution solBuilder;
 	
 	@Autowired
-	private InitialMatrixBuilder matrixBuilder;
+	private BuilderMatrix matrixBuilder;
 
 	@Autowired
 	private DataService dataService;
@@ -82,10 +82,10 @@ public class EngineService {
 		try {
 			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
 				optimizer.hillClimbing(solution);
+				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 			}else{
-				fineGrainedOptimizer.hillClimbing(matrix);
+				fineGrainedOptimizer.hillClimbing(matrix,solution);
 			}
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.error("Error while performing local search", e);
 			stateHandler.sendEvent(Events.STOP);

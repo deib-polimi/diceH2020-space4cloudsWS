@@ -7,6 +7,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfiguration;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
@@ -18,9 +19,12 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author ciavotta
@@ -74,6 +78,7 @@ public class DataService {
 			loadDataFromDB(new EntityProvider(this.NameProvider));
 		else{
 			loadDataFromJson();
+			considerOnlyReserved();
 		}
 	}
 
@@ -90,17 +95,52 @@ public class DataService {
 				EntityTypeVM typeVM  = new EntityTypeVM(vm.getKey());
 				typeVM.setCore(vm.getValue().getCore());
 				//typeVM.setMemory(vm.getValue().getMemory()); TODO settare la memoria nelle entry del DB 
+				
 				typeVM.setDeltabar(1);
 				typeVM.setRhobar(0);
 				typeVM.setSigmabar(0);
+				
 				typeVM.setProvider(new EntityProvider(vm.getValue().getProvider()));
 				map.put(key, typeVM);
 			}
 		}
-		
 		this.mapTypeVM = map ;
 	}
+	
+	private void considerOnlyReserved(){
+		this.data.setMapTypeVMs(initializeMapTypeVMs(data.getMapProfiles()));
+	}
+	
+	/**
+	 *
+	 * @param mapProfiles is used to get all couples (typeVM_id, job_id) (unique json common parameter that have this list)
+	 * @return
+	 */
+	private Map<String,List<TypeVM>> initializeMapTypeVMs(Map<TypeVMJobClassKey, Profile> mapProfiles){
+		Map<String,List<TypeVM>> map = new HashMap<String,List<TypeVM>>();
 
+		Set<TypeVMJobClassKey> set = mapProfiles.keySet();
+		
+		List<String> jobIDs = set.stream().map(TypeVMJobClassKey::getJob).distinct().collect(Collectors.toList());
+		
+		for (String jobID : jobIDs) {
+			List<TypeVMJobClassKey> lst = set.stream().filter(t->t.getJob().equals(jobID)).collect(Collectors.toList());
+			List<TypeVM> lst2 = new ArrayList<>();
+		
+			for (TypeVMJobClassKey key : lst) {
+				TypeVM vm = new TypeVM();
+				vm.setId(key.getTypeVM());
+				
+				vm.setEta(0);
+				vm.setR(0);
+				
+				lst2.add(vm);
+			}
+			map.put(jobID,lst2);
+		}
+		return map;
+	}
+	
 	public List<JobClass> getListJobClass() {
 		return data.getLstClass();
 	}

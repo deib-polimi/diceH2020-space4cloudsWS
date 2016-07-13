@@ -19,7 +19,13 @@ class AMPLDataFileBuilder {
     }
 
     AMPLDataFileBuilder addScalarParameter(String name, int value) {
-        String currentLine = String.format("param %s := %d;", name, value);
+        String currentLine = String.format(Locale.UK,"param %s := %d;", name, value);
+        lines.add(currentLine);
+        return this;
+    }
+    
+    AMPLDataFileBuilder addDoubleParameter(String name, double value) {
+        String currentLine = String.format("param %s := %.1f;", name, value);
         lines.add(currentLine);
         return this;
     }
