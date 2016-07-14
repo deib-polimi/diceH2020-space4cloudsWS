@@ -14,6 +14,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization.SpjOptimizerGivenH;
+import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 
 
@@ -27,6 +28,9 @@ public class OptimizerFineGrained extends Optimizer{
 	
 	@Autowired
 	private SolverProxy solverCache;
+	
+	@Autowired
+	private EngineService engineService;
 
 	private Solution solution;
 	
@@ -58,21 +62,12 @@ public class OptimizerFineGrained extends Optimizer{
 		}
 	}
 	
-	/**
-	 * Selection of matrix cells to retrieve the best combination.
-	 * One and only one cell per row (one H for each SolutionPerJob).
-	 */
-	private void selection(){
-		
-	}
-	
 	private void aggregateAndFinish(){
 		
 		for(SolutionPerJob spj : matrix.getAllSolutions()){
 			evaluator.evaluate(spj);
 		}
-		
-		selection();
+		engineService.knapsack(); //TODO modify automata in order to avoid this backward call
 		finish();
 	}
 	

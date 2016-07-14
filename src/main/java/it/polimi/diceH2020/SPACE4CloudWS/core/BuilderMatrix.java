@@ -114,7 +114,11 @@ public class BuilderMatrix {
 		return matrix;
 	}
 	
-	public void getFinalSolution(Matrix matrix, Solution solution){
+	/**
+	 * Selection of matrix cells to retrieve the best combination.
+	 * One and only one cell per row (one H for each Job).
+	 */
+	public void cellsSelection(Matrix matrix, Solution solution){
 		minlpSolver.evaluate(matrix,solution);
 	}
 	

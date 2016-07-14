@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -282,8 +283,8 @@ public class MINLPSolver extends AbstractSolver {
 		try {
 			pFiles = createWorkingFiles(matrix,solution);
 			Pair<BigDecimal, Boolean> result = run(pFiles, "full solution");
-			//File resultsFile = pFiles.get(1);
-			//updateResults(solution.getLstSolutions(), resultsFile);
+			File resultsFile = pFiles.get(1);
+			updateResults(solution,matrix, resultsFile);
 			delete(pFiles);
 			return Optional.of(result.getLeft());
 		} catch (Exception e) {
@@ -309,6 +310,7 @@ public class MINLPSolver extends AbstractSolver {
 			while (! line.contains("t [*]")) {
 				line = reader.readLine();
 			}
+			
 			for (SolutionPerJob solutionPerJob : solutions) {
 				line = reader.readLine();
 				bufferStr = line.split("\\s+");
@@ -352,6 +354,51 @@ public class MINLPSolver extends AbstractSolver {
 				x = bufferStr[3].replaceAll("\\s+", "");
 				solutionPerJob.setBeta(Double.parseDouble(x));
 			}
+		}
+	}
+	
+	
+	private void updateResults(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
+		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
+			int[] selectedCells = new int[matrix.getNumRows()];
+			
+			String line = reader.readLine();
+			
+			while (! line.contains("solve_result ")) {
+				line = reader.readLine();
+			}
+
+			String[] bufferStr = line.split("\\s+");
+			if (bufferStr[2].equals("infeasible")) {
+				logger.info("The problem is infeasible");
+				initializeSolution(solution,matrix);
+				return;
+			}
+			
+			while (! line.contains("### Concurrency")) {
+				line = reader.readLine();
+			}
+			reader.readLine();
+			for(int i=0; i< selectedCells.length; i++){
+				line = reader.readLine();
+				bufferStr = line.split("\\s+");
+
+				String currentRow = bufferStr[0].replaceAll("\\s+", "");
+				String currentH = bufferStr[1].replaceAll("\\s+", "");
+				selectedCells[Integer.valueOf(currentRow)] = Integer.valueOf(currentH);
+			}
+			
+			int i=0;
+			for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
+				solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), selectedCells[i]));
+				i++;
+			}
+		}
+	}
+	
+	private void initializeSolution(Solution solution, Matrix matrix){
+		for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
+			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), entry.getValue()[0].getNumberUsers()));
 		}
 	}
 

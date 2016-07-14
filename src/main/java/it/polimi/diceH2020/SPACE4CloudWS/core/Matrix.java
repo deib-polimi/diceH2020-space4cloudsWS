@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfigurationsMap;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -76,6 +77,14 @@ public class Matrix {
 			mTildeSet.add(vmConfigurations.getMapVMConfigurations().get(id).getCore());
 		}
 		return mTildeSet;
+	}
+	
+	public SolutionPerJob getCell(String row, int concurrencyLevel){
+		return Arrays.stream(matrix.get(row)).filter(s->s.getNumberUsers()==concurrencyLevel).findFirst().get();
+	}
+	
+	public String getID(String row){
+		return  Arrays.stream(matrix.get(row)).findFirst().map(SolutionPerJob::getJob).map(JobClass::getId).get();
 	}
 	
 	public Set<Integer> getAllNu(String row){

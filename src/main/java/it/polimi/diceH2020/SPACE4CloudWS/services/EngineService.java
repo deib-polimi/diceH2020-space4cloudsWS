@@ -93,6 +93,26 @@ public class EngineService {
 		logger.info(stateHandler.getState().getId());
 	}
 	
+	
+	@Async("workExecutor")
+	public Future<String> knapsack() {
+		try {
+			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+				logger.error("Error while performing knapsack");
+				stateHandler.sendEvent(Events.STOP);
+			}else{
+				matrixBuilder.cellsSelection(matrix, solution);
+			}
+			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
+		} catch (Exception e) {
+			logger.error("Error while performing optimization", e);
+			stateHandler.sendEvent(Events.STOP);
+		}
+		logger.info(stateHandler.getState().getId());
+		return new AsyncResult<>("Done");
+	}
+	
+	
 	//Used only for Tests
 	public Optional<Solution> generateInitialSolution() {
 		try {
