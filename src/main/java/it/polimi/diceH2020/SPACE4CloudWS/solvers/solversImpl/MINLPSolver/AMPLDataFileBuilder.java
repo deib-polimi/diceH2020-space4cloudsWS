@@ -55,19 +55,20 @@ class AMPLDataFileBuilder {
         return this;
     }
 
+    //TODO 
     @SafeVarargs
     final <N extends Number> AMPLDataFileBuilder addIndexedArrayParameter(String name,
                                                                           Pair<Iterable<Integer>, Iterable<N>> head,
                                                                           Pair<Iterable<Integer>, Iterable<N>>... tail) {
-        String currentLine = String.format("param %s :=", name);
+        final String currentLine = String.format("param %s :=", name);
         lines.add(currentLine);
         int idx = 1;
         printIndexedTable(idx++, head);
-        for (Pair<Iterable<Integer>, Iterable<N>> pair: tail) {
-            currentLine = String.format("  [%d, *] :=", idx++);
-            lines.add(currentLine);
-            printIndexedTable(idx++, pair);
-        }
+        if(tail != null){
+	        for (Pair<Iterable<Integer>, Iterable<N>> pair: tail) {
+	            printIndexedTable(idx++, pair);
+	        }
+    	}
         lines.add(";");
         return this;
     }

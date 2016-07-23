@@ -13,6 +13,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.statemachine.StateMachine;
@@ -32,6 +33,7 @@ public class EngineService {
 	private OptimizerCourseGrained optimizer;
 	
 	@Autowired
+	@Lazy
 	private OptimizerFineGrained fineGrainedOptimizer;
 
 	@Autowired
@@ -45,7 +47,7 @@ public class EngineService {
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-
+	
 	private Solution solution;
 	
 	private Matrix matrix; //with admission control till now used only in private 
@@ -67,6 +69,7 @@ public class EngineService {
 			}else{
 				solution = matrixBuilder.getInitialSolution();
 				matrix = matrixBuilder.getInitialMatrix(solution);
+				System.out.println(matrix.asString());
 			}
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
@@ -93,17 +96,16 @@ public class EngineService {
 		logger.info(stateHandler.getState().getId());
 	}
 	
-	
 	@Async("workExecutor")
-	public Future<String> knapsack() {
+	public Future<String> reduceMatrix() {
 		try {
 			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
 				logger.error("Error while performing knapsack");
 				stateHandler.sendEvent(Events.STOP);
 			}else{
 				matrixBuilder.cellsSelection(matrix, solution);
+				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 			}
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
@@ -161,6 +163,4 @@ public class EngineService {
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
 	}
-	
-
 }

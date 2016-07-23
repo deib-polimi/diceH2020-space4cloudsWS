@@ -6,11 +6,13 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 class Controller {
@@ -79,6 +81,7 @@ class Controller {
 	@ResponseStatus(value = HttpStatus.OK)
 	public Solution endpointSolution() throws Exception {
 		String state = stateHandler.getState().getId().toString();
+		
 		if (state.equals("CHARGED_INITSOLUTION") || state.equals("EVALUATED_INITSOLUTION")  || state.equals("FINISH")) return engineService.getSolution();
 		return null;
 	}

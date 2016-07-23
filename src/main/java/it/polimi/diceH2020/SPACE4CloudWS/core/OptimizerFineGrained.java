@@ -42,6 +42,8 @@ public class OptimizerFineGrained extends Optimizer{
 	
 	String matrixNVMString;
 	
+	int registeredSolutionsPerJob;
+	
 	// read an input file and type value of accuracy and cycles
 	public void changeDefaultSettings(Settings settings) { //TODO
 		solverCache.changeSettings(settings);
@@ -49,9 +51,10 @@ public class OptimizerFineGrained extends Optimizer{
 	
 	public void hillClimbing(Matrix matrix,Solution solution) {
 		this.solution = solution;
+		this.matrix = matrix;
+		this.registeredSolutionsPerJob = 0;
 		first = Instant.now();
 		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", solution.getId()));
-		this.matrix = matrix;
 		start();
 	}		
 	
@@ -67,13 +70,13 @@ public class OptimizerFineGrained extends Optimizer{
 		for(SolutionPerJob spj : matrix.getAllSolutions()){
 			evaluator.evaluate(spj);
 		}
-		engineService.knapsack(); //TODO modify automata in order to avoid this backward call
+		engineService.reduceMatrix(); //TODO modify automata in order to avoid this backward call
 		finish();
 	}
 	
 	private void finish(){
 		solution.setEvaluated(false); 
-		evaluator.evaluate(solution); 
+		//evaluator.evaluate(solution); 
 		Instant after = Instant.now();
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
@@ -84,12 +87,10 @@ public class OptimizerFineGrained extends Optimizer{
 	public synchronized void registerSPJGivenHOptimalNVM(SolutionPerJob spj){
 		finished = true;
 		//optimalNVMGivenH[spj.getJob().getId()-1][h-1] = nVM;
+		matrix.get(spj.getJob().getId())[spj.getNumberUsers()-matrix.getHlow(spj.getJob().getId())] = spj;
 		
-		matrix.get(spj.getJob().getId())[spj.getNumberUsers()-spj.getJob().getHlow()] = spj;
-		
-		for(SolutionPerJob cell: matrix.getAllSolutions()){
-			if(cell == null) finished = false;
-		}
+		registeredSolutionsPerJob++;
+		if(registeredSolutionsPerJob != matrix.getNumCells() ) finished = false;
 		
 		if(finished){
 			System.out.println(matrix.asString());

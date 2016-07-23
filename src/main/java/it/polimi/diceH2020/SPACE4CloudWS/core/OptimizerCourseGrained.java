@@ -90,7 +90,7 @@ public class OptimizerCourseGrained extends Optimizer {
 				int nVM = result.get().getLeft();
 				solPerJob.setDuration(dur.doubleValue());
 				solPerJob.setNumberVM(nVM);
-				logger.info(String.format("class%d-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getJob().getId(), dur, nVM));
+				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getJob().getId(), dur.toString(), nVM));
 				return true;
 			}
 		}

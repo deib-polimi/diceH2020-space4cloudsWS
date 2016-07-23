@@ -53,7 +53,7 @@ public class Test3 {
 
 		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED"));
 
-		InstanceData data = post("/debug/event").body().as(InstanceData.class);
+		post("/debug/event").body().as(InstanceData.class);
 		
 		given().contentType("application/json; charset=UTF-16").body(Events.MIGRATE, ObjectMapperType.JACKSON_2).when()
 				.post("/debug/sendevent").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING"));

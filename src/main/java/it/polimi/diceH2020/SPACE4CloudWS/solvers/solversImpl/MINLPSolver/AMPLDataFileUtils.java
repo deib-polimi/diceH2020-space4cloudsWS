@@ -69,17 +69,22 @@ class AMPLDataFileUtils {
 	
 	@SuppressWarnings("unchecked")
 	static AMPLDataFileBuilder knapsackBuilder(InstanceData data, Matrix matrix) {
+		boolean tail = false;
 
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(data.getNumberJobs());
-		builder.addScalarParameter("N", data.getPrivateCloudParameters().getN());
-		builder.addDoubleParameter("V", data.getPrivateCloudParameters().getV());
-		builder.addDoubleParameter("M", data.getPrivateCloudParameters().getM());
+		builder.addScalarParameter("N", data.getPrivateCloudParameters().get().getN());
+		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
+		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
 		
+		Pair<Iterable<Integer>, Iterable<Double>>[] bigC = null,mTilde = null,vTilde = null; 
+		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = null;
 		
-		Pair<Iterable<Integer>, Iterable<Double>>[] bigC,mTilde,vTilde; 
-		bigC=mTilde=vTilde=new Pair[matrix.getNumRows()-1];
-		
-		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = new Pair[matrix.getNumRows()-1];
+		if(matrix.getNumRows()>1){
+			tail = true;
+			
+			bigC=mTilde=vTilde=new Pair[matrix.getNumRows()-1];
+			nu = new Pair[matrix.getNumRows()-1];
+		}
 		
 		Pair<Iterable<Integer>, Iterable<Double>> bigCFirst,mTildeFirst,vTildeFirst; 
 		bigCFirst=mTildeFirst=vTildeFirst= null;
@@ -89,30 +94,31 @@ class AMPLDataFileUtils {
 		//Pair<Iterable<Integer>, Iterable<Double>> bigCFirst = null;
 		
 		
-		int i = 1;
+		int i = 0;
 		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
 			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
 			Iterable<Double> rowCost = matrix.getAllCost(row.getKey());
-			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations());
-			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations());
+			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations().get());
+			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations().get());
 			Iterable<Integer> rowNu = matrix.getAllNu(row.getKey());
 			
-			if(i!=1){
-				Pair<Iterable<Integer>, Iterable<Double>> c = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowCost);
-				Pair<Iterable<Integer>, Iterable<Double>> m = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowMtilde);
-				Pair<Iterable<Integer>, Iterable<Double>> v = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowVtilde);
-				Pair<Iterable<Integer>, Iterable<Integer>> n = new ImmutablePair<Iterable<Integer>, Iterable<Integer>>(rowH, rowNu);
-				bigC[i-1] = c;
-				mTilde[i-1] = m;
-				vTilde[i-1] = v;
-				nu[i-1] = n;
-			}else{
+			if(i==0){
 				bigCFirst = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowCost);
 				mTildeFirst = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowMtilde);
 				vTildeFirst = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowVtilde);
 				nuFirst = new ImmutablePair<Iterable<Integer>, Iterable<Integer>>(rowH, rowNu);
+			}else if(tail){
+				Pair<Iterable<Integer>, Iterable<Double>> c = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowCost);
+				Pair<Iterable<Integer>, Iterable<Double>> m = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowMtilde);
+				Pair<Iterable<Integer>, Iterable<Double>> v = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowVtilde);
+				Pair<Iterable<Integer>, Iterable<Integer>> n = new ImmutablePair<Iterable<Integer>, Iterable<Integer>>(rowH, rowNu);
+				//first received i, i=1
+				bigC[i-1] = c;
+				mTilde[i-1] = m;
+				vTilde[i-1] = v;
+				nu[i-1] = n;
 			}
-			builder.addIndexedSet("H", i, rowH);
+			builder.addIndexedSet("H", i+1, rowH);
 			i++;
 		}
 		

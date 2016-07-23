@@ -1,8 +1,8 @@
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
@@ -54,7 +54,7 @@ public class Test5 {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         RestAssuredMockMvc.mockMvc(mockMvc);
 
-        mapper = new ObjectMapper();
+        mapper = new ObjectMapper().registerModule(new Jdk8Module());
         SimpleModule module = new SimpleModule();
         module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
         mapper.registerModule(module);

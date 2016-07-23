@@ -120,9 +120,9 @@ public class SPNSolver extends AbstractSolver {
 
         String prefix;
         if (iteration.isPresent()) {
-            prefix = String.format("PN-%s-class%d-iter%d-", solPerJob.getParentID(), jobID, iteration.get());
+            prefix = String.format("PN-%s-class%s-iter%d-", solPerJob.getParentID(), jobID, iteration.get());
         } else {
-            prefix = String.format("PN-%s-class%d-", solPerJob.getParentID(), jobID);
+            prefix = String.format("PN-%s-class%s-", solPerJob.getParentID(), jobID);
         }
 
         String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)

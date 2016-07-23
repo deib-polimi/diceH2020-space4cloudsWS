@@ -19,10 +19,16 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -69,10 +75,11 @@ public class DataService {
 	}
 
 	void setInstanceData(InstanceData inputData) {
+		
 		this.data = inputData;
 		this.jobNumber = data.getNumberJobs();
 		this.NameProvider = data.getProvider();
-		this.cloudType = data.getScenario();
+		this.cloudType = data.getScenario().get();
 		
 		if(cloudType.getCloudType().equals(CloudType.Public))
 			loadDataFromDB(new EntityProvider(this.NameProvider));
@@ -89,8 +96,8 @@ public class DataService {
 	private void loadDataFromJson(){
 		HashMap<EntityKey, EntityTypeVM> map = new HashMap<EntityKey, EntityTypeVM>();
 		
-		if(data.getMapVMConfigurations().getMapVMConfigurations().size()>0){
-			for (Map.Entry<String, VMConfiguration> vm : data.getMapVMConfigurations().getMapVMConfigurations().entrySet()) {
+		if(data.getMapVMConfigurations().get().getMapVMConfigurations().size()>0){
+			for (Map.Entry<String, VMConfiguration> vm : data.getMapVMConfigurations().get().getMapVMConfigurations().entrySet()) {
 				EntityKey key = new EntityKey(vm.getKey(), vm.getValue().getProvider());
 				EntityTypeVM typeVM  = new EntityTypeVM(vm.getKey());
 				typeVM.setCore(vm.getValue().getCore());
@@ -108,7 +115,7 @@ public class DataService {
 	}
 	
 	private void considerOnlyReserved(){
-		this.data.setMapTypeVMs(initializeMapTypeVMs(data.getMapProfiles()));
+		this.data.setMapTypeVMs(Optional.of(initializeMapTypeVMs(data.getMapProfiles())));
 	}
 	
 	/**

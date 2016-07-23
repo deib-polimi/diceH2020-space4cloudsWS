@@ -89,7 +89,7 @@ public class ControllerTest {
 	@RequestMapping(method = RequestMethod.POST, value = "debug/event")
 	@Profile("test")
 	public String debug() throws Exception {
-		Optional<Solution> sol =engineService.generateInitialSolution();
+		engineService.generateInitialSolution();
 		return stateHandler.getState().getId().toString();
 	}
 	

@@ -28,6 +28,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
 
@@ -59,7 +60,7 @@ public class Test6 {
         mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
         RestAssuredMockMvc.mockMvc(mockMvc);
 
-        mapper = new ObjectMapper();
+        mapper = new ObjectMapper().registerModule(new Jdk8Module());
         SimpleModule module = new SimpleModule();
         module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
         mapper.registerModule(module);

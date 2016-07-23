@@ -3,8 +3,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +15,7 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
@@ -24,6 +23,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
@@ -40,11 +40,17 @@ public class BuilderMatrix {
 	@Autowired
 	private IEvaluator evaluator;
 	private boolean error;
-
+	
+	/**
+	 * 
+	 * @return Initialized Solution with its initialized SolutionPerJob
+	 * @throws Exception
+	 */
 	public Solution getInitialSolution() throws Exception {
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
+		startingSol.setPrivateCloudParameters(dataService.getData().getPrivateCloudParameters());
 		startingSol.setGamma(dataService.getGamma());
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
@@ -56,9 +62,15 @@ public class BuilderMatrix {
 		return startingSol;
 	}
 	
+	/**
+	 * for each SPJ in Solution for each concurrency level create a new SPJ and put into a matrix cell
+	 * for each cell calculate its duration
+	 * @param solution  
+	 * @return 
+	 */
 	public Matrix getInitialMatrix(Solution solution){
 		Instant first = Instant.now();
-		
+		minlpSolver.reinitialize();
 		Matrix tmpMatrix = createTmpMatrix(solution);
 		Matrix matrix = new Matrix();
 		
@@ -68,20 +80,24 @@ public class BuilderMatrix {
 			for(SolutionPerJob spj : matrixRow.getValue()){
 				Map<SolutionPerJob, Double> mapResults = new ConcurrentHashMap<>();
 				dataService.getListTypeVM(spj.getJob()).forEach(tVM -> {
-					setTypeVM(spj, tVM);
+					SolutionPerJob spj2 = createSolPerJob(cloneJob(spj.getJob()));
+					spj2.setParentID(dataService.getData().getId());
+					setTypeVM(spj2, cloneVM(tVM));
+					spj2.setNumberUsers(spj.getNumberUsers());
 					
-					Optional<BigDecimal> result = minlpSolver.evaluate(spj); //TODO: still sequential?
-
+					Optional<BigDecimal> result = minlpSolver.evaluate(spj2); //TODO: still sequential?
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
-						cost = evaluator.evaluate(spj);
+						cost = evaluator.evaluate(spj2);
+						logger.debug("Cost for "+spj2.getJob().getId()+"with "+spj2.getNumberUsers()+"users is: "+cost);
 					} else {
 						// as in this::fallback
-						spj.setNumberUsers(spj.getJob().getHup());
-						spj.setNumberVM(1);
+						spj2.setNumberUsers(spj2.getJob().getHup());
+						spj2.setNumberVM(1);
+						logger.info("No result from solver for evaluating SPJ");
 					}
-					mapResults.put(spj, cost);
+					mapResults.put(spj2, cost);
 				});
 				if (checkState()) {
 					Optional<SolutionPerJob> min = mapResults.entrySet().stream().min(
@@ -90,7 +106,7 @@ public class BuilderMatrix {
 					min.ifPresent(s -> {
 						error = false;
 						TypeVM minTVM = s.getTypeVMselected();
-						logger.info("For job class " + s.getJob().getId() + "with H="+s.getNumberUsers()+ " has been selected the machine " + minTVM.getId());
+						logger.info("For job class " + s.getJob().getId() + " with H="+s.getNumberUsers()+ " has been selected the machine " + minTVM.getId());
 					});
 					matrixLine[i] = min.get(); 
 				}
@@ -119,23 +135,23 @@ public class BuilderMatrix {
 	 * One and only one cell per row (one H for each Job).
 	 */
 	public void cellsSelection(Matrix matrix, Solution solution){
+		minlpSolver.setModelType(AMPLModelType.KNAPSACK);
 		minlpSolver.evaluate(matrix,solution);
 	}
 	
 	private Matrix createTmpMatrix(Solution solution){
-		List<SolutionPerJob> spjGivenHList = new ArrayList<SolutionPerJob>();
 		Matrix matrix = new Matrix();
 		
 		solution.getLstSolutions().stream().forEach(spj->{
 			int Hup = spj.getJob().getHup();
 			int Hlow = spj.getJob().getHlow();
 			SolutionPerJob[] matrixLine = new SolutionPerJob[Hup-Hlow+1];
-			for(int i= Hup; i>= Hlow ; i--){
-				matrixLine[i-Hlow] = null;
-				
-				SolutionPerJob spjGivenH = cloneSpj(spj);
+			for(int i=Hup; i >= Hlow ; i--){
+				SolutionPerJob spjGivenH = createSolPerJob(cloneJob(spj.getJob()));
 				spjGivenH.setNumberUsers(i);
-				spjGivenHList.add(spjGivenH);
+				spjGivenH.getJob().setHlow(i);
+				spjGivenH.getJob().setHup(i);
+				matrixLine[i-Hlow] = spjGivenH;
 			}
 			matrix.put(spj.getJob().getId(), matrixLine);
 		});
@@ -178,6 +194,7 @@ public class BuilderMatrix {
 	
 	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
 		SolutionPerJob newSpj = new SolutionPerJob();
+		
 		newSpj.setAlfa(oldSpj.getAlfa());
 		newSpj.setBeta(oldSpj.getBeta());
 		newSpj.setChanged(oldSpj.getChanged());
@@ -186,21 +203,61 @@ public class BuilderMatrix {
 		newSpj.setDuration(oldSpj.getDuration());
 		newSpj.setError(oldSpj.getError());
 		newSpj.setFeasible(oldSpj.getFeasible());
-		newSpj.setJob(oldSpj.getJob());
 		newSpj.setNumberContainers(oldSpj.getNumberContainers());
 		newSpj.setNumberUsers(oldSpj.getNumberUsers());
-		newSpj.setNumberVM(oldSpj.getNumberVM());
+		//newSpj.setNumberVM(oldSpj.getNumberVM());
 		newSpj.setNumCores(oldSpj.getNumCores());
-		newSpj.setNumOnDemandVM(oldSpj.getNumOnDemandVM());
-		newSpj.setNumReservedVM(oldSpj.getNumReservedVM());
-		newSpj.setNumSpotVM(oldSpj.getNumSpotVM());
+		//newSpj.setNumOnDemandVM(oldSpj.getNumOnDemandVM());
+		//newSpj.setNumReservedVM(oldSpj.getNumReservedVM());
+		//newSpj.setNumSpotVM(oldSpj.getNumSpotVM());
 		newSpj.setParentID(oldSpj.getParentID());
 		newSpj.setPos(oldSpj.getPos());
-		newSpj.setProfile(oldSpj.getProfile());
 		newSpj.setRhoBar(oldSpj.getRhoBar());
 		newSpj.setSigmaBar(oldSpj.getSigmaBar());
-		newSpj.setTypeVMselected(oldSpj.getTypeVMselected());
+		
+		newSpj.setJob(cloneJob(oldSpj.getJob()));
+		//newSpj.setTypeVMselected(cloneVM(oldSpj.getTypeVMselected()));
+		newSpj.setProfile(cloneProfile(oldSpj.getProfile()));
+		
 		return newSpj;
 	}
+	
+	private Profile cloneProfile(Profile oldProfile){
+		Profile profile = new Profile();
+		profile.setCM(oldProfile.getCM());
+		profile.setCR(oldProfile.getCR());
+		profile.setMavg(oldProfile.getMavg());
+		profile.setMmax(oldProfile.getMmax());
+		profile.setNM(oldProfile.getNM());
+		profile.setNR(oldProfile.getNR());
+		profile.setRavg(oldProfile.getRavg());
+		profile.setRmax(oldProfile.getRmax());
+		profile.setSH1max(oldProfile.getSH1max());
+		profile.setSHtypavg(oldProfile.getSHtypavg());
+		profile.setSHtypmax(oldProfile.getSHtypmax());
+		return profile;
+	}
+	
+	private JobClass cloneJob(JobClass oldJob){
+		JobClass job = new JobClass();
+		job.setD(oldJob.getD());
+		job.setHlow(oldJob.getHlow());
+		job.setHup(oldJob.getHup());
+		job.setId(oldJob.getId());
+		job.setJob_penalty(oldJob.getJob_penalty());
+		job.setM(oldJob.getM());
+		job.setThink(oldJob.getThink());
+		job.setV(oldJob.getV());
+		
+		return job;
+	}
 
+	private TypeVM cloneVM(TypeVM oldTypeVM){
+		TypeVM typeVM = new TypeVM();
+		typeVM.setEta(oldTypeVM.getEta());
+		typeVM.setId(oldTypeVM.getId());
+		typeVM.setR(oldTypeVM.getR());
+		return typeVM;
+	}
+	
 }

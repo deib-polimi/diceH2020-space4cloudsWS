@@ -9,6 +9,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -81,23 +83,23 @@ public class QNSolver extends AbstractSolver {
 		String jobID = solutionPerJob.getJob().getId();
 		String vmID = solutionPerJob.getTypeVMselected().getId();
 
-		InputStream inputStreamMap = getClass().getResourceAsStream(String.format("/QN/%sMapJ%d%s.txt",  solID, jobID, vmID));
-		if (inputStreamMap == null) inputStreamMap = fileUtility.getFileAsStream(String.format("%sMapJ%d%s.txt", solID, jobID, vmID));
+		InputStream inputStreamMap = getClass().getResourceAsStream(String.format("/QN/%sMapJ%s%s.txt",  solID, jobID, vmID));
+		if (inputStreamMap == null) inputStreamMap = fileUtility.getFileAsStream(String.format("%sMapJ%s%s.txt", solID, jobID, vmID));
 
 		File tempFileMap = null;
 
 		if (inputStreamMap != null) {
-			tempFileMap = fileUtility.provideTemporaryFile(String.format("MapJ%d", jobID), ".txt");
+			tempFileMap = fileUtility.provideTemporaryFile(String.format("MapJ%s", jobID), ".txt");
 			FileOutputStream outputStreamTempMap = new FileOutputStream(tempFileMap);
 			IOUtils.copy(inputStreamMap, outputStreamTempMap);
 		}
 
-		InputStream inputStreamRS = getClass().getResourceAsStream(String.format("/QN/%sRSJ%d%s.txt", solID, jobID, vmID));
-		if (inputStreamRS == null) inputStreamRS = fileUtility.getFileAsStream(String.format("%sRSJ%d%s.txt", solID, jobID, vmID));
+		InputStream inputStreamRS = getClass().getResourceAsStream(String.format("/QN/%sRSJ%s%s.txt", solID, jobID, vmID));
+		if (inputStreamRS == null) inputStreamRS = fileUtility.getFileAsStream(String.format("%sRSJ%s%s.txt", solID, jobID, vmID));
 
 		File tempFileRS = null;
 		if (inputStreamRS != null) {
-			tempFileRS = fileUtility.provideTemporaryFile(String.format("RSJ%d", jobID), ".txt");
+			tempFileRS = fileUtility.provideTemporaryFile(String.format("RSJ%s", jobID), ".txt");
 			FileOutputStream outputStreamTempRS = new FileOutputStream(tempFileRS);
 			IOUtils.copy(inputStreamRS, outputStreamTempRS);
 		}
@@ -139,6 +141,11 @@ public class QNSolver extends AbstractSolver {
 		String jobID = solPerJob.getJob().getId();
 		String mapFileName = lst.get(0).getName();
 		String rsFileName = lst.get(1).getName();
+		
+	ObjectMapper om = new ObjectMapper();
+	om.writeValue(new File("/Users/jacoporigoli/Desktop/SPJ/"+solPerJob.getJob().getId()+solPerJob.getNumberUsers()+".json"), solPerJob);
+		
+		
 		String remoteMapFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), mapFileName);
 		String remoteRSFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), rsFileName);
 		String jsimgfileContent = new QNFileBuilder()
@@ -151,8 +158,8 @@ public class QNSolver extends AbstractSolver {
 
 		File jsimgTempFile;
 		if (iteration.isPresent()) jsimgTempFile = fileUtility.provideTemporaryFile(String
-				.format("QN-%s-class%d-it%d-", solPerJob.getParentID(), jobID, iteration.get()), ".jsimg");
-		else jsimgTempFile = fileUtility.provideTemporaryFile(String.format("QN-%s-class%d-",
+				.format("QN-%s-class%s-it%d-", solPerJob.getParentID(), jobID, iteration.get()), ".jsimg");
+		else jsimgTempFile = fileUtility.provideTemporaryFile(String.format("QN-%s-class%s-",
 				solPerJob.getParentID(), jobID), ".jsimg");
 
 		fileUtility.writeContentToFile(jsimgfileContent, jsimgTempFile);

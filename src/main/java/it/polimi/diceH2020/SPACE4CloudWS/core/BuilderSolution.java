@@ -35,6 +35,7 @@ public class BuilderSolution {
 
 	public Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
+		minlpSolver.reinitialize();
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);

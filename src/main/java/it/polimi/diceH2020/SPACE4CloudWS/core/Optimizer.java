@@ -28,7 +28,6 @@ public abstract class Optimizer {
 	
 	public void evaluate(@NonNull Solution sol) {
 		evaluate(sol.getLstSolutions());
-		
 		sol.setEvaluated(false);
 		evaluator.evaluate(sol);
 	}
