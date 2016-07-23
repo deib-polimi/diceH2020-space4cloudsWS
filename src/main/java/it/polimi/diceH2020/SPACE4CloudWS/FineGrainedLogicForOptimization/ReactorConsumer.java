@@ -51,8 +51,8 @@ public class ReactorConsumer implements Consumer<Event<SpjWrapperGivenHandN>>{
 	public void accept(Event<SpjWrapperGivenHandN> ev) {
 		SolutionPerJob spj = ev.getData().getSpj();
 		SpjOptimizerGivenH spjOptimizer = ev.getData().getHandler();
-		logger.info("|Q-STATUS| received spjWrapper"+spj.getParentID()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
-		if(calculateDuration(spj)){ //TODO if (1)OK else REGISTER WRONG SPJ 
+		logger.info("|Q-STATUS| received spjWrapper"+spj.getJob().getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
+		if(calculateDuration(spj)){ 
 			spjOptimizer.registerCorrectSolutionPerJob(spj);
 		}else{
 			spjOptimizer.registerFailedSolutionPerJob(spj);

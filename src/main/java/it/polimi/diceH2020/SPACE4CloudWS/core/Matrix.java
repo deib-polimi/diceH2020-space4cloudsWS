@@ -14,12 +14,13 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfigurationsMap;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
-
 public class Matrix {
 	
 	private ConcurrentHashMap<String,SolutionPerJob[]> matrix;
 	
 	private String matrixNVMString;
+	
+	private int numCells;
 	
 	public Matrix(){
 		matrix = new ConcurrentHashMap<>();
@@ -53,6 +54,15 @@ public class Matrix {
 	
 	public Iterable<Integer> getAllH(String row){
 		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getNumberUsers).collect(Collectors.toSet());
+	}
+	
+	public int getHlow(String row){
+		return matrix.get(row)[0].getJob().getHlow();
+	}
+	
+	public int getHup(String row){
+		int pos = matrix.get(row).length;
+		return matrix.get(row)[pos-1].getJob().getHup();
 	}
 	
 	public Iterable<Double> getAllCost(String row){
@@ -99,24 +109,31 @@ public class Matrix {
 		return matrix.size();
 	}
 	
+	public int getNumCells(){
+		numCells = 0;
+		matrix.forEach((k,v)->{
+			numCells += v.length;
+		});
+		return numCells; 
+	}
+	
 	public String asString(){
 		matrixNVMString = new String();
 		matrix.forEach((k,v)->{
-			matrixNVMString += " "+v[0].getJob().getId()+" | ";
+			matrixNVMString += v[0].getJob().getId()+"\t| ";
 			for(SolutionPerJob cell: v){
 				matrixNVMString += " H:"+cell.getNumberUsers()+",nVM:"+cell.getNumberVM();
-				if(cell.getFeasible()) matrixNVMString += ",F\t|";
-				else matrixNVMString += ",I\t|";
+				if(cell.getFeasible()) matrixNVMString += ",F  \t|";
+				else matrixNVMString += ",I  \t|";
 			}
-			matrixNVMString += "\n   | ";
+			matrixNVMString += "\n   \t| ";
 			for(SolutionPerJob cell: v){
-				matrixNVMString += " dur: "+cell.getDuration().intValue()+"\t|";
+				matrixNVMString += " dur: "+cell.getDuration().intValue()+"  \t|";
 			}
 			matrixNVMString += "\n";
 		});
 		//adding title
-		matrixNVMString = "Optimality Matrix(for solution"+matrix.entrySet().iterator().next().getValue()[0].getParentID()+" ):\n" + matrixNVMString;
+		matrixNVMString = "Optimality Matrix(for solution"+matrix.entrySet().iterator().next().getValue()[0].getParentID()+"):\n" + matrixNVMString;
 		return matrixNVMString;
 	}
-	
 }

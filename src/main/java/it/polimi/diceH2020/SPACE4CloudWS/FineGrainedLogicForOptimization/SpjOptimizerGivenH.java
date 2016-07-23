@@ -66,6 +66,7 @@ public class SpjOptimizerGivenH {
 			int nVMtmp = fun.apply(initialNVM);
 			if(1<=nVMtmp && nVMtmp<=maxVM){
 				SolutionPerJob nextJob = optimizer.cloneSpj(initialSpjWithGivenH);
+				
 				nextJob.setNumberVM(nVMtmp);
 				sendJob(nextJob);
 			}
@@ -73,7 +74,7 @@ public class SpjOptimizerGivenH {
 	}
 	
 	private synchronized void sendJob(SolutionPerJob job){
-		logger.info("J"+initialSpjWithGivenH.getParentID()+"."+initialSpjWithGivenH.getNumberUsers()+" enqueued job with NVM:"+job.getNumberVM());
+		logger.info("J"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+" enqueued job with NVM:"+job.getNumberVM());
 		
 		SpjWrapperGivenHandN spjWrapper =  new SpjWrapperGivenHandN(job,this);
 		
@@ -111,7 +112,6 @@ public class SpjOptimizerGivenH {
 	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj){
 		nVMxSPJ.put(spj.getNumberVM(), spj); 
 		printStatus();
-
 		if (finished) return;
 		logger.info("class" + initialSpjWithGivenH.getJob().getId() +"."+	initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - duration not received");
 		finished(-3); 
@@ -119,7 +119,7 @@ public class SpjOptimizerGivenH {
 	
 	private void printStatus(){
 		String printText = new String();
-		printText += "\nJ"+initialSpjWithGivenH.getParentID()+"."+initialSpjWithGivenH.getNumberUsers()+"\n";
+		printText += "\nJ"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+"\n";
 		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
 		printText += "sent nVM: "+sentNVM.stream().map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
 		printText += "finished: "+finished+"\n";
@@ -187,9 +187,6 @@ public class SpjOptimizerGivenH {
 		
 		return true;
 	}
-	
-	
-
 	
 	/**
 	 * Precondition:

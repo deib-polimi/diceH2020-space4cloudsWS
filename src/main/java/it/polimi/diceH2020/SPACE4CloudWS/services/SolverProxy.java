@@ -56,7 +56,7 @@ public class SolverProxy {
 
 	@Cacheable(value="cachedEval")
 	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
-		logger.info("Cache missing. Evaluation.");
+		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
 		return solver.evaluate(solPerJob);
 	}
 

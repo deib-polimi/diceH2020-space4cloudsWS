@@ -49,7 +49,7 @@ public class BuilderSolution {
 			dataService.getListTypeVM(jobClass).forEach(tVM -> {
 				if (checkState()) {
 					logger.info(String.format(
-							"---------- Starting optimization jobClass %d considering VM type %s ----------",
+							"---------- Starting optimization jobClass %s considering VM type %s ----------",
 							jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
 					Optional<BigDecimal> result = minlpSolver.evaluate(solutionPerJob);
