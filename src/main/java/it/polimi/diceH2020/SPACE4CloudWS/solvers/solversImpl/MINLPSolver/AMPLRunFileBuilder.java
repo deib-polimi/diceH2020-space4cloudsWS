@@ -56,6 +56,9 @@ class AMPLRunFileBuilder {
             case KNAPSACK:
                 resourceFilePath = "/AMPL/main_knapsack.template.run";
                 break;
+            case BIN_PACKING:
+                resourceFilePath = "/AMPL/main_bin_packing.template.run";
+                break;
             default:
                 throw new AssertionError("The required model is still not implemented");
         }

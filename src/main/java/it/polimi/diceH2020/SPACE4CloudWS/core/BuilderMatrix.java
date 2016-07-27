@@ -134,8 +134,13 @@ public class BuilderMatrix {
 	 * Selection of matrix cells to retrieve the best combination.
 	 * One and only one cell per row (one H for each Job).
 	 */
-	public void cellsSelection(Matrix matrix, Solution solution){
+	public void cellsSelectionWithKnapsack(Matrix matrix, Solution solution){
 		minlpSolver.setModelType(AMPLModelType.KNAPSACK);
+		minlpSolver.evaluate(matrix,solution);
+	}
+
+	public void cellsSelectionWithBinPacking(Matrix matrix, Solution solution){
+		minlpSolver.setModelType(AMPLModelType.BIN_PACKING);
 		minlpSolver.evaluate(matrix,solution);
 	}
 	

@@ -19,11 +19,6 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +47,7 @@ public class DataService {
 	private Scenarios cloudType = Scenarios.PublicAvgWorkLoad;
 
 	private Map<EntityKey, EntityTypeVM> mapTypeVM;
+	
 	private String NameProvider;
 
 	public Double getDeltaBar(TypeVM tVM) {

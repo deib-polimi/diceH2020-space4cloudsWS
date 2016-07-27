@@ -1,6 +1,5 @@
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Doubles;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
@@ -25,7 +24,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +38,9 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
 	
 	private AMPLModelType modelType = AMPLModelType.CENTRALIZED; 
+	
+	@Autowired
+	private AMPLSolFileParser solParser;
 	
 	@Autowired
 	private DataService dataService;
@@ -112,8 +113,10 @@ public class MINLPSolver extends AbstractSolver {
 			sendFile(localPath + "/centralized.run", connSettings.getRemoteWorkDir() + "/problems/centralized.run");
 			System.out.print("[#######       ] Sending work files\r");
 			sendFile(localPath + "/knapsack.run", connSettings.getRemoteWorkDir() + "/problems/knapsack.run");
-			System.out.print("[########      ] Sending work files\r");
-			sendFile(localPath + "/save_centralized.run", connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
+			System.out.print("[#######       ] Sending work files\r");
+			sendFile(localPath + "/bin_packing.run", connSettings.getRemoteWorkDir() + "/problems/bin_packing.run");
+//			System.out.print("[########      ] Sending work files\r");
+//			sendFile(localPath + "/save_centralized.run", connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.print("[#########     ] Sending work files\r");
 			sendFile(localPath + "/compute_s_d.run", connSettings.getRemoteWorkDir() + "/utils/compute_s_d.run");
 			System.out.print("[##########    ] Sending work files\r");
@@ -124,7 +127,10 @@ public class MINLPSolver extends AbstractSolver {
 			sendFile(localPath + "/save_centralized.run", connSettings.getRemoteWorkDir() + "/utils/save_centralized.run");
 			System.out.print("[############# ] Sending work files\r");
 			sendFile(localPath + "/save_knapsack.run", connSettings.getRemoteWorkDir() + "/utils/save_knapsack.run");
+			System.out.print("[############  ] Sending work files\r");
+			sendFile(localPath + "/save_bin_packing.run", connSettings.getRemoteWorkDir() + "/utils/save_bin_packing.run");
 			System.out.print("[##############] Sending work files\r");
+			
 			logger.info("AMPL files sent");
 		}
 	}
@@ -235,7 +241,9 @@ public class MINLPSolver extends AbstractSolver {
 	}
 	
 	protected List<File> createWorkingFiles(Matrix matrix,Solution sol) throws IOException{
-		AMPLDataFileBuilder builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(),matrix);
+		AMPLDataFileBuilder builder = null;
+		if(modelType.equals(AMPLModelType.KNAPSACK)) builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(),matrix);
+		else builder = AMPLDataFileUtils.binPackingBuilder(dataService.getData(),matrix);
 
 		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
 		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
@@ -245,7 +253,6 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(dataFile);
 		lst.add(resultsFile);
 		return lst;
-		
 	}
 	
 	@Override
@@ -259,7 +266,7 @@ public class MINLPSolver extends AbstractSolver {
 			pFiles = createWorkingFiles(solPerJob);
 			Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
 			File resultsFile = pFiles.get(1);
-			updateResults(Collections.singletonList(solPerJob), resultsFile);
+			solParser.updateResults(Collections.singletonList(solPerJob), resultsFile);
 			delete(pFiles);
 			return Optional.of(result.getLeft());
 		} catch (Exception e) {
@@ -267,7 +274,9 @@ public class MINLPSolver extends AbstractSolver {
 			return Optional.empty();
 		}
 	}
-
+	
+	
+	
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
 		List<File> pFiles;
@@ -275,7 +284,7 @@ public class MINLPSolver extends AbstractSolver {
 			pFiles = createWorkingFiles(solution);
 			Pair<BigDecimal, Boolean> result = run(pFiles, "full solution");
 			File resultsFile = pFiles.get(1);
-			updateResults(solution.getLstSolutions(), resultsFile);
+			solParser.updateResults(solution.getLstSolutions(), resultsFile);
 			delete(pFiles);
 			return Optional.of(result.getLeft());
 		} catch (Exception e) {
@@ -288,135 +297,14 @@ public class MINLPSolver extends AbstractSolver {
 		List<File> pFiles;
 		try {
 			pFiles = createWorkingFiles(matrix,solution);
-			Pair<BigDecimal, Boolean> result = run(pFiles, "knapsack solution");
+			Pair<BigDecimal, Boolean> result = run(pFiles, modelType + " solution");
 			File resultsFile = pFiles.get(1);
-			updateResults(solution,matrix, resultsFile);
+			solParser.updateResults(solution,matrix,resultsFile);
 			delete(pFiles);
 			return Optional.of(result.getLeft());
 		} catch (Exception e) {
 			logger.debug("Evaluate Matrix-no result due to an exception",e);
 			return Optional.empty();
-		}
-	}
-
-	private void updateResults(List<SolutionPerJob> solutions, File solutionFile) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(solutionFile))) {
-			String line = reader.readLine();
-
-			while (! line.contains("solve_result ")) {
-				line = reader.readLine();
-			}
-
-			String[] bufferStr = line.split("\\s+");
-			if (bufferStr[2].equals("infeasible")) {
-				logger.info("The problem is infeasible");
-				return;
-			}
-
-			while (! line.contains("t [*]")) {
-				line = reader.readLine();
-			}
-			
-			for (SolutionPerJob solutionPerJob : solutions) {
-				line = reader.readLine();
-				bufferStr = line.split("\\s+");
-
-				String localStr = bufferStr[1].replaceAll("\\s+", "");
-				solutionPerJob.setDuration(Double.parseDouble(localStr));
-			}
-
-			while (! line.contains("Variables")) {
-				line = reader.readLine();
-			}
-			line = reader.readLine();
-			while (line.contains(":")) {
-				line = reader.readLine();
-			}
-
-			for (SolutionPerJob solutionPerJob : solutions) {
-				bufferStr = line.split("\\s+");
-				double gamma = Double.parseDouble(bufferStr[2]);
-				int numVM = (int) Math.ceil(gamma);
-				solutionPerJob.setNumberVM(numVM);
-				double psi = Double.parseDouble(bufferStr[5]);
-				
-				double users = 1 / psi;
-				int numUsers = (int)Math.round(users);
-				solutionPerJob.setNumberUsers(numUsers);
-				line = reader.readLine();
-			}
-
-			while (! line.contains("### alphabeta")) {
-				line = reader.readLine();
-			}
-
-			reader.readLine();
-			for (SolutionPerJob solutionPerJob : solutions) {
-				line = reader.readLine();
-				bufferStr = line.split("\\s+");
-
-				String x = bufferStr[2].replaceAll("\\s+", "");
-				solutionPerJob.setAlfa(Double.parseDouble(x));
-
-				x = bufferStr[3].replaceAll("\\s+", "");
-				solutionPerJob.setBeta(Double.parseDouble(x));
-			}
-		}
-	}
-	
-	
-	private void updateResults(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
-			solution.getLstSolutions().clear();
-			
-			
-			ObjectMapper om = new ObjectMapper();
-			om.writeValue(new File("/Users/jacoporigoli/Desktop/Solution/matrix.json"),matrix);
-			System.out.println("matrix written");
-			
-			int[] selectedCells = new int[matrix.getNumRows()];
-			
-			String line = reader.readLine();
-			
-			while (! line.contains("solve_result ")) {
-				line = reader.readLine();
-			}
-
-			String[] bufferStr = line.split("\\s+");
-			if (bufferStr[2].equals("infeasible")) {
-				logger.info("The problem is infeasible");
-				initializeSolution(solution,matrix);
-				return;
-			}
-			
-			while (! line.contains("### Concurrency")) {
-				line = reader.readLine();
-			}
-			reader.readLine();
-			for(int i=0; i< selectedCells.length; i++){
-				line = reader.readLine();
-				bufferStr = line.split("\\s+");
-
-				String currentRow = bufferStr[0].replaceAll("\\s+", "");
-				String currentH = bufferStr[1].replaceAll("\\s+", "");
-				selectedCells[Integer.valueOf(currentRow)-1] = Integer.valueOf(currentH);
-			}
-			
-			int i=0;
-			for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
-				solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), selectedCells[i]));
-				i++;
-			}
-			
-			 om = new ObjectMapper();
-			om.writeValue(new File("/Users/jacoporigoli/Desktop/Solution/solution.json"),solution);
-			System.out.println("solution written");
-		}
-	}
-	
-	private void initializeSolution(Solution solution, Matrix matrix){
-		for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
-			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), entry.getValue()[0].getNumberUsers()));
 		}
 	}
 
@@ -452,11 +340,12 @@ public class MINLPSolver extends AbstractSolver {
 	
 	public void setModelType(AMPLModelType modelType){
 		this.modelType = modelType;
+		solParser.setModelType(modelType);
+		logger.debug("MINLP model set to: "+modelType);
 	}
 	
 	public void refresh(){
-		modelType = AMPLModelType.CENTRALIZED;
-		System.out.println("MODEL centralized as default");
+		setModelType(AMPLModelType.CENTRALIZED);
 	}
 
 }

@@ -65,8 +65,6 @@ class AMPLDataFileUtils {
 		return builder;
 	}
 	
-	
-	
 	@SuppressWarnings("unchecked")
 	static AMPLDataFileBuilder knapsackBuilder(InstanceData data, Matrix matrix) {
 		boolean tail = false;
@@ -129,6 +127,71 @@ class AMPLDataFileUtils {
 		builder.addIndexedArrayParameter("Mtilde", mTildeFirst, mTilde);
 		builder.addIndexedArrayParameter("Vtilde", vTildeFirst, vTilde);
 		
+		return builder;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	static AMPLDataFileBuilder binPackingBuilder(InstanceData data, Matrix matrix) {
+		boolean tail = false;
+
+		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(data.getNumberJobs());
+		builder.addScalarParameter("N", data.getPrivateCloudParameters().get().getN());
+		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
+		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
+		builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().get().getE());
+		
+		
+		Pair<Iterable<Integer>, Iterable<Double>>[] bigP = null,mTilde = null,vTilde = null;
+		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = null;
+		
+		if(matrix.getNumRows()>1){
+			tail = true;
+			
+			bigP=mTilde=vTilde=new Pair[matrix.getNumRows()-1];
+			nu = new Pair[matrix.getNumRows()-1];
+		}
+		
+		Pair<Iterable<Integer>, Iterable<Double>> bigPFirst,mTildeFirst,vTildeFirst; 
+		bigPFirst=mTildeFirst=vTildeFirst= null;
+		Pair<Iterable<Integer>, Iterable<Integer>> nuFirst = null;
+		
+		
+		int i = 0;
+		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
+			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
+			Iterable<Double> rowPenalty = matrix.getAllPenalty(row.getKey());
+			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations().get());
+			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations().get());
+			Iterable<Integer> rowNu = matrix.getAllNu(row.getKey());
+			
+			if(i==0){
+				bigPFirst = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowPenalty);
+				mTildeFirst = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowMtilde);
+				vTildeFirst = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowVtilde);
+				nuFirst = new ImmutablePair<Iterable<Integer>, Iterable<Integer>>(rowH, rowNu);
+			}else if(tail){
+				Pair<Iterable<Integer>, Iterable<Double>> p = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowPenalty);
+				Pair<Iterable<Integer>, Iterable<Double>> m = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowMtilde);
+				Pair<Iterable<Integer>, Iterable<Double>> v = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowVtilde);
+				Pair<Iterable<Integer>, Iterable<Integer>> n = new ImmutablePair<Iterable<Integer>, Iterable<Integer>>(rowH, rowNu);
+				//first received i, i=1
+				bigP[i-1] = p;
+				mTilde[i-1] = m;
+				vTilde[i-1] = v;
+				nu[i-1] = n;
+			}
+			builder.addIndexedSet("H", i+1, rowH);
+			i++;
+		}
+		
+//		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
+//		}
+		
+		builder.addIndexedArrayParameter("bigP", bigPFirst, bigP);
+		builder.addIndexedArrayParameter("Mtilde", mTildeFirst, mTilde);
+		builder.addIndexedArrayParameter("Vtilde", vTildeFirst, vTilde);
+		builder.addIndexedArrayParameter("nu", nuFirst, nu);
 		return builder;
 	}
 

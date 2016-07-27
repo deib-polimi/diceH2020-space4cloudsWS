@@ -119,7 +119,7 @@ public class SpjOptimizerGivenH {
 	
 	private void printStatus(){
 		String printText = new String();
-		printText += "\nJ"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+"\n";
+		printText += "\nJ"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
 		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
 		printText += "sent nVM: "+sentNVM.stream().map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
 		printText += "finished: "+finished+"\n";

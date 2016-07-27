@@ -69,6 +69,10 @@ public class Matrix {
 		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getCost).collect(Collectors.toSet());
 	}
 	
+	public Iterable<Double> getAllPenalty(String row){
+		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getPenalty).collect(Collectors.toSet());
+	}
+	
 	public Set<String> getAllSelectedVMid(String row){
 		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getTypeVMselected).map(TypeVM::getId).collect(Collectors.toSet());
 	}

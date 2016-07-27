@@ -37,7 +37,7 @@ class Evaluator implements IEvaluator {
 		double beta = solPerJob.getBeta();
 		double numberOfUsers = solPerJob.getNumberUsers();
 		System.out.println(deltaBar +" "+ solPerJob.getNumOnDemandVM() +" | "+ rhoBar +" "+ solPerJob.getNumReservedVM()
-				+" | "+ sigmaBar +" "+ solPerJob.getNumSpotVM() +" "+ alpha +" "+ numberOfUsers +" "+beta);
+				+" | "+ sigmaBar +" "+ solPerJob.getNumSpotVM() +" | ("+ alpha +"/"+ numberOfUsers +"-"+beta + ") = "+solPerJob.getPenalty());
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
 				+ sigmaBar * solPerJob.getNumSpotVM() + (alpha / numberOfUsers - beta);
 		BigDecimal c = BigDecimal.valueOf(cost).setScale(4, RoundingMode.HALF_EVEN);

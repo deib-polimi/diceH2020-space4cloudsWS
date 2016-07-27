@@ -9,8 +9,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -141,10 +139,6 @@ public class QNSolver extends AbstractSolver {
 		String jobID = solPerJob.getJob().getId();
 		String mapFileName = lst.get(0).getName();
 		String rsFileName = lst.get(1).getName();
-		
-	ObjectMapper om = new ObjectMapper();
-	om.writeValue(new File("/Users/jacoporigoli/Desktop/SPJ/"+solPerJob.getJob().getId()+solPerJob.getNumberUsers()+".json"), solPerJob);
-		
 		
 		String remoteMapFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), mapFileName);
 		String remoteRSFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), rsFileName);

@@ -26,7 +26,8 @@ import java.util.concurrent.Future;
 @Service
 @WithStateMachine
 public class EngineService {
-
+	//TODO factory for this service
+	
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
@@ -63,13 +64,13 @@ public class EngineService {
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {
 		try {
-			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)&&!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
 					solution = solBuilder.getInitialSolution();
 					matrix = null;
 			}else{
 				solution = matrixBuilder.getInitialSolution();
 				matrix = matrixBuilder.getInitialMatrix(solution);
-				System.out.println(matrix.asString());
+				logger.info(matrix.asString());
 			}
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
@@ -83,7 +84,7 @@ public class EngineService {
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
-			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)&&!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
 				optimizer.hillClimbing(solution);
 				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 			}else{
@@ -99,11 +100,17 @@ public class EngineService {
 	@Async("workExecutor")
 	public Future<String> reduceMatrix() {
 		try {
-			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
-				logger.error("Error while performing knapsack");
+			if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)&&!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
+				logger.error("Error with scenarios, trying to reduce matrix with wrong scenario!");
 				stateHandler.sendEvent(Events.STOP);
 			}else{
-				matrixBuilder.cellsSelection(matrix, solution);
+
+				if(dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+					matrixBuilder.cellsSelectionWithKnapsack(matrix, solution);
+				}else if(dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
+					matrixBuilder.cellsSelectionWithBinPacking(matrix, solution);
+				}
+				
 				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 			}
 		} catch (Exception e) {
@@ -153,7 +160,7 @@ public class EngineService {
 	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
-		if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+		if(!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)&&!dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
 			optimizer.evaluate(solution); //TODO this has to be changed. Evaluation must be placed into the evaluator
 		}else{
 			optimizer.evaluate(matrix);
