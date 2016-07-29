@@ -88,7 +88,7 @@ public class EngineService {
 				optimizer.hillClimbing(solution);
 				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 			}else{
-				fineGrainedOptimizer.hillClimbing(matrix,solution);
+				fineGrainedOptimizer.hillClimbing(matrix);
 			}
 		} catch (Exception e) {
 			logger.error("Error while performing local search", e);
@@ -110,7 +110,7 @@ public class EngineService {
 				}else if(dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
 					matrixBuilder.cellsSelectionWithBinPacking(matrix, solution);
 				}
-				
+				fineGrainedOptimizer.finish();
 				if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 			}
 		} catch (Exception e) {

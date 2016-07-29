@@ -2,7 +2,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +52,7 @@ public class Matrix {
 	}
 	
 	public Iterable<Integer> getAllH(String row){
-		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getNumberUsers).collect(Collectors.toSet());
+		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getNumberUsers).collect(Collectors.toList());
 	}
 	
 	public int getHlow(String row){
@@ -66,31 +65,53 @@ public class Matrix {
 	}
 	
 	public Iterable<Double> getAllCost(String row){
-		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getCost).collect(Collectors.toSet());
+		restoreInitialHup();
+		System.out.println("row"+row+" cost");
+		return Arrays.stream(matrix.get(row)).map(spj->{System.out.println(spj.getCost());return spj.getCost();}).collect(Collectors.toList());//TODO delete
+		//return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getCost).collect(Collectors.toList());
 	}
 	
 	public Iterable<Double> getAllPenalty(String row){
-		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getPenalty).collect(Collectors.toSet());
+		restoreInitialHup();
+		return Arrays.stream(matrix.get(row)).map(spj->{return spj.getJob().getHup() * spj.getJob().getJob_penalty() - spj.getNumberUsers();}).collect(Collectors.toList());
 	}
 	
-	public Set<String> getAllSelectedVMid(String row){
-		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getTypeVMselected).map(TypeVM::getId).collect(Collectors.toSet());
+	private void restoreInitialHup(){
+		for(Map.Entry<String, SolutionPerJob[]> row : matrix.entrySet()){
+			SolutionPerJob[] jobs = row.getValue();
+			int spjHup = 0;
+			for(int i=0;i<jobs.length;i++){
+				if(jobs[i].getJob().getHup() >  spjHup){
+					spjHup = jobs[i].getJob().getHup();
+				}
+			}
+			for(int i=0;i<jobs.length;i++){
+				JobClass job = jobs[i].getJob();
+				job.setHup(spjHup);
+				jobs[i].setAlfa(job.getJob_penalty() * job.getHup() * job.getHlow());
+				jobs[i].setCost();
+			}
+		}
 	}
 	
-	public Set<Double> getAllMtilde(String row,VMConfigurationsMap vmConfigurations){
-		Set<Double> mTildeSet = new HashSet<>();
+	public List<String> getAllSelectedVMid(String row){
+		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getTypeVMselected).map(TypeVM::getId).collect(Collectors.toList());
+	}
+	
+	public List<Double> getAllMtilde(String row,VMConfigurationsMap vmConfigurations){
+		List<Double> mTildeSet = new ArrayList<>();
 		for(String id : getAllSelectedVMid(row)){
 			mTildeSet.add(vmConfigurations.getMapVMConfigurations().get(id).getMemory());
 		}
 		return mTildeSet;
 	}
 	
-	public Set<Double> getAllVtilde(String row,VMConfigurationsMap vmConfigurations){
-		Set<Double> mTildeSet = new HashSet<>();
+	public List<Double> getAllVtilde(String row,VMConfigurationsMap vmConfigurations){
+		List<Double> vTildeSet = new ArrayList<>();
 		for(String id : getAllSelectedVMid(row)){
-			mTildeSet.add(vmConfigurations.getMapVMConfigurations().get(id).getCore());
+			vTildeSet.add(vmConfigurations.getMapVMConfigurations().get(id).getCore());
 		}
-		return mTildeSet;
+		return vTildeSet;
 	}
 	
 	public SolutionPerJob getCell(String row, int concurrencyLevel){
@@ -101,8 +122,8 @@ public class Matrix {
 		return  Arrays.stream(matrix.get(row)).findFirst().map(SolutionPerJob::getJob).map(JobClass::getId).get();
 	}
 	
-	public Set<Integer> getAllNu(String row){
-		Set<Integer> nuSet = new HashSet<>();
+	public List<Integer> getAllNu(String row){
+		List<Integer> nuSet = new ArrayList<>();
 		for(SolutionPerJob spj :  matrix.get(row)){
 			nuSet.add(spj.getNumReservedVM()+spj.getNumOnDemandVM()+spj.getNumSpotVM());
 		}

@@ -275,8 +275,6 @@ public class MINLPSolver extends AbstractSolver {
 		}
 	}
 	
-	
-	
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
 		List<File> pFiles;
@@ -327,7 +325,7 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(resultsFile);
 		return lst;
 	}
-	
+
 	@Override
 	public List<String> pwd() throws Exception {
 		return connector.pwd(getClass());
@@ -341,7 +339,7 @@ public class MINLPSolver extends AbstractSolver {
 	public void setModelType(AMPLModelType modelType){
 		this.modelType = modelType;
 		solParser.setModelType(modelType);
-		logger.debug("MINLP model set to: "+modelType);
+		logger.debug("MINLP model set to: " + modelType);
 	}
 	
 	public void refresh(){

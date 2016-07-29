@@ -74,28 +74,30 @@ class AMPLDataFileUtils {
 		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
 		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
 		
-		Pair<Iterable<Integer>, Iterable<Double>>[] bigC = null,mTilde = null,vTilde = null; 
+		Pair<Iterable<Integer>, Iterable<Double>>[] bigC = null;
+		Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = null;
+		Pair<Iterable<Integer>, Iterable<Double>>[] vTilde = null; 
 		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = null;
 		
 		if(matrix.getNumRows()>1){
 			tail = true;
 			
-			bigC=mTilde=vTilde=new Pair[matrix.getNumRows()-1];
+			bigC=new Pair[matrix.getNumRows()-1];
+			mTilde=new Pair[matrix.getNumRows()-1];
+			vTilde=new Pair[matrix.getNumRows()-1];
 			nu = new Pair[matrix.getNumRows()-1];
 		}
 		
-		Pair<Iterable<Integer>, Iterable<Double>> bigCFirst,mTildeFirst,vTildeFirst; 
-		bigCFirst=mTildeFirst=vTildeFirst= null;
+		Pair<Iterable<Integer>, Iterable<Double>> bigCFirst = null;
+		Pair<Iterable<Integer>, Iterable<Double>> mTildeFirst=null;
+		Pair<Iterable<Integer>, Iterable<Double>> vTildeFirst=null;
 		Pair<Iterable<Integer>, Iterable<Integer>> nuFirst = null;
-		
-		//Pair<Iterable<Integer>, Iterable<Double>>[] bigC = new Pair[matrix.getNumRows()-1];
-		//Pair<Iterable<Integer>, Iterable<Double>> bigCFirst = null;
-		
 		
 		int i = 0;
 		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
 			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
 			Iterable<Double> rowCost = matrix.getAllCost(row.getKey());
+			System.out.println(rowCost);
 			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations().get());
 			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations().get());
 			Iterable<Integer> rowNu = matrix.getAllNu(row.getKey());
@@ -142,20 +144,24 @@ class AMPLDataFileUtils {
 		builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().get().getE());
 		
 		
-		Pair<Iterable<Integer>, Iterable<Double>>[] bigP = null,mTilde = null,vTilde = null;
+		Pair<Iterable<Integer>, Iterable<Double>>[] bigP = null;
+		Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = null;
+		Pair<Iterable<Integer>, Iterable<Double>>[] vTilde = null;
 		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = null;
 		
 		if(matrix.getNumRows()>1){
 			tail = true;
 			
-			bigP=mTilde=vTilde=new Pair[matrix.getNumRows()-1];
+			bigP=new Pair[matrix.getNumRows()-1];
+			mTilde=new Pair[matrix.getNumRows()-1];
+			vTilde=new Pair[matrix.getNumRows()-1];
 			nu = new Pair[matrix.getNumRows()-1];
 		}
 		
-		Pair<Iterable<Integer>, Iterable<Double>> bigPFirst,mTildeFirst,vTildeFirst; 
-		bigPFirst=mTildeFirst=vTildeFirst= null;
+		Pair<Iterable<Integer>, Iterable<Double>> bigPFirst = null;
+		Pair<Iterable<Integer>, Iterable<Double>> mTildeFirst = null;
+		Pair<Iterable<Integer>, Iterable<Double>> vTildeFirst = null;
 		Pair<Iterable<Integer>, Iterable<Integer>> nuFirst = null;
-		
 		
 		int i = 0;
 		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
@@ -180,6 +186,7 @@ class AMPLDataFileUtils {
 				mTilde[i-1] = m;
 				vTilde[i-1] = v;
 				nu[i-1] = n;
+				
 			}
 			builder.addIndexedSet("H", i+1, rowH);
 			i++;

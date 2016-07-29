@@ -99,9 +99,10 @@ public class DataService {
 				typeVM.setCore(vm.getValue().getCore());
 				//typeVM.setMemory(vm.getValue().getMemory()); TODO settare la memoria nelle entry del DB 
 				
-				typeVM.setDeltabar(1);
 				typeVM.setRhobar(0);
 				typeVM.setSigmabar(0);
+				if(vm.getValue().getCost().isPresent()) typeVM.setDeltabar(vm.getValue().getCost().get());
+				else  typeVM.setDeltabar(1);
 				
 				typeVM.setProvider(new EntityProvider(vm.getValue().getProvider()));
 				map.put(key, typeVM);

@@ -11,12 +11,10 @@ import org.springframework.stereotype.Component;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization.SpjOptimizerGivenH;
 import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
-
 
 @Component
 public class OptimizerFineGrained extends Optimizer{
@@ -31,8 +29,6 @@ public class OptimizerFineGrained extends Optimizer{
 	
 	@Autowired
 	private EngineService engineService;
-
-	private Solution solution;
 	
 	private Instant first;
 	
@@ -49,12 +45,11 @@ public class OptimizerFineGrained extends Optimizer{
 		solverCache.changeSettings(settings);
 	}
 	
-	public void hillClimbing(Matrix matrix,Solution solution) {
-		this.solution = solution;
+	public void hillClimbing(Matrix matrix) {
 		this.matrix = matrix;
 		this.registeredSolutionsPerJob = 0;
 		first = Instant.now();
-		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", solution.getId()));
+		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", engineService.getSolution().getId()));
 		start();
 	}		
 	
@@ -71,17 +66,16 @@ public class OptimizerFineGrained extends Optimizer{
 			evaluator.evaluate(spj);
 		}
 		engineService.reduceMatrix(); //TODO modify automata in order to avoid this backward call
-		finish();
 	}
 	
-	private void finish(){
-		solution.setEvaluated(false); 
-		//evaluator.evaluate(solution); 
+	public void finish(){
+		engineService.getSolution().setEvaluated(false); 
+		evaluator.evaluate(engineService.getSolution()); 
 		Instant after = Instant.now();
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
 		ph.setDuration(Duration.between(first, after).toMillis());
-		solution.addPhase(ph);
+		engineService.getSolution().addPhase(ph);
 	}
 	
 	public synchronized void registerSPJGivenHOptimalNVM(SolutionPerJob spj){
