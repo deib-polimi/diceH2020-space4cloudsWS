@@ -1,3 +1,3 @@
-# diceH2020-space4cloudsWS
-SPACE4Clouds WS for the optimization of data intensive applications.
+# D-SPACE4Cloud Back End
 
+DICE tool for the optimisation of data intensive applications.
