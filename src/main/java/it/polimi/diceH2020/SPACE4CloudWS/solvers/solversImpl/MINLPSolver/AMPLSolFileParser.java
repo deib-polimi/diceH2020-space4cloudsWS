@@ -89,8 +89,7 @@ class AMPLSolFileParser {
 	protected void parseKnapsackSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
 			solution.getLstSolutions().clear();
-			
-			int[] selectedCells = new int[matrix.getNumRows()];
+			int[] selectedCells = new int[matrix.numNotFailedRows()];
 			
 			String line = reader.readLine();
 			
@@ -118,11 +117,12 @@ class AMPLSolFileParser {
 				selectedCells[Integer.valueOf(currentRow)-1] = Integer.valueOf(currentH);
 			}
 			
-			int i=0;
-			for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
-				solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), selectedCells[i]));
-				i++;
+			for(int c=0; c<selectedCells.length; c++){
+				solution.setSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
 			}
+			
+			//TODO for failed rows.. add json property? (so add rows to the final solution)
+			//Currently if a class has failed a partial solution is returned.
 			
 		}
 	}
@@ -131,7 +131,7 @@ class AMPLSolFileParser {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
 			solution.getLstSolutions().clear();
 			
-			int[] selectedCells = new int[matrix.getNumRows()];
+			int[] selectedCells = new int[matrix.numNotFailedRows()]; //foreach rows one and only one cell has to be selected
 			
 			String line = reader.readLine();
 			
@@ -159,11 +159,14 @@ class AMPLSolFileParser {
 				selectedCells[Integer.valueOf(currentRow)-1] = Integer.valueOf(currentH);
 			}
 			
-			int i=0;
-			for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
-				solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), selectedCells[i]));
-				i++;
+		
+			
+			for(int c=0; c<selectedCells.length; c++){
+				solution.setSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
 			}
+			
+			//TODO for failed rows.. add json property? (so add rows to the final solution)
+			//Currently if a class has failed a partial solution is returned.
 			
 		}
 	}

@@ -1,7 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
@@ -34,15 +33,6 @@ public class OptimizerCourseGrained extends Optimizer {
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-
-	public void restoreDefaults() {
-		solverCache.restoreDefaults();
-	}
-
-	// read an input file and type value of accuracy and cycles
-	public void changeSettings(Settings settings) {
-		solverCache.changeSettings(settings);
-	}
 
 	public void parallelLocalSearch(Solution solution) throws Exception {
 

@@ -66,10 +66,11 @@ class AMPLDataFileUtils {
 	}
 	
 	@SuppressWarnings("unchecked")
-	static AMPLDataFileBuilder knapsackBuilder(InstanceData data, Matrix matrix) {
+	static AMPLDataFileBuilder knapsackBuilder(InstanceData data, Matrix matrixWithoutHoles) {
 		boolean tail = false;
-
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(data.getNumberJobs());
+		Matrix matrix = matrixWithoutHoles.removeFailedSimulations();
+		
+		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(matrix.getNumRows());
 		builder.addScalarParameter("N", data.getPrivateCloudParameters().get().getN());
 		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
 		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
@@ -113,31 +114,33 @@ class AMPLDataFileUtils {
 				Pair<Iterable<Integer>, Iterable<Double>> v = new ImmutablePair<Iterable<Integer>, Iterable<Double>>(rowH, rowVtilde);
 				Pair<Iterable<Integer>, Iterable<Integer>> n = new ImmutablePair<Iterable<Integer>, Iterable<Integer>>(rowH, rowNu);
 				//first received i, i=1
+				
 				bigC[i-1] = c;
 				mTilde[i-1] = m;
 				vTilde[i-1] = v;
 				nu[i-1] = n;
 			}
 			builder.addIndexedSet("H", i+1, rowH);
+			matrixWithoutHoles.addNotFailedRow(i+1, row.getKey());
 			i++;
 		}
-		
+
 //		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
 //		}
 		builder.addIndexedArrayParameter("bigC", bigCFirst, bigC);
 		builder.addIndexedArrayParameter("nu", nuFirst, nu);
 		builder.addIndexedArrayParameter("Mtilde", mTildeFirst, mTilde);
 		builder.addIndexedArrayParameter("Vtilde", vTildeFirst, vTilde);
-		
 		return builder;
 	}
 	
 	
 	@SuppressWarnings("unchecked")
-	static AMPLDataFileBuilder binPackingBuilder(InstanceData data, Matrix matrix) {
+	static AMPLDataFileBuilder binPackingBuilder(InstanceData data, Matrix matrixWithoutHoles) {
 		boolean tail = false;
-
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(data.getNumberJobs());
+		Matrix matrix = matrixWithoutHoles.removeFailedSimulations();
+		
+		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(matrix.getNumRows());
 		builder.addScalarParameter("N", data.getPrivateCloudParameters().get().getN());
 		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
 		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
@@ -148,6 +151,8 @@ class AMPLDataFileUtils {
 		Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = null;
 		Pair<Iterable<Integer>, Iterable<Double>>[] vTilde = null;
 		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = null;
+		
+		
 		
 		if(matrix.getNumRows()>1){
 			tail = true;
@@ -189,6 +194,7 @@ class AMPLDataFileUtils {
 				
 			}
 			builder.addIndexedSet("H", i+1, rowH);
+			matrixWithoutHoles.addNotFailedRow(i+1, row.getKey());
 			i++;
 		}
 		

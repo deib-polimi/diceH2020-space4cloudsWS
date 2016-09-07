@@ -5,11 +5,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
@@ -21,14 +18,12 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class BuilderSolution {
+public class BuilderSolution extends Builder{
 	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
 	@Autowired
 	private DataService dataService;
 	@Autowired
 	private MINLPSolver minlpSolver;
-	@Autowired
-	private StateMachine<States, Events> stateHandler;
 	@Autowired
 	private IEvaluator evaluator;
 	private boolean error;
@@ -42,7 +37,6 @@ public class BuilderSolution {
 		startingSol.setGamma(dataService.getGamma());
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
-
 		// Phase 1
 		// SingleClass
 		dataService.getListJobClass().forEach(jobClass -> {
@@ -53,7 +47,12 @@ public class BuilderSolution {
 							"---------- Starting optimization jobClass %s considering VM type %s ----------",
 							jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
-					Optional<BigDecimal> result = minlpSolver.evaluate(solutionPerJob);
+					Optional<BigDecimal> result = null;
+					if(!settings.isSvr()){ //exploit SVR
+						 result = minlpSolver.evaluate(solutionPerJob); //TODO: still sequential?
+					}else{
+						 result = approximator.approximate(solutionPerJob);
+					}
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
@@ -98,20 +97,6 @@ public class BuilderSolution {
 		return startingSol;
 	}
 
-	//TODO
-	private void fallBack(Solution sol) {
-		sol.getLstSolutions().forEach(s -> {
-			s.setNumberVM(1);
-			s.setNumberUsers(s.getJob().getHup());
-			s.setAlfa(0.0);
-			s.setBeta(0.0);
-		});
-	}
-
-	private boolean checkState() {
-		return !stateHandler.getState().getId().equals(States.IDLE);
-	}
-
 	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass, @NotNull TypeVM typeVM) {
 		SolutionPerJob solPerJob = new SolutionPerJob();
 		solPerJob.setChanged(Boolean.TRUE);
@@ -124,6 +109,7 @@ public class BuilderSolution {
 		solPerJob.setRhoBar(dataService.getRhoBar(typeVM));
 		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM));
 		solPerJob.setProfile(dataService.getProfile(jobClass, typeVM));
+		solPerJob.setParentID(dataService.getData().getId());
 		return solPerJob;
 	}
 

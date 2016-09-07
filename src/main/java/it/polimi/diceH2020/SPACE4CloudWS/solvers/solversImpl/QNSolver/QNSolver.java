@@ -90,6 +90,8 @@ public class QNSolver extends AbstractSolver {
 			tempFileMap = fileUtility.provideTemporaryFile(String.format("MapJ%s", jobID), ".txt");
 			FileOutputStream outputStreamTempMap = new FileOutputStream(tempFileMap);
 			IOUtils.copy(inputStreamMap, outputStreamTempMap);
+		}else{
+			logger.info("Missing replayer Map file");
 		}
 
 		InputStream inputStreamRS = getClass().getResourceAsStream(String.format("/QN/%sRSJ%s%s.txt", solID, jobID, vmID));
@@ -100,6 +102,8 @@ public class QNSolver extends AbstractSolver {
 			tempFileRS = fileUtility.provideTemporaryFile(String.format("RSJ%s", jobID), ".txt");
 			FileOutputStream outputStreamTempRS = new FileOutputStream(tempFileRS);
 			IOUtils.copy(inputStreamRS, outputStreamTempRS);
+		}else{
+			logger.info("Missing replayer RS file");
 		}
 
 		List<File> lst = new ArrayList<>(2);

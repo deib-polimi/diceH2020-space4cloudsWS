@@ -2,11 +2,14 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import org.apache.log4j.Logger;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
@@ -14,6 +17,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfigura
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
 public class Matrix {
+	private final Logger logger = Logger.getLogger(getClass());
 	
 	private ConcurrentHashMap<String,SolutionPerJob[]> matrix;
 	
@@ -21,8 +25,12 @@ public class Matrix {
 	
 	private int numCells;
 	
+	private Map<Integer, String> mapForNotFailedRows;  
+	
+	
 	public Matrix(){
 		matrix = new ConcurrentHashMap<>();
+		mapForNotFailedRows = new HashMap<>();
 	}
 	
 	public void put(String key,SolutionPerJob[] value ){
@@ -94,6 +102,10 @@ public class Matrix {
 		}
 	}
 	
+	public boolean containsKey(String row){
+		return matrix.containsKey(row);
+	}
+	
 	public List<String> getAllSelectedVMid(String row){
 		return Arrays.stream(matrix.get(row)).map(SolutionPerJob::getTypeVMselected).map(TypeVM::getId).collect(Collectors.toList());
 	}
@@ -114,6 +126,12 @@ public class Matrix {
 		return vTildeSet;
 	}
 	
+	/**
+	 * 
+	 * @param row class ID
+	 * @param concurrencyLevel H of the given column
+	 * @return SolutionPerJob
+	 */
 	public SolutionPerJob getCell(String row, int concurrencyLevel){
 		return Arrays.stream(matrix.get(row)).filter(s->s.getNumberUsers()==concurrencyLevel).findFirst().get();
 	}
@@ -133,6 +151,35 @@ public class Matrix {
 	public int getNumRows(){
 		return matrix.size();
 	}
+	
+	/**
+	 * negative cells
+	 */
+	public Matrix removeFailedSimulations(){
+		
+		
+		Matrix matrixWithHoles = new Matrix();
+		
+		for (Map.Entry<String,SolutionPerJob[]> matrixRow : matrix.entrySet()){
+			int i = (int) Arrays.stream(matrix.get(matrixRow.getKey())).map(SolutionPerJob::getNumberVM).filter(v->v>0).count();
+			if(i != 0){
+				SolutionPerJob[] rowWithHoles = new SolutionPerJob[i];
+				i=0;
+				for(SolutionPerJob spj : matrixRow.getValue()){
+					if(spj.getNumberVM()>0){
+						rowWithHoles[i] = spj;
+						i++;
+					}
+				}
+				matrixWithHoles.put(matrixRow.getKey(),  rowWithHoles); 
+			}else{
+				//TODO
+				logger.info("All Simulations of Matrix row "+matrix.get(matrixRow.getKey())+", have failed! ");
+			}
+		}
+		return matrixWithHoles;
+	}
+	
 	
 	public int getNumCells(){
 		numCells = 0;
@@ -161,4 +208,21 @@ public class Matrix {
 		matrixNVMString = "Optimality Matrix(for solution"+matrix.entrySet().iterator().next().getValue()[0].getParentID()+"):\n" + matrixNVMString;
 		return matrixNVMString;
 	}
+
+	public String getNotFailedRow(Integer key) {
+		return mapForNotFailedRows.get(key);
+	}
+	
+	public boolean containsNotFailedRow(String value){
+		return mapForNotFailedRows.containsValue(value);
+	}
+	
+	public int numNotFailedRows(){
+		return mapForNotFailedRows.size();
+	}
+	
+	public void addNotFailedRow(Integer key, String value) {
+		mapForNotFailedRows.put(key, value);
+	}
+	
 }

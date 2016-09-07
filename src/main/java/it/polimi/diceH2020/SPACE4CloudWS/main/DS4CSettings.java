@@ -8,10 +8,11 @@ import org.springframework.stereotype.Component;
 
 import lombok.Data;
 @Component
-@ConfigurationProperties(prefix="s4c")
+@ConfigurationProperties(prefix="ds4c")
 @Data
 public class DS4CSettings {
 	private boolean parallel= false;
 	@Min(1)
 	private Integer availableCores = 1; //for fine Grained Optimization
+	private boolean svr = false;
 }

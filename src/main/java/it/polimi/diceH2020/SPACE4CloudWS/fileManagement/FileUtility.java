@@ -76,4 +76,8 @@ public class FileUtility {
 		}
 		else return null;
 	}
+	
+	public Path getLocalDynamicFolderPath(){
+		return LOCAL_DYNAMIC_FOLDER.toPath();
+	}
 }

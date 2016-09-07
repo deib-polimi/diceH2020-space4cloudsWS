@@ -12,6 +12,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfigura
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
@@ -49,6 +50,8 @@ public class DataService {
 	private Map<EntityKey, EntityTypeVM> mapTypeVM;
 	
 	private String NameProvider;
+	
+	private Matrix matrix; //with admission control till now used only in private 
 
 	public Double getDeltaBar(TypeVM tVM) {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
@@ -71,7 +74,6 @@ public class DataService {
 	}
 
 	public void setInstanceData(InstanceData inputData) {
-		
 		this.data = inputData;
 		this.jobNumber = data.getNumberJobs();
 		this.NameProvider = data.getProvider();
@@ -83,6 +85,7 @@ public class DataService {
 			loadDataFromJson();
 			considerOnlyReserved();
 		}
+		this.matrix = null;
 	}
 
 	private void loadDataFromDB(EntityProvider provider) {

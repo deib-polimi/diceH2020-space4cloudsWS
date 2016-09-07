@@ -11,7 +11,6 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
@@ -25,18 +24,14 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
 @Service
-public class BuilderMatrix {
+public class BuilderMatrix extends Builder{
 	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
 	@Autowired
 	private DataService dataService;
 	@Autowired
 	private MINLPSolver minlpSolver;
-	@Autowired
-	private StateMachine<States, Events> stateHandler;
 	@Autowired
 	private IEvaluator evaluator;
 	private boolean error;
@@ -58,15 +53,12 @@ public class BuilderMatrix {
 			SolutionPerJob solutionPerJob = createSolPerJob(jobClass);
 			startingSol.setSolutionPerJob(solutionPerJob);
 		});
-		
 		return startingSol;
 	}
 	
 	/**
 	 * for each SPJ in Solution for each concurrency level create a new SPJ and put into a matrix cell
 	 * for each cell calculate its duration
-	 * @param solution  
-	 * @return 
 	 */
 	public Matrix getInitialMatrix(Solution solution){
 		Instant first = Instant.now();
@@ -84,8 +76,12 @@ public class BuilderMatrix {
 					spj2.setParentID(dataService.getData().getId());
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
-					
-					Optional<BigDecimal> result = minlpSolver.evaluate(spj2); //TODO: still sequential?
+					Optional<BigDecimal> result = null;
+					if(!settings.isSvr()){ //exploit SVR
+						 result = minlpSolver.evaluate(spj2); //TODO: still sequential?
+					}else{
+						 result = approximator.approximate(spj2);
+					}
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
@@ -161,20 +157,6 @@ public class BuilderMatrix {
 			matrix.put(spj.getJob().getId(), matrixLine);
 		});
 		return matrix;
-	}
-
-	//TODO
-	private void fallBack(Solution sol) {
-		sol.getLstSolutions().forEach(s -> {
-			s.setNumberVM(1);
-			s.setNumberUsers(s.getJob().getHup());
-			s.setAlfa(0.0);
-			s.setBeta(0.0);
-		});
-	}
-
-	private boolean checkState() {
-		return !stateHandler.getState().getId().equals(States.IDLE);
 	}
 
 	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass) {

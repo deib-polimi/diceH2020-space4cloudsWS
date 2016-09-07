@@ -1,5 +1,6 @@
 package it.polimi.diceH2020.SPACE4CloudWS.main;
 
+import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineFactory;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.WrapperDispatcher;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
@@ -37,11 +38,14 @@ public class Initializator {
 
 	@Autowired
 	private FileUtility fileUtility;
-
+	
+	@Autowired
+	private EngineFactory engineFactory;
 
 	@PostConstruct
 	private void setSolver() {
 		solver = solverFactory.create();
+		engineFactory.create();
 	}
 
 
@@ -54,7 +58,7 @@ public class Initializator {
 			fileUtility.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
 			solver.initRemoteEnvironment();
-
+			
 			stateHandler.sendEvent(Events.MIGRATE);
 			logger.info("Current service state: " + stateHandler.getState().getId());
 		} catch (Exception e) {
