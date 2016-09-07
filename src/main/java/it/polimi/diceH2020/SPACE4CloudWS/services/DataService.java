@@ -70,7 +70,7 @@ public class DataService {
 		return this.mapTypeVM.get(key).getNumCores();
 	}
 
-	void setInstanceData(InstanceData inputData) {
+	public void setInstanceData(InstanceData inputData) {
 		
 		this.data = inputData;
 		this.jobNumber = data.getNumberJobs();

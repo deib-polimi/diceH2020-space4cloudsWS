@@ -12,7 +12,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization.SpjOptimizerGivenH;
+import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.SpjOptimizerGivenH;
 import it.polimi.diceH2020.SPACE4CloudWS.services.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 

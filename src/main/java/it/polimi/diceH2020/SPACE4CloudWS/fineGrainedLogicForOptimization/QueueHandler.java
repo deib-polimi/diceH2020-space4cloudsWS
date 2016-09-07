@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization;
+package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 
@@ -25,7 +25,7 @@ private final Logger logger = Logger.getLogger(QueueHandler.class.getName());
 	private ApplicationContext context;
 	
 	@Autowired
-	private S4CSettings settings;
+	private DS4CSettings settings;
 
 	
 	protected final Object qLock = new Object();

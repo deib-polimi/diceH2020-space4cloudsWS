@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization;
+package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import java.util.ArrayList;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization;
+package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 

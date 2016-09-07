@@ -1,4 +1,4 @@
-package it.polimi.diceH2020.SPACE4CloudWS.FineGrainedLogicForOptimization;
+package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

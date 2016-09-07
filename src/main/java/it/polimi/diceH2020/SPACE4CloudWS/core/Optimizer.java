@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -52,6 +53,16 @@ public abstract class Optimizer {
 		if (! result.isPresent()) solverCache.invalidate(solPerJob);
 		return result;
 	}
+	
+	public void restoreDefaults() {
+		solverCache.restoreDefaults();
+	}
+
+	// read an input file and type value of accuracy and cycles
+	public void changeSettings(Settings settings) {
+		solverCache.changeSettings(settings);
+	}
+
 	
 	
 }

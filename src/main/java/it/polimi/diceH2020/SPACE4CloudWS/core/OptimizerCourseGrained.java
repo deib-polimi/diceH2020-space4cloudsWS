@@ -3,7 +3,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
-import it.polimi.diceH2020.SPACE4CloudWS.main.S4CSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -30,7 +30,7 @@ public class OptimizerCourseGrained extends Optimizer {
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private S4CSettings settings;
+	private DS4CSettings settings;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
