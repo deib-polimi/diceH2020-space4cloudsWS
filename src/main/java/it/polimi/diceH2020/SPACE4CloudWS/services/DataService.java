@@ -8,6 +8,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfilesMap;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfiguration;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
@@ -17,6 +19,9 @@ import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import lombok.Data;
+import lombok.Getter;
+import lombok.AccessLevel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +56,10 @@ public class DataService {
 	
 	private String NameProvider;
 	
-	private Matrix matrix; //with admission control till now used only in private 
+	private Matrix matrix;
+	
+	@Getter(AccessLevel.PRIVATE)
+	private Optional<JobMLProfilesMap> mlProfileMap;
 
 	public Double getDeltaBar(TypeVM tVM) {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
@@ -72,6 +80,11 @@ public class DataService {
 		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
 		return this.mapTypeVM.get(key).getNumCores();
 	}
+	
+	public Double getMemory(TypeVM tVM) {
+		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
+		return this.mapTypeVM.get(key).getMemory();
+	}
 
 	public void setInstanceData(InstanceData inputData) {
 		this.data = inputData;
@@ -79,12 +92,16 @@ public class DataService {
 		this.NameProvider = data.getProvider();
 		this.cloudType = data.getScenario().get();
 		
+		if(data.getMapJobMLProfiles().getMapJobMLProfile()!=null){
+			this.mlProfileMap = Optional.of(data.getMapJobMLProfiles());
+		}
+		
 		if(cloudType.getCloudType().equals(CloudType.Public))
 			loadDataFromDB(new EntityProvider(this.NameProvider));
 		else{
 			loadDataFromJson();
 			considerOnlyReserved();
-		}
+		} //TODO other scenario
 		this.matrix = null;
 	}
 
@@ -100,9 +117,9 @@ public class DataService {
 				EntityKey key = new EntityKey(vm.getKey(), vm.getValue().getProvider());
 				EntityTypeVM typeVM  = new EntityTypeVM(vm.getKey());
 				typeVM.setCore(vm.getValue().getCore());
-				//typeVM.setMemory(vm.getValue().getMemory()); TODO settare la memoria nelle entry del DB 
+				typeVM.setMemory(vm.getValue().getMemory());  
 				
-				typeVM.setRhobar(0);
+				typeVM.setRhobar(0); 
 				typeVM.setSigmabar(0);
 				if(vm.getValue().getCost().isPresent()) typeVM.setDeltabar(vm.getValue().getCost().get());
 				else  typeVM.setDeltabar(1);
@@ -158,6 +175,11 @@ public class DataService {
 
 	public Profile getProfile(JobClass jobClass, TypeVM tVM) {
 		return data.getProfile(jobClass, tVM);
+	}
+	
+	public JobMLProfile getMLProfile(String id) throws NullPointerException{
+		if(!mlProfileMap.isPresent()) throw new NullPointerException();
+		return mlProfileMap.get().getMapJobMLProfile().get(id);
 	}
 
 	public int getGamma() {

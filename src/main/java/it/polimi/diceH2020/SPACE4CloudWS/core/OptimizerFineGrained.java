@@ -116,6 +116,7 @@ public class OptimizerFineGrained extends Optimizer{
 		newSpj.setRhoBar(oldSpj.getRhoBar());
 		newSpj.setSigmaBar(oldSpj.getSigmaBar());
 		newSpj.setTypeVMselected(oldSpj.getTypeVMselected());
+		newSpj.setXi(oldSpj.getXi());
 		return newSpj;
 	}
 }

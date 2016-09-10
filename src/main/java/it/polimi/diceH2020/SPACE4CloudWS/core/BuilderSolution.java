@@ -30,7 +30,8 @@ public class BuilderSolution extends Builder{
 
 	public Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
-		minlpSolver.reinitialize();
+		minlpSolver.reinitialize(); //TODO no more used here?
+		approximator.reinitialize();
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
@@ -47,6 +48,8 @@ public class BuilderSolution extends Builder{
 							"---------- Starting optimization jobClass %s considering VM type %s ----------",
 							jobClass.getId(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
+					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
+					solutionPerJob.getJob().setHlow(solutionPerJob.getJob().getHup());
 					Optional<BigDecimal> result = null;
 					if(!settings.isSvr()){ //exploit SVR
 						 result = minlpSolver.evaluate(solutionPerJob); //TODO: still sequential?
@@ -57,6 +60,7 @@ public class BuilderSolution extends Builder{
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(solutionPerJob);
+						logger.debug("Class"+solutionPerJob.getJob().getId()+"-> cost:"+cost+" users:"+solutionPerJob.getNumberUsers()+" #vm"+solutionPerJob.getNumberVM());
 					} else {
 						// as in this::fallback
 						solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());

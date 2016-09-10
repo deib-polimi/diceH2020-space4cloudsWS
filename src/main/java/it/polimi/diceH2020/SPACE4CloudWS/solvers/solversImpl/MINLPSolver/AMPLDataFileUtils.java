@@ -21,20 +21,20 @@ class AMPLDataFileUtils {
 		builder.addArrayParameter("HUp",   Ints.asList(jClass.getHup()));
 		builder.addArrayParameter("HLow", Ints.asList(jClass.getHlow()));
 		builder.addArrayParameter("job_penalty", Doubles.asList(jClass.getJob_penalty()));
-		builder.addArrayParameter("NM", Ints.asList(prof.getNM()));
-		builder.addArrayParameter("NR", Ints.asList(prof.getNR()));
+		builder.addArrayParameter("NM", Ints.asList(prof.getNm()));
+		builder.addArrayParameter("NR", Ints.asList(prof.getNr()));
 		builder.addArrayParameter("D", Doubles.asList(jClass.getD()));
 		builder.addArrayParameter("Mmax", Doubles.asList(prof.getMmax()));
 		builder.addArrayParameter("Mavg", Doubles.asList(prof.getMavg()));
 		builder.addArrayParameter("Rmax", Doubles.asList(prof.getRmax()));
 		builder.addArrayParameter("Ravg", Doubles.asList(prof.getRavg()));
-		builder.addArrayParameter("SH1max", Doubles.asList(prof.getSH1max()));
-		builder.addArrayParameter("SHtypavg", Doubles.asList(prof.getSHtypavg()));
-		builder.addArrayParameter("SHtypmax", Doubles.asList(prof.getSHtypmax()));
+		builder.addArrayParameter("SH1max", Doubles.asList(prof.getSh1max()));
+		builder.addArrayParameter("SHtypavg", Doubles.asList(prof.getShtypavg()));
+		builder.addArrayParameter("SHtypmax", Doubles.asList(prof.getShtypmax()));
 		builder.addArrayParameter("R", Ints.asList(tVM.getR()));
 		builder.addArrayParameter("eta", Doubles.asList(tVM.getEta()));
-		builder.addArrayParameter("cM", Ints.asList(prof.getCM()));
-		builder.addArrayParameter("cR", Ints.asList(prof.getCR()));
+		builder.addArrayParameter("cM", Ints.asList(prof.getCm()));
+		builder.addArrayParameter("cR", Ints.asList(prof.getCr()));
 
 		return builder;
 	}

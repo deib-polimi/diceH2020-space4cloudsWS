@@ -14,6 +14,7 @@ public class EntityTypeVM {
 	@JoinColumn(name = "pId")
 	private EntityProvider provider;
 	private double core;
+	private double memory;
 	private double deltabar;
 	// cost reserved
 	private double rhobar;
@@ -42,6 +43,14 @@ public class EntityTypeVM {
 
 	public void setCore(double core) {
 		this.core = core;
+	}
+	
+	public double getMemory() {
+		return memory;
+	}
+
+	public void setMemory(double memory) {
+		this.memory = memory;
 	}
 
 	public double getDeltabar() {

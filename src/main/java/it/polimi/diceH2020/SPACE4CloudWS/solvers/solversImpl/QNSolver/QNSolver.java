@@ -137,8 +137,8 @@ public class QNSolver extends AbstractSolver {
 		List<File> lst = createProfileFiles(solPerJob);
 		Integer nContainers = solPerJob.getNumberContainers();
 		Integer concurrency = solPerJob.getNumberUsers();
-		Integer numMap = solPerJob.getProfile().getNM();
-		Integer numReduce = solPerJob.getProfile().getNR();
+		Integer numMap = solPerJob.getProfile().getNm();
+		Integer numReduce = solPerJob.getProfile().getNr();
 		Double think = solPerJob.getJob().getThink();
 		String jobID = solPerJob.getJob().getId();
 		String mapFileName = lst.get(0).getName();

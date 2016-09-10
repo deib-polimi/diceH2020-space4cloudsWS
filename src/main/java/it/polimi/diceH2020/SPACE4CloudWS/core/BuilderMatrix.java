@@ -62,7 +62,8 @@ public class BuilderMatrix extends Builder{
 	 */
 	public Matrix getInitialMatrix(Solution solution){
 		Instant first = Instant.now();
-		minlpSolver.reinitialize();
+		minlpSolver.reinitialize(); //TODO no more used here?
+		approximator.reinitialize();
 		Matrix tmpMatrix = createTmpMatrix(solution);
 		Matrix matrix = new Matrix();
 		
@@ -86,10 +87,11 @@ public class BuilderMatrix extends Builder{
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(spj2);
-						logger.debug("Cost for "+spj2.getJob().getId()+"with "+spj2.getNumberUsers()+"users is: "+cost);
+						logger.debug("Class"+spj2.getJob().getId()+"-> cost:"+cost+" users:"+spj2.getNumberUsers()+" #vm"+spj2.getNumberVM());
 					} else {
 						// as in this::fallback
 						spj2.setNumberUsers(spj2.getJob().getHup());
+						spj2.setXi(1); //TODO
 						spj2.setNumberVM(1);
 						logger.info("No result from solver for evaluating SPJ");
 					}
@@ -201,6 +203,7 @@ public class BuilderMatrix extends Builder{
 		newSpj.setPos(oldSpj.getPos());
 		newSpj.setRhoBar(oldSpj.getRhoBar());
 		newSpj.setSigmaBar(oldSpj.getSigmaBar());
+		newSpj.setXi(oldSpj.getXi());
 		
 		newSpj.setJob(cloneJob(oldSpj.getJob()));
 		//newSpj.setTypeVMselected(cloneVM(oldSpj.getTypeVMselected()));
@@ -211,17 +214,17 @@ public class BuilderMatrix extends Builder{
 	
 	private Profile cloneProfile(Profile oldProfile){
 		Profile profile = new Profile();
-		profile.setCM(oldProfile.getCM());
-		profile.setCR(oldProfile.getCR());
+		profile.setCm(oldProfile.getCm());
+		profile.setCr(oldProfile.getCr());
 		profile.setMavg(oldProfile.getMavg());
 		profile.setMmax(oldProfile.getMmax());
-		profile.setNM(oldProfile.getNM());
-		profile.setNR(oldProfile.getNR());
+		profile.setNm(oldProfile.getNm());
+		profile.setNr(oldProfile.getNr());
 		profile.setRavg(oldProfile.getRavg());
 		profile.setRmax(oldProfile.getRmax());
-		profile.setSH1max(oldProfile.getSH1max());
-		profile.setSHtypavg(oldProfile.getSHtypavg());
-		profile.setSHtypmax(oldProfile.getSHtypmax());
+		profile.setSh1max(oldProfile.getSh1max());
+		profile.setShtypavg(oldProfile.getShtypavg());
+		profile.setShtypmax(oldProfile.getShtypmax());
 		return profile;
 	}
 	
