@@ -1,3 +1,18 @@
+/*
+Copyright 2016 Michele Ciavotta
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +46,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
-
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class) // 2
@@ -129,12 +143,11 @@ public class Test5 {
 
         when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("FINISH"));
 
-		Solution sol = get("/solution").body().as(Solution.class);
-		
-		String serialized = mapper.writeValueAsString(sol);
-		System.out.println(serialized);
-		Files.write(Paths.get("src/test/resources/solFinal.json"), serialized.getBytes());
-    }
+        Solution sol = get("/solution").body().as(Solution.class);
 
+        String serialized = mapper.writeValueAsString(sol);
+        System.out.println(serialized);
+        Files.write(Paths.get("src/test/resources/solFinal.json"), serialized.getBytes());
+    }
 
 }

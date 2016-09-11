@@ -1,29 +1,38 @@
+/*
+Copyright 2016 Jacopo Rigoli
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.validation.constraints.NotNull;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 
 @Service
 public class BuilderMatrix extends Builder{
@@ -35,9 +44,9 @@ public class BuilderMatrix extends Builder{
 	@Autowired
 	private IEvaluator evaluator;
 	private boolean error;
-	
+
 	/**
-	 * 
+	 *
 	 * @return Initialized Solution with its initialized SolutionPerJob
 	 * @throws Exception
 	 */
@@ -55,7 +64,7 @@ public class BuilderMatrix extends Builder{
 		});
 		return startingSol;
 	}
-	
+
 	/**
 	 * for each SPJ in Solution for each concurrency level create a new SPJ and put into a matrix cell
 	 * for each cell calculate its duration
@@ -66,7 +75,7 @@ public class BuilderMatrix extends Builder{
 		approximator.reinitialize();
 		Matrix tmpMatrix = createTmpMatrix(solution);
 		Matrix matrix = new Matrix();
-		
+
 		for (Map.Entry<String,SolutionPerJob[]> matrixRow : tmpMatrix.entrySet()) {
 			SolutionPerJob[] matrixLine = new SolutionPerJob[matrixRow.getValue().length];
 			int i = 0;
@@ -79,9 +88,9 @@ public class BuilderMatrix extends Builder{
 					spj2.setNumberUsers(spj.getNumberUsers());
 					Optional<BigDecimal> result = null;
 					if(!settings.isSvr()){ //exploit SVR
-						 result = minlpSolver.evaluate(spj2); //TODO: still sequential?
+						result = minlpSolver.evaluate(spj2); //TODO: still sequential?
 					}else{
-						 result = approximator.approximate(spj2);
+						result = approximator.approximate(spj2);
 					}
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;
@@ -106,13 +115,13 @@ public class BuilderMatrix extends Builder{
 						TypeVM minTVM = s.getTypeVMselected();
 						logger.info("For job class " + s.getJob().getId() + " with H="+s.getNumberUsers()+ " has been selected the machine " + minTVM.getId());
 					});
-					matrixLine[i] = min.get(); 
+					matrixLine[i] = min.get();
 				}
 				i++;
 			}
 			matrix.put(matrixRow.getKey(), matrixLine);
 		}
-		
+
 		if (error) {
 			fallBack(solution);
 		}
@@ -124,10 +133,10 @@ public class BuilderMatrix extends Builder{
 		ph.setDuration(Duration.between(first, after).toMillis());
 		solution.addPhase(ph);
 		logger.info("---------- Initial matrix correctly created ----------");
-		
+
 		return matrix;
 	}
-	
+
 	/**
 	 * Selection of matrix cells to retrieve the best combination.
 	 * One and only one cell per row (one H for each Job).
@@ -141,10 +150,10 @@ public class BuilderMatrix extends Builder{
 		minlpSolver.setModelType(AMPLModelType.BIN_PACKING);
 		minlpSolver.evaluate(matrix,solution);
 	}
-	
+
 	private Matrix createTmpMatrix(Solution solution){
 		Matrix matrix = new Matrix();
-		
+
 		solution.getLstSolutions().stream().forEach(spj->{
 			int Hup = spj.getJob().getHup();
 			int Hlow = spj.getJob().getHlow();
@@ -167,10 +176,10 @@ public class BuilderMatrix extends Builder{
 		solPerJob.setFeasible(Boolean.FALSE);
 		solPerJob.setDuration(Double.MAX_VALUE);
 		solPerJob.setJob(jobClass);
-	
+
 		return solPerJob;
 	}
-	
+
 	private void setTypeVM(SolutionPerJob solPerJob, @NotNull TypeVM typeVM){
 		solPerJob.setTypeVMselected(typeVM);
 		solPerJob.setNumCores(dataService.getNumCores(typeVM));
@@ -179,11 +188,11 @@ public class BuilderMatrix extends Builder{
 		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM));
 		solPerJob.setProfile(dataService.getProfile(solPerJob.getJob(), typeVM));
 	}
-	
-	
+
+
 	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
 		SolutionPerJob newSpj = new SolutionPerJob();
-		
+
 		newSpj.setAlfa(oldSpj.getAlfa());
 		newSpj.setBeta(oldSpj.getBeta());
 		newSpj.setChanged(oldSpj.getChanged());
@@ -204,14 +213,14 @@ public class BuilderMatrix extends Builder{
 		newSpj.setRhoBar(oldSpj.getRhoBar());
 		newSpj.setSigmaBar(oldSpj.getSigmaBar());
 		newSpj.setXi(oldSpj.getXi());
-		
+
 		newSpj.setJob(cloneJob(oldSpj.getJob()));
 		//newSpj.setTypeVMselected(cloneVM(oldSpj.getTypeVMselected()));
 		newSpj.setProfile(cloneProfile(oldSpj.getProfile()));
-		
+
 		return newSpj;
 	}
-	
+
 	private Profile cloneProfile(Profile oldProfile){
 		Profile profile = new Profile();
 		profile.setCm(oldProfile.getCm());
@@ -227,7 +236,7 @@ public class BuilderMatrix extends Builder{
 		profile.setShtypmax(oldProfile.getShtypmax());
 		return profile;
 	}
-	
+
 	private JobClass cloneJob(JobClass oldJob){
 		JobClass job = new JobClass();
 		job.setD(oldJob.getD());
@@ -238,7 +247,7 @@ public class BuilderMatrix extends Builder{
 		job.setM(oldJob.getM());
 		job.setThink(oldJob.getThink());
 		job.setV(oldJob.getV());
-		
+
 		return job;
 	}
 
@@ -249,5 +258,5 @@ public class BuilderMatrix extends Builder{
 		typeVM.setR(oldTypeVM.getR());
 		return typeVM;
 	}
-	
+
 }

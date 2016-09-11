@@ -1,3 +1,19 @@
+/*
+Copyright 2016 Michele Ciavotta
+Copyright 2016 Jacopo Rigoli
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.engines;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
@@ -23,23 +39,23 @@ import java.util.concurrent.Future;
 @WithStateMachine
 public class EngineService implements Engine{
 	//TODO factory for this service
-	
+
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
 	private OptimizerCourseGrained optimizer;
-	
+
 	@Autowired
 	private BuilderSolution solBuilder;
-	
+
 	@Autowired
 	private DataService dataService;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-	
+
 	private Solution solution;
-	
+
 	public Solution getSolution() {
 		return solution;
 	}
@@ -72,7 +88,7 @@ public class EngineService implements Engine{
 		}
 		logger.info(stateHandler.getState().getId());
 	}
-	
+
 	//Used only for Tests
 	public Optional<Solution> generateInitialSolution() {
 		try {
@@ -111,9 +127,9 @@ public class EngineService implements Engine{
 	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
-		optimizer.evaluate(solution); 
+		optimizer.evaluate(solution);
 		//TODO this has to be changed. Evaluation must be placed into the evaluator
-		
+
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
 	}

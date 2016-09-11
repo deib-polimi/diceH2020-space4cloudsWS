@@ -1,3 +1,20 @@
+/*
+Copyright 2016 Michele Ciavotta
+Copyright 2016 Jacopo Rigoli
+Copyright 2016 Eugenio Gianniti
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
@@ -52,9 +69,9 @@ public class BuilderSolution extends Builder{
 					solutionPerJob.getJob().setHlow(solutionPerJob.getJob().getHup());
 					Optional<BigDecimal> result = null;
 					if(!settings.isSvr()){ //exploit SVR
-						 result = minlpSolver.evaluate(solutionPerJob); //TODO: still sequential?
+						result = minlpSolver.evaluate(solutionPerJob); //TODO: still sequential?
 					}else{
-						 result = approximator.approximate(solutionPerJob);
+						result = approximator.approximate(solutionPerJob);
 					}
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;

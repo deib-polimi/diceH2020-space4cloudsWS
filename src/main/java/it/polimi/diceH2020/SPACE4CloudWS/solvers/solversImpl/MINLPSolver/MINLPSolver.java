@@ -1,3 +1,20 @@
+/*
+Copyright 2016 Michele Ciavotta
+Copyright 2016 Eugenio Gianniti
+Copyright 2016 Jacopo Rigoli
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.google.common.primitives.Doubles;
@@ -19,7 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
@@ -36,12 +56,12 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTE_RESULTS = "/results";
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
-	
-	private AMPLModelType modelType = AMPLModelType.CENTRALIZED; 
-	
+
+	private AMPLModelType modelType = AMPLModelType.CENTRALIZED;
+
 	@Autowired
 	private AMPLSolFileParser solParser;
-	
+
 	@Autowired
 	private DataService dataService;
 
@@ -49,7 +69,7 @@ public class MINLPSolver extends AbstractSolver {
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
 		return MINLPSettings.class;
 	}
-	
+
 	public void reinitialize() {
 		modelType = AMPLModelType.CENTRALIZED;
 	}
@@ -130,7 +150,7 @@ public class MINLPSolver extends AbstractSolver {
 			System.out.print("[############  ] Sending work files\r");
 			sendFile(localPath + "/save_bin_packing.run", connSettings.getRemoteWorkDir() + "/utils/save_bin_packing.run");
 			System.out.print("[##############] Sending work files\r");
-			
+
 			logger.info("AMPL files sent");
 		}
 	}
@@ -239,7 +259,7 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(resultsFile);
 		return lst;
 	}
-	
+
 	protected List<File> createWorkingFiles(Matrix matrix,Solution sol) throws IOException{
 		AMPLDataFileBuilder builder = null;
 		if(modelType.equals(AMPLModelType.KNAPSACK)) builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(),matrix);
@@ -254,11 +274,11 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(resultsFile);
 		return lst;
 	}
-	
+
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
 		if (! solPerJob.getChanged()) return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
-		
+
 		JobClass jobClass = solPerJob.getJob();
 		String jobID = jobClass.getId();
 		List<File> pFiles;
@@ -274,7 +294,7 @@ public class MINLPSolver extends AbstractSolver {
 			return Optional.empty();
 		}
 	}
-	
+
 	@Override
 	public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
 		List<File> pFiles;
@@ -290,7 +310,7 @@ public class MINLPSolver extends AbstractSolver {
 			return Optional.empty();
 		}
 	}
-	
+
 	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix,@NonNull Solution solution) {
 		List<File> pFiles;
 		try {
@@ -335,13 +355,13 @@ public class MINLPSolver extends AbstractSolver {
 	public SshConnectorProxy getConnector() {
 		return connector;
 	}
-	
+
 	public void setModelType(AMPLModelType modelType){
 		this.modelType = modelType;
 		solParser.setModelType(modelType);
 		logger.debug("MINLP model set to: " + modelType);
 	}
-	
+
 	public void refresh(){
 		setModelType(AMPLModelType.CENTRALIZED);
 	}

@@ -1,13 +1,29 @@
+/*
+Copyright 2016 Michele Ciavotta
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.get;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.when;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -26,17 +42,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.jayway.restassured.internal.mapper.ObjectMapperType;
-import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
-
+import static com.jayway.restassured.module.mockmvc.RestAssuredMockMvc.*;
 
 @RunWith(SpringJUnit4ClassRunner.class) // 1
 @SpringApplicationConfiguration(classes = it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS.class) // 2
@@ -74,39 +84,38 @@ public class Test6 {
         System.out.println(data.toString());
     }
 
+    @Test
+    public void test0PutInputData() throws IOException {
+        when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
 
-	@Test
-	public void test0PutInputData() throws IOException {
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
+        given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
+                .statusCode(HttpStatus.SC_OK);
 
-		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
-				.statusCode(HttpStatus.SC_OK);
+        when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
 
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
+        //InstanceData data = post("/debug/event").body().as(InstanceData.class);
 
-		//InstanceData data = post("/debug/event").body().as(InstanceData.class);
-		
-		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2).when()
-				.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING_INIT"));
-		String body = "RUNNING_INIT";
-		while (body.equals("RUNNING_INIT")) {
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			body = get("/state").getBody().asString();
-		}
-		
-		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));	
+        given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2).when()
+                .post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING_INIT"));
+        String body = "RUNNING_INIT";
+        while (body.equals("RUNNING_INIT")) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            body = get("/state").getBody().asString();
+        }
 
-		Solution sol = get("/solution").body().as(Solution.class);
-		
-		String serialized = mapper.writeValueAsString(sol);
-		System.out.println(serialized);
-		 Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
+        when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
 
-	}
+        Solution sol = get("/solution").body().as(Solution.class);
+
+        String serialized = mapper.writeValueAsString(sol);
+        System.out.println(serialized);
+        Files.write(Paths.get("src/test/resources/sol.json"), serialized.getBytes());
+
+    }
 
     @Test
     public void test1() {
@@ -136,6 +145,5 @@ public class Test6 {
         when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("FINISH"));
 
     }
-
 
 }

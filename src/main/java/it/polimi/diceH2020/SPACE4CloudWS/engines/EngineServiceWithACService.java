@@ -1,14 +1,30 @@
+/*
+Copyright 2016 Michele Ciavotta
+Copyright 2016 Jacopo Rigoli
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.engines;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.core.BuilderMatrix;
 import it.polimi.diceH2020.SPACE4CloudWS.core.BuilderSolution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
 import it.polimi.diceH2020.SPACE4CloudWS.core.OptimizerFineGrained;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.core.BuilderMatrix;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
@@ -27,7 +43,7 @@ import java.util.concurrent.Future;
 @WithStateMachine
 public class EngineServiceWithACService implements Engine{
 	//TODO factory for this service
-	
+
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
@@ -36,7 +52,7 @@ public class EngineServiceWithACService implements Engine{
 
 	@Autowired
 	private BuilderSolution solBuilder;
-	
+
 	@Autowired
 	private BuilderMatrix matrixBuilder;
 
@@ -45,9 +61,9 @@ public class EngineServiceWithACService implements Engine{
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-	
+
 	private Solution solution;
-	
+
 	private Matrix matrix; //with admission control till now used only in private 
 
 	public Solution getSolution() {
@@ -83,7 +99,7 @@ public class EngineServiceWithACService implements Engine{
 		}
 		logger.info(stateHandler.getState().getId());
 	}
-	
+
 	@Async("workExecutor")
 	public Future<String> reduceMatrix() {
 		try {
@@ -129,12 +145,12 @@ public class EngineServiceWithACService implements Engine{
 	public void evaluatingInitSolution() {
 		optimizer.evaluate(matrix);
 		solution.setEvaluated(false);
-		
+
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
 	}
-	
-	
+
+
 	//Used only for Tests
 	public Optional<Solution> generateInitialSolution() {
 		try {

@@ -1,3 +1,18 @@
+/*
+Copyright 2016 Michele Ciavotta
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
@@ -51,18 +66,18 @@ public class Test4 {
 	@Test
 	public void test1() {
 		if (get("/state").getBody().asString().equals("IDLE")) {
-			
+
 			given().contentType("application/json; charset=UTF-16").body(solution).when().post("/solution").then()
 					.statusCode(HttpStatus.SC_OK);
 
 			when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
 		}
 	}
-	
+
 	@Test
 	public void test2(){
 		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_LS, ObjectMapperType.JACKSON_2)
-		.when().post("/event").then().statusCode(HttpStatus.SC_OK);
+				.when().post("/event").then().statusCode(HttpStatus.SC_OK);
 		String body = "RUNNING_LS";
 		while (body.equals("RUNNING_LS")) {
 			try {
@@ -76,6 +91,5 @@ public class Test4 {
 		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("FINISH"));
 
 	}
-
 
 }
