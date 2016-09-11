@@ -3,13 +3,14 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<organization>
-		<name>Politecnico di Milano</name>
-	</organization>
 	<groupId>it.polimi.diceH2020</groupId>
 	<artifactId>D-SPACE4Cloud</artifactId>
 	<version>0.3.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
+
+	<organization>
+		<name>Politecnico di Milano</name>
+	</organization>
 
 	<name>D-SPACE4Cloud</name>
 	<description>
@@ -136,14 +137,6 @@
 	</dependencies>
 
 	<repositories>
-		<repository>
-			<id>spring-snapshots</id>
-			<name>Spring Snapshots</name>
-			<url>http://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
 		<repository>
 			<id>deib-polimi-releases</id>
 			<url>https://github.com/deib-polimi/deib-polimi-mvn-repo/raw/master/releases</url>
