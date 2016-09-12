@@ -67,8 +67,8 @@ public class SpjOptimizerGivenH {
 		 */
 		batchFunctionsList.add(n -> n);
 		//Neighborhood: 
-		batchFunctionsList.add(n -> n + batchStep);
-		batchFunctionsList.add(n -> n - batchStep);
+//		batchFunctionsList.add(n -> n + batchStep);
+//		batchFunctionsList.add(n -> n - batchStep);
 
 		sentNVM = new ArrayList<Integer>();
 	}

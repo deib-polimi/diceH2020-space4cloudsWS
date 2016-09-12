@@ -30,6 +30,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +54,7 @@ public class DataService {
 
 	private Solution currentSolution;
 
-	private Scenarios cloudType = Scenarios.PublicAvgWorkLoad;
+	private Scenarios scenario = Scenarios.PublicAvgWorkLoad;
 
 	private Map<EntityKey, EntityTypeVM> mapTypeVM;
 
@@ -93,7 +94,7 @@ public class DataService {
 		this.data = inputData;
 		this.jobNumber = data.getNumberJobs();
 		this.NameProvider = data.getProvider();
-		this.cloudType = data.getScenario().get();
+		this.scenario = data.getScenario().get();
 		
 		if(data.getMapJobMLProfiles() != null ){
 			if(data.getMapJobMLProfiles().getMapJobMLProfile()!=null){
@@ -101,12 +102,21 @@ public class DataService {
 			}
 		}
 
-		if(cloudType.getCloudType().equals(CloudType.Public))
+		if(scenario.getCloudType().equals(CloudType.Public)){
 			loadDataFromDB(new EntityProvider(this.NameProvider));
+			if(scenario.equals(Scenarios.PublicAvgWorkLoad)){
+				considerOnlyReserved();
+				overrideDBLocalData();
+			}
+		}
 		else{
 			loadDataFromJson();
 			considerOnlyReserved();
-		} //TODO other scenario
+		}
+		
+		if(!scenario.equals(Scenarios.PrivateAdmissionControl)&&!scenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
+			makeInputDataConsistent();
+		}
 		this.matrix = null;
 	}
 
@@ -114,9 +124,15 @@ public class DataService {
 		this.mapTypeVM = daoService.typeVMFindAllToMap(provider);
 	}
 
+	/**
+	 * Set mapTypeVm by fetching JSON data (In the Public Case this map is retrieved from DB) 
+	 */
 	private void loadDataFromJson(){
+		if(mapTypeVM.isEmpty()){
+			//TODO error state
+		}
 		HashMap<EntityKey, EntityTypeVM> map = new HashMap<EntityKey, EntityTypeVM>();
-
+		
 		if(data.getMapVMConfigurations().get().getMapVMConfigurations().size()>0){
 			for (Map.Entry<String, VMConfiguration> vm : data.getMapVMConfigurations().get().getMapVMConfigurations().entrySet()) {
 				EntityKey key = new EntityKey(vm.getKey(), vm.getValue().getProvider());
@@ -135,11 +151,25 @@ public class DataService {
 		}
 		this.mapTypeVM = map ;
 	}
+	
+	private void overrideDBLocalData(){
+		for(Map.Entry<EntityKey, EntityTypeVM> entry : mapTypeVM.entrySet()){
+			entry.getValue().setRhobar(0);
+			entry.getValue().setSigmabar(0);
+		}
+	}
 
 	private void considerOnlyReserved(){
 		this.data.setMapTypeVMs(Optional.of(initializeMapTypeVMs(data.getMapProfiles())));
 	}
-
+	
+	private void makeInputDataConsistent(){
+		for(JobClass jobClass : this.data.getLstClass()){
+			jobClass.setHlow(jobClass.getHup());
+			jobClass.setJob_penalty(0);
+		}
+	}
+	
 	/**
 	 *
 	 * @param mapProfiles is used to get all couples (typeVM_id, job_id) (unique json common parameter that have this list)

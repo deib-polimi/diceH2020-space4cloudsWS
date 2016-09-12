@@ -103,9 +103,9 @@ public class EngineServiceWithACService implements Engine{
 	@Async("workExecutor")
 	public Future<String> reduceMatrix() {
 		try {
-			if(dataService.getCloudType().equals(Scenarios.PrivateAdmissionControl)){
+			if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControl)){
 				matrixBuilder.cellsSelectionWithKnapsack(matrix, solution);
-			}else if(dataService.getCloudType().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
+			}else if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
 				matrixBuilder.cellsSelectionWithBinPacking(matrix, solution);
 			}
 			optimizer.finish();
