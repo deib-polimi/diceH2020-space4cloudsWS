@@ -94,9 +94,11 @@ public class DataService {
 		this.jobNumber = data.getNumberJobs();
 		this.NameProvider = data.getProvider();
 		this.cloudType = data.getScenario().get();
-
-		if(data.getMapJobMLProfiles().getMapJobMLProfile()!=null){
-			this.mlProfileMap = Optional.of(data.getMapJobMLProfiles());
+		
+		if(data.getMapJobMLProfiles() != null ){
+			if(data.getMapJobMLProfiles().getMapJobMLProfile()!=null){
+				this.mlProfileMap = Optional.of(data.getMapJobMLProfiles());
+			}
 		}
 
 		if(cloudType.getCloudType().equals(CloudType.Public))
