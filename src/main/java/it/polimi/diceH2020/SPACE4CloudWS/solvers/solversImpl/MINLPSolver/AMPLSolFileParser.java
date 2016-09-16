@@ -83,16 +83,16 @@ class AMPLSolFileParser {
 			}
 
 			reader.readLine();
-			for (SolutionPerJob solutionPerJob : solutions) {
-				line = reader.readLine();
-				bufferStr = line.split("\\s+");
-
-				String x = bufferStr[2].replaceAll("\\s+", "");
-				solutionPerJob.setAlfa(Double.parseDouble(x));
-
-				x = bufferStr[3].replaceAll("\\s+", "");
-				solutionPerJob.setBeta(Double.parseDouble(x));
-			}
+//			for (SolutionPerJob solutionPerJob : solutions) {
+//				line = reader.readLine();
+//				bufferStr = line.split("\\s+");
+//
+//				String x = bufferStr[2].replaceAll("\\s+", "");
+//				solutionPerJob.setAlfa(Double.parseDouble(x));
+//
+//				x = bufferStr[3].replaceAll("\\s+", "");
+//				solutionPerJob.setBeta(Double.parseDouble(x));
+//			}
 		}
 	}
 

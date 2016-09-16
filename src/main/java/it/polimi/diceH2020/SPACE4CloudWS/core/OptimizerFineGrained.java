@@ -98,8 +98,6 @@ public class OptimizerFineGrained extends Optimizer{
 	
 	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
 		SolutionPerJob newSpj = new SolutionPerJob();
-		newSpj.setAlfa(oldSpj.getAlfa());
-		newSpj.setBeta(oldSpj.getBeta());
 		newSpj.setChanged(oldSpj.getChanged());
 		newSpj.setCost(oldSpj.getCost());
 		newSpj.setDeltaBar(oldSpj.getDeltaBar());

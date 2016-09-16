@@ -48,7 +48,6 @@ public class BuilderSolution extends Builder{
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
-		startingSol.setGamma(dataService.getGamma());
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
 

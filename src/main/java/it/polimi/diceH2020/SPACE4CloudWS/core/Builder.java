@@ -37,8 +37,6 @@ public abstract class Builder {
 		sol.getLstSolutions().forEach(s -> {
 			s.setNumberVM(1);
 			s.setNumberUsers(s.getJob().getHup());
-			s.setAlfa(0.0);
-			s.setBeta(0.0);
 		});
 	}
 

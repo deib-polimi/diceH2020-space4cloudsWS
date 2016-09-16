@@ -52,7 +52,6 @@ public class BuilderMatrix extends Builder{
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
 		startingSol.setPrivateCloudParameters(dataService.getData().getPrivateCloudParameters());
-		startingSol.setGamma(dataService.getGamma());
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
 		dataService.getListJobClass().forEach(jobClass -> {
@@ -171,8 +170,6 @@ public class BuilderMatrix extends Builder{
 	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
 		SolutionPerJob newSpj = new SolutionPerJob();
 
-		newSpj.setAlfa(oldSpj.getAlfa());
-		newSpj.setBeta(oldSpj.getBeta());
 		newSpj.setChanged(oldSpj.getChanged());
 		newSpj.setCost(oldSpj.getCost());
 		newSpj.setDeltaBar(oldSpj.getDeltaBar());

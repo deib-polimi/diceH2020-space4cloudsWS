@@ -58,11 +58,12 @@ class Evaluator implements IEvaluator {
 		double deltaBar = solPerJob.getDeltaBar();
 		double rhoBar = solPerJob.getRhoBar();
 		double sigmaBar = solPerJob.getSigmaBar();
-		double alpha = solPerJob.getAlfa();
-		double beta = solPerJob.getBeta();
-		double numberOfUsers = solPerJob.getNumberUsers();
+		double currentNumberOfUsers = solPerJob.getNumberUsers();
+		double maxNumberOfUsers =  solPerJob.getJob().getHup();
+		
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
-				+ sigmaBar * solPerJob.getNumSpotVM() + (alpha / numberOfUsers - beta);
+		+ sigmaBar * solPerJob.getNumSpotVM() + ( maxNumberOfUsers - currentNumberOfUsers);
+		
 		BigDecimal c = BigDecimal.valueOf(cost).setScale(4, RoundingMode.HALF_EVEN);
 		double decCost = c.doubleValue();
 		solPerJob.setCost(decCost);
