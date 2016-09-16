@@ -23,79 +23,12 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.util.List;
 import java.util.Map.Entry;
 
 @Component
 class AMPLSolFileParser {
 	private AMPLModelType model = AMPLModelType.KNAPSACK;
 	private Logger logger = Logger.getLogger(getClass());
-
-	protected void parseSolution(List<SolutionPerJob> solutions, File solutionFile) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(solutionFile))) {
-			String line = reader.readLine();
-
-			while (! line.contains("solve_result ")) {
-				line = reader.readLine();
-			}
-
-			String[] bufferStr = line.split("\\s+");
-			if (bufferStr[2].equals("infeasible")) {
-				logger.info("The problem is infeasible");
-				return;
-			}
-
-			while (! line.contains("t [*]")) {
-				line = reader.readLine();
-			}
-
-			for (SolutionPerJob solutionPerJob : solutions) {
-				line = reader.readLine();
-				bufferStr = line.split("\\s+");
-
-				String localStr = bufferStr[1].replaceAll("\\s+", "");
-				solutionPerJob.setDuration(Double.parseDouble(localStr));
-			}
-
-			while (! line.contains("Variables")) {
-				line = reader.readLine();
-			}
-			line = reader.readLine();
-			while (line.contains(":")) {
-				line = reader.readLine();
-			}
-
-			for (SolutionPerJob solutionPerJob : solutions) {
-				bufferStr = line.split("\\s+");
-				double gamma = Double.parseDouble(bufferStr[2]);
-				int numVM = (int) Math.ceil(gamma);
-				solutionPerJob.setNumberVM(numVM);
-				double psi = Double.parseDouble(bufferStr[5]);
-
-				double users = 1 / psi;
-				int numUsers = (int)Math.round(users);
-				solutionPerJob.setNumberUsers(numUsers);
-				line = reader.readLine();
-			}
-
-			while (! line.contains("### alphabeta")) {
-				line = reader.readLine();
-			}
-
-			reader.readLine();
-//			for (SolutionPerJob solutionPerJob : solutions) {
-//				line = reader.readLine();
-//				bufferStr = line.split("\\s+");
-//
-//				String x = bufferStr[2].replaceAll("\\s+", "");
-//				solutionPerJob.setAlfa(Double.parseDouble(x));
-//
-//				x = bufferStr[3].replaceAll("\\s+", "");
-//				solutionPerJob.setBeta(Double.parseDouble(x));
-//			}
-		}
-	}
-
 
 	protected void parseKnapsackSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
@@ -185,10 +118,6 @@ class AMPLSolFileParser {
 	AMPLSolFileParser setModelType(AMPLModelType amplModelType) {
 		model = amplModelType;
 		return this;
-	}
-
-	protected void updateResults(List<SolutionPerJob> solutions, File solutionFile) throws IOException{
-		parseSolution(solutions, solutionFile);
 	}
 
 	protected void updateResults(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException{

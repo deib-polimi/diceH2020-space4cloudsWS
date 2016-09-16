@@ -17,7 +17,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -254,26 +253,6 @@ public class MINLPSolver extends AbstractSolver {
 		lst.add(dataFile);
 		lst.add(resultsFile);
 		return lst;
-	}
-
-	@Override
-	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
-		if (! solPerJob.getChanged()) return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
-
-		JobClass jobClass = solPerJob.getJob();
-		String jobID = jobClass.getId();
-		List<File> pFiles;
-		try {
-			pFiles = createWorkingFiles(solPerJob);
-			Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
-			File resultsFile = pFiles.get(1);
-			solParser.updateResults(Collections.singletonList(solPerJob), resultsFile);
-			delete(pFiles);
-			return Optional.of(result.getLeft());
-		} catch (Exception e) {
-			logger.debug("Evaluate SolutionPerJob-no result due to an exception",e);
-			return Optional.empty();
-		}
 	}
 
 	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix,@NonNull Solution solution) {
