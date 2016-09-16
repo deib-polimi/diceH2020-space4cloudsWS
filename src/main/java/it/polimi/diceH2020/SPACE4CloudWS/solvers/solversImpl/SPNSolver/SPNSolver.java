@@ -125,14 +125,14 @@ public class SPNSolver extends AbstractSolver {
         JobClass jobClass = solPerJob.getJob();
         Profile prof = solPerJob.getProfile();
         String jobID = jobClass.getId();
-        double mAvg = prof.getMavg();
-        double rAvg = prof.getRavg();
-        double shTypAvg = prof.getShtypavg();
+        double mAvg = prof.get("mavg");
+        double rAvg = prof.get("ravg");
+        double shTypAvg = prof.get("shtypavg");
         double think = jobClass.getThink();
 
         int nUsers = solPerJob.getNumberUsers();
-        int NM = prof.getNm();
-        int NR = prof.getNr();
+        int NM = (int) prof.get("nm");
+        int NR = (int) prof.get("nr");
 
         String prefix;
         if (iteration.isPresent()) {

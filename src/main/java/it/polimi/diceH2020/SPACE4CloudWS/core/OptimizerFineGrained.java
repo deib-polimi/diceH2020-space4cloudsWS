@@ -15,20 +15,17 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.SpjOptimizerGivenH;
-import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-
-import java.time.Duration;
-import java.time.Instant;
 
 @Component
 public class OptimizerFineGrained extends Optimizer{
@@ -39,12 +36,7 @@ public class OptimizerFineGrained extends Optimizer{
 	private ApplicationContext context;
 
 	@Autowired
-	private SolverProxy solverCache;
-
-	@Autowired
 	private EngineProxy engineProxy;
-
-	private Instant first;
 
 	boolean finished = false;
 
@@ -53,21 +45,19 @@ public class OptimizerFineGrained extends Optimizer{
 	String matrixNVMString;
 
 	int registeredSolutionsPerJob;
-
-	// read an input file and type value of accuracy and cycles
-	public void changeDefaultSettings(Settings settings) { //TODO
-		solverCache.changeSettings(settings);
-	}
+	
+	private long executionTime;
+	
 
 	public void hillClimbing(Matrix matrix) {
 		this.matrix = matrix;
 		this.registeredSolutionsPerJob = 0;
-		first = Instant.now();
 		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", engineProxy.getEngine().getSolution().getId()));
 		start();
 	}
 
 	private void start(){
+		executionTime = 0L;
 		for(SolutionPerJob spj: matrix.getAllSolutions() ){
 			SpjOptimizerGivenH spjOptimizer =  (SpjOptimizerGivenH) context.getBean("spjOptimizerGivenH",spj,1,dataService.getGamma());
 			spjOptimizer.start();
@@ -75,25 +65,25 @@ public class OptimizerFineGrained extends Optimizer{
 	}
 
 	private void aggregateAndFinish(){
-
+		
 		for(SolutionPerJob spj : matrix.getAllSolutions()){
 			evaluator.evaluate(spj);
 		}
+		Phase ph = new Phase();
+		ph.setId(PhaseID.OPTIMIZATION);
+		ph.setDuration(executionTime);
+		engineProxy.getEngine().getSolution().addPhase(ph);
 		engineProxy.getEngine().reduceMatrix(); //TODO modify automata in order to avoid this backward call
 	}
 
 	public void finish(){
 		engineProxy.getEngine().getSolution().setEvaluated(false);
 		evaluator.evaluate(engineProxy.getEngine().getSolution());
-		Instant after = Instant.now();
-		Phase ph = new Phase();
-		ph.setId(PhaseID.OPTIMIZATION);
-		ph.setDuration(Duration.between(first, after).toMillis());
-		engineProxy.getEngine().getSolution().addPhase(ph);
 	}
 
-	public synchronized void registerSPJGivenHOptimalNVM(SolutionPerJob spj){
+	public synchronized void registerSPJGivenHOptimalNVM(SolutionPerJob spj,long executionTime){
 		finished = true;
+		this.executionTime += executionTime;
 		//optimalNVMGivenH[spj.getJob().getId()-1][h-1] = nVM;
 		matrix.get(spj.getJob().getId())[spj.getNumberUsers()-matrix.getHlow(spj.getJob().getId())] = spj;
 
@@ -105,7 +95,7 @@ public class OptimizerFineGrained extends Optimizer{
 			aggregateAndFinish();
 		}
 	}
-
+	
 	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
 		SolutionPerJob newSpj = new SolutionPerJob();
 		newSpj.setAlfa(oldSpj.getAlfa());

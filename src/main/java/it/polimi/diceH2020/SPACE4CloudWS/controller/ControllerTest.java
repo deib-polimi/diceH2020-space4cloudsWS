@@ -17,7 +17,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineService;
+import it.polimi.diceH2020.SPACE4CloudWS.core.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityJobClass;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
@@ -27,6 +27,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.repositories.JobRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.ProviderRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.TypeVMRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class ControllerTest {
 	
 	@Autowired
 	FileUtility fileUtility;
+	
+	@Autowired
+	Validator validator;
 	
 	@Autowired
 	InstanceData inputData;
@@ -111,7 +115,7 @@ public class ControllerTest {
 	@RequestMapping(method = RequestMethod.GET, value = "debug/solution")
 	@Profile("test")
 	public Solution getSolutionDebug() {
-		engineService.setInstanceData(inputData);
+		validator.setInstanceData(inputData);
 		//stateHandler.sendEvent(Events.MIGRATE);
 		Optional<Solution> sol = engineService.generateInitialSolution(); 
 		return sol.isPresent()? sol.get(): null;

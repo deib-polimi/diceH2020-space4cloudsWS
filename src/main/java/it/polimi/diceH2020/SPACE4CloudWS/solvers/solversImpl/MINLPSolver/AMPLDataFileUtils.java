@@ -17,69 +17,17 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import com.google.common.primitives.Doubles;
-import com.google.common.primitives.Ints;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.*;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
 import java.util.Map.Entry;
 
 class AMPLDataFileUtils {
 
-	static AMPLDataFileBuilder singleClassBuilder(int gamma, JobClass jClass, TypeVM tVM, Profile prof) {
-
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(1);
-		builder.addScalarParameter("Gamma", gamma);
-		builder.addArrayParameter("HUp",   Ints.asList(jClass.getHup()));
-		builder.addArrayParameter("HLow", Ints.asList(jClass.getHlow()));
-		builder.addArrayParameter("job_penalty", Doubles.asList(jClass.getJob_penalty()));
-		builder.addArrayParameter("NM", Ints.asList(prof.getNm()));
-		builder.addArrayParameter("NR", Ints.asList(prof.getNr()));
-		builder.addArrayParameter("D", Doubles.asList(jClass.getD()));
-		builder.addArrayParameter("Mmax", Doubles.asList(prof.getMmax()));
-		builder.addArrayParameter("Mavg", Doubles.asList(prof.getMavg()));
-		builder.addArrayParameter("Rmax", Doubles.asList(prof.getRmax()));
-		builder.addArrayParameter("Ravg", Doubles.asList(prof.getRavg()));
-		builder.addArrayParameter("SH1max", Doubles.asList(prof.getSh1max()));
-		builder.addArrayParameter("SHtypavg", Doubles.asList(prof.getShtypavg()));
-		builder.addArrayParameter("SHtypmax", Doubles.asList(prof.getShtypmax()));
-		builder.addArrayParameter("R", Ints.asList(tVM.getR()));
-		builder.addArrayParameter("eta", Doubles.asList(tVM.getEta()));
-		builder.addArrayParameter("cM", Ints.asList(prof.getCm()));
-		builder.addArrayParameter("cR", Ints.asList(prof.getCr()));
-
-		return builder;
-	}
-
-	static AMPLDataFileBuilder multiClassBuilder(InstanceData data, List<TypeVMJobClassKey> lstKeys) {
-
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(data.getNumberJobs());
-
-		List<JobClass> lstJob = data.getListJobs(lstKeys);
-
-		builder.addScalarParameter("Gamma", data.getGamma());
-		builder.addArrayParameter("HUp",  data.getHUp(lstJob));
-		builder.addArrayParameter("HLow", data.getHLow(lstJob));
-		builder.addArrayParameter("job_penalty", data.getJob_penalty());
-		builder.addArrayParameter("NM", data.getNM(lstKeys));
-		builder.addArrayParameter("NR", data.getNR(lstKeys));
-		builder.addArrayParameter("D", data.getD(lstJob));
-		builder.addArrayParameter("Mmax", data.getMmax(lstKeys));
-		builder.addArrayParameter("Mavg", data.getMavg(lstKeys));
-		builder.addArrayParameter("Rmax", data.getRmax(lstKeys));
-		builder.addArrayParameter("Ravg", data.getRavg(lstKeys));
-		builder.addArrayParameter("SH1max", data.getSH1max(lstKeys));
-		builder.addArrayParameter("SHtypavg", data.getSHtypavg(lstKeys));
-		builder.addArrayParameter("SHtypmax", data.getSHtypmax(lstKeys));
-		builder.addArrayParameter("R", data.getR(lstKeys));
-		builder.addArrayParameter("eta", data.getEta(lstKeys));
-
-		return builder;
-	}
 
 	@SuppressWarnings("unchecked")
 	static AMPLDataFileBuilder knapsackBuilder(InstanceData data, Matrix matrixWithoutHoles) {

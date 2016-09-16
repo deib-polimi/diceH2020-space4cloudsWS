@@ -14,47 +14,53 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package it.polimi.diceH2020.SPACE4CloudWS.engines;
+package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.core.BuilderSolution;
-import it.polimi.diceH2020.SPACE4CloudWS.core.OptimizerCourseGrained;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.annotation.WithStateMachine;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.concurrent.Future;
 
 @Service
 @WithStateMachine
-public class EngineService implements Engine{
-	//TODO factory for this service
+public class EngineServiceWithACService implements Engine{
 
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private OptimizerCourseGrained optimizer;
+	private BuilderMatrix matrixBuilder;
 
 	@Autowired
-	private BuilderSolution solBuilder;
-
+	@Lazy
+	private OptimizerFineGrained optimizer;
+	
 	@Autowired
-	private DataService dataService;
+	private Evaluator evaluator;
+	
+	@Autowired
+	private DataProcessor dataProcessor;
+	
+	@Autowired
+	private Selector selector;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
 	private Solution solution;
+
+	private Matrix matrix; //with admission control till now used only in private 
 
 	public Solution getSolution() {
 		return solution;
@@ -67,7 +73,9 @@ public class EngineService implements Engine{
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {
 		try {
-			solution = solBuilder.getInitialSolution();
+			solution = matrixBuilder.getInitialSolution();
+			matrix = matrixBuilder.getInitialMatrix(solution);
+			logger.info(matrix.asString());
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
@@ -80,8 +88,7 @@ public class EngineService implements Engine{
 	@Async("workExecutor")
 	public void localSearch() {
 		try {
-			optimizer.hillClimbing(solution);
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
+			optimizer.hillClimbing(matrix);
 		} catch (Exception e) {
 			logger.error("Error while performing local search", e);
 			stateHandler.sendEvent(Events.STOP);
@@ -89,37 +96,26 @@ public class EngineService implements Engine{
 		logger.info(stateHandler.getState().getId());
 	}
 
-	//Used only for Tests
-	public Optional<Solution> generateInitialSolution() {
+	@Async("workExecutor")
+	public Future<String> reduceMatrix() {
 		try {
-			solution = solBuilder.getInitialSolution();
-			return Optional.of(solution);
+			selector.selectMatrixCells(matrix, solution);
+			optimizer.finish();
+			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
-			logger.error("Error while performing initial solution", e);
+			logger.error("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());
-		return Optional.empty();
+		return new AsyncResult<>("Done");
 	}
 
 	public void changeSettings(Settings settings) {
-		optimizer.changeSettings(settings);
+		dataProcessor.changeSettings(settings);
 	}
 
 	public void restoreDefaults() {
-		optimizer.restoreDefaults();
-	}
-
-	/**
-	 * Set in DataService: <br>
-	 * &emsp; -inputData <br>
-	 * &emsp; -num job <br>
-	 * &emsp; -the provider and all its available VM retrieved from DB 
-	 * @param inputData
-	 *            the inputData to set
-	 */
-	public void setInstanceData(InstanceData inputData) {
-		dataService.setInstanceData(inputData);
+		dataProcessor.restoreDefaults();
 	}
 
 	/**
@@ -127,15 +123,10 @@ public class EngineService implements Engine{
 	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
-		optimizer.evaluate(solution);
-		//TODO this has to be changed. Evaluation must be placed into the evaluator
-
+		evaluator.calculateDuration(matrix,solution);
+		
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
 	}
-
-	@Override
-	public Future<String> reduceMatrix() {
-		return null;
-	}
+	
 }

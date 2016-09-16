@@ -22,8 +22,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfil
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfiguration;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;

@@ -38,6 +38,7 @@ import java.util.Optional;
  */
 @Service
 public class SolverProxy {
+	
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired

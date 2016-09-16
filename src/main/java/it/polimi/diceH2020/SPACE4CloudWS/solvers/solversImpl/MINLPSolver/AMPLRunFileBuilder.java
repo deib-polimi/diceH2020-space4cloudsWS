@@ -26,7 +26,7 @@ class AMPLRunFileBuilder {
     private String dataFile;
     private String solutionFile;
     private String solverPath;
-    private AMPLModelType model = AMPLModelType.CENTRALIZED;
+    private AMPLModelType model = AMPLModelType.KNAPSACK;
 
     AMPLRunFileBuilder setDataFile(String dataFile) {
         this.dataFile = dataFile;
@@ -65,9 +65,6 @@ class AMPLRunFileBuilder {
     private InputStream getResourceFileStream() throws IOException {
         String resourceFilePath;
         switch (model) {
-            case CENTRALIZED:
-                resourceFilePath = "/AMPL/main_centralized.template.run";
-                break;
             case KNAPSACK:
                 resourceFilePath = "/AMPL/main_knapsack.template.run";
                 break;
@@ -79,5 +76,4 @@ class AMPLRunFileBuilder {
         }
         return getClass().getResourceAsStream(resourceFilePath);
     }
-
 }

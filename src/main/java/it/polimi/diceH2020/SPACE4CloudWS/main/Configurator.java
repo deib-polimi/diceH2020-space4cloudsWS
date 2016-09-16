@@ -100,8 +100,6 @@ public class Configurator {
 		return new Jdk8Module();
 	}
 
-
-
 	@Primary
 	@Bean
 	public ObjectMapper objectMapper() {
@@ -138,7 +136,6 @@ public class Configurator {
 	public ObjectReader reader(ObjectMapper mapper) {
 		return mapper.reader();
 	}
-
 
 	@Bean
 	public CacheManager cacheManager() {

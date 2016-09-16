@@ -20,8 +20,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +28,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,8 +38,6 @@ public class BuilderMatrix extends Builder{
 	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
 	@Autowired
 	private DataService dataService;
-	@Autowired
-	private MINLPSolver minlpSolver;
 	@Autowired
 	private IEvaluator evaluator;
 	private boolean error;
@@ -71,7 +68,6 @@ public class BuilderMatrix extends Builder{
 	 */
 	public Matrix getInitialMatrix(Solution solution){
 		Instant first = Instant.now();
-		minlpSolver.reinitialize(); //TODO no more used here?
 		approximator.reinitialize();
 		Matrix tmpMatrix = createTmpMatrix(solution);
 		Matrix matrix = new Matrix();
@@ -86,13 +82,8 @@ public class BuilderMatrix extends Builder{
 					spj2.setParentID(dataService.getData().getId());
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
-					Optional<BigDecimal> result = null;
-					if(!settings.isSvr()){ //exploit SVR
-						result = minlpSolver.evaluate(spj2); //TODO: still sequential?
-					}else{
-						result = approximator.approximate(spj2);
-					}
-					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
+					Optional<BigDecimal> result = approximator.approximate(spj2);
+
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(spj2);
@@ -137,19 +128,6 @@ public class BuilderMatrix extends Builder{
 		return matrix;
 	}
 
-	/**
-	 * Selection of matrix cells to retrieve the best combination.
-	 * One and only one cell per row (one H for each Job).
-	 */
-	public void cellsSelectionWithKnapsack(Matrix matrix, Solution solution){
-		minlpSolver.setModelType(AMPLModelType.KNAPSACK);
-		minlpSolver.evaluate(matrix,solution);
-	}
-
-	public void cellsSelectionWithBinPacking(Matrix matrix, Solution solution){
-		minlpSolver.setModelType(AMPLModelType.BIN_PACKING);
-		minlpSolver.evaluate(matrix,solution);
-	}
 
 	private Matrix createTmpMatrix(Solution solution){
 		Matrix matrix = new Matrix();
@@ -217,24 +195,13 @@ public class BuilderMatrix extends Builder{
 		newSpj.setJob(cloneJob(oldSpj.getJob()));
 		//newSpj.setTypeVMselected(cloneVM(oldSpj.getTypeVMselected()));
 		newSpj.setProfile(cloneProfile(oldSpj.getProfile()));
-
+		
 		return newSpj;
 	}
 
 	private Profile cloneProfile(Profile oldProfile){
-		Profile profile = new Profile();
-		profile.setCm(oldProfile.getCm());
-		profile.setCr(oldProfile.getCr());
-		profile.setMavg(oldProfile.getMavg());
-		profile.setMmax(oldProfile.getMmax());
-		profile.setNm(oldProfile.getNm());
-		profile.setNr(oldProfile.getNr());
-		profile.setRavg(oldProfile.getRavg());
-		profile.setRmax(oldProfile.getRmax());
-		profile.setSh1max(oldProfile.getSh1max());
-		profile.setShtypavg(oldProfile.getShtypavg());
-		profile.setShtypmax(oldProfile.getShtypmax());
-		return profile;
+		Map<String,Double> map = new HashMap<>(oldProfile.getProfileMap());
+		return new Profile(map);
 	}
 
 	private JobClass cloneJob(JobClass oldJob){

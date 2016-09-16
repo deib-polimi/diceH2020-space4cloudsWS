@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,17 +61,23 @@ public class OptimizerCourseGrained extends Optimizer {
 	}
 
 	public void hillClimbing(Solution solution) {
-		Instant first = Instant.now();
+		
 		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
-		strm.forEach(this::hillClimbing);
+		AtomicLong executionTime = new AtomicLong();
+		strm.forEach(s->{
+			Instant first = Instant.now();
+			hillClimbing(s);
+			Instant after = Instant.now();
+			executionTime.addAndGet(Duration.between(first, after).toMillis());
+			});
 		solution.setEvaluated(false);
 		evaluator.evaluate(solution);
-		Instant after = Instant.now();
+		
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
-		ph.setDuration(Duration.between(first, after).toMillis());
+		ph.setDuration(executionTime.get());
 		solution.addPhase(ph);
 	}
 
@@ -81,7 +88,7 @@ public class OptimizerCourseGrained extends Optimizer {
 		Function<Integer, Integer> updateFunction;
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> res;
 
-		Optional<BigDecimal> duration = calculateDuration(solPerJob);
+		Optional<BigDecimal> duration = dataProcessor.calculateDuration(solPerJob);
 		if (duration.isPresent()) {
 			if (duration.get().doubleValue() > deadline) {
 				checkFunction = this::checkConditionToFeasibility;
@@ -115,7 +122,7 @@ public class OptimizerCourseGrained extends Optimizer {
 
 	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
 								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
-		Optional<BigDecimal> optDuration = calculateDuration(solPerJob);
+		Optional<BigDecimal> optDuration = dataProcessor.calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
 		if (lst.size() > 0) previous = lst.get(lst.size() - 1).getMiddle();

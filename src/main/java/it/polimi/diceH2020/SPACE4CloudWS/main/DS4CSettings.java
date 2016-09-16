@@ -29,5 +29,4 @@ public class DS4CSettings {
 	private boolean parallel= false;
 	@Min(1)
 	private Integer availableCores = 1; //for fine Grained Optimization
-	private boolean svr = false;
 }

@@ -15,9 +15,10 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
+
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,7 @@ import java.util.Map.Entry;
 
 @Component
 class AMPLSolFileParser {
-	private AMPLModelType model = AMPLModelType.CENTRALIZED;
+	private AMPLModelType model = AMPLModelType.KNAPSACK;
 	private Logger logger = Logger.getLogger(getClass());
 
 	protected void parseSolution(List<SolutionPerJob> solutions, File solutionFile) throws IOException {

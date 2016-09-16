@@ -23,7 +23,6 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,16 +148,11 @@ public class MLPredictor {
 			for (Map.Entry<String,SVRFeature> entry : features.getMlFeatures().entrySet()) {
 				if(entry.getKey().equals("h")||entry.getKey().equals("x")) continue;
 
-				Field f = profile.getClass().getDeclaredField(entry.getKey());
-				f.setAccessible(true);
-
-				double valueOfEntry = Double.valueOf(f.get(profile).toString());
-				//System.out.println("Introspected variable \""+entry.getKey()+"\":"+valueOfEntry);
+				double valueOfEntry = profile.get(entry.getKey());
 				featureContribution += (features.getSigma_t()/entry.getValue().getSigma())*entry.getValue().getW()*(valueOfEntry-entry.getValue().getMu());
-
 			}
-		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-			System.out.println("[MLPredictor] Error in the transformation from profile to map exploiting reflection.");
+		} catch (IllegalArgumentException e) {
+			System.out.println("[MLPredictor] Missing a MLProfile feature parameter in Profile.");
 		}
 
 		return defaultParametersContribution + featureContribution ;

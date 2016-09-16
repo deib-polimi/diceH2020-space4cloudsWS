@@ -17,13 +17,10 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import com.google.common.primitives.Doubles;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.Matrix;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
@@ -57,7 +54,7 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
-	private AMPLModelType modelType = AMPLModelType.CENTRALIZED;
+	private AMPLModelType modelType = AMPLModelType.KNAPSACK;
 
 	@Autowired
 	private AMPLSolFileParser solParser;
@@ -71,7 +68,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	public void reinitialize() {
-		modelType = AMPLModelType.CENTRALIZED;
+		modelType = AMPLModelType.KNAPSACK; 
 	}
 
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
@@ -241,23 +238,7 @@ public class MINLPSolver extends AbstractSolver {
 
 	@Override
 	protected List<File> createWorkingFiles(SolutionPerJob solPerJob) throws IOException {
-		Profile prof = solPerJob.getProfile();
-		JobClass jobClass = solPerJob.getJob();
-		TypeVM tVM = solPerJob.getTypeVMselected();
-		AMPLDataFileBuilder builder = AMPLDataFileUtils.singleClassBuilder(dataService.getGamma(), jobClass, tVM, prof);
-		builder.addArrayParameter("w",	Doubles.asList(dataService.getNumCores(tVM)))
-				.addArrayParameter("sigmabar", Doubles.asList(dataService.getSigmaBar(tVM)))
-				.addArrayParameter("deltabar", Doubles.asList(dataService.getDeltaBar(tVM)))
-				.addArrayParameter("rhobar", Doubles.asList(dataService.getRhoBar(tVM)));
-
-		String prefix = String.format("AMPL-%s-class%s-vm%s-", solPerJob.getParentID(), jobClass.getId(), tVM.getId());
-		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
-		fileUtility.writeContentToFile(builder.build(), dataFile);
-		File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");
-		List<File> lst = new ArrayList<>(2);
-		lst.add(dataFile);
-		lst.add(resultsFile);
-		return lst;
+		return null;
 	}
 
 	protected List<File> createWorkingFiles(Matrix matrix,Solution sol) throws IOException{
@@ -295,22 +276,6 @@ public class MINLPSolver extends AbstractSolver {
 		}
 	}
 
-	@Override
-	public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
-		List<File> pFiles;
-		try {
-			pFiles = createWorkingFiles(solution);
-			Pair<BigDecimal, Boolean> result = run(pFiles, "full solution");
-			File resultsFile = pFiles.get(1);
-			solParser.updateResults(solution.getLstSolutions(), resultsFile);
-			delete(pFiles);
-			return Optional.of(result.getLeft());
-		} catch (Exception e) {
-			logger.debug("Evaluate Solution-no result due to an exception",e);
-			return Optional.empty();
-		}
-	}
-
 	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix,@NonNull Solution solution) {
 		List<File> pFiles;
 		try {
@@ -326,25 +291,6 @@ public class MINLPSolver extends AbstractSolver {
 		}
 	}
 
-	private List<File> createWorkingFiles(@NotNull Solution sol) throws IOException {
-		AMPLDataFileBuilder builder = AMPLDataFileUtils.multiClassBuilder(dataService.getData(), sol.getPairsTypeVMJobClass());
-
-		builder.addArrayParameter("w", sol.getLstNumberCores());
-		builder.addArrayParameter("cM", sol.getListCM());
-		builder.addArrayParameter("cR", sol.getListCR());
-		builder.addArrayParameter("deltabar", sol.getListDeltabar());
-		builder.addArrayParameter("rhobar", sol.getListRhobar());
-		builder.addArrayParameter("sigmabar", sol.getListSigmaBar());
-
-		String prefix = String.format("AMPL-%s-complete-", sol.getId());
-		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
-		fileUtility.writeContentToFile(builder.build(), dataFile);
-		File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");
-		List<File> lst = new ArrayList<>(2);
-		lst.add(dataFile);
-		lst.add(resultsFile);
-		return lst;
-	}
 
 	@Override
 	public List<String> pwd() throws Exception {
@@ -363,7 +309,12 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	public void refresh(){
-		setModelType(AMPLModelType.CENTRALIZED);
+		setModelType(AMPLModelType.KNAPSACK);
+	}
+
+	@Override
+	public Optional<BigDecimal> evaluate(Solution solution) {
+		return null;
 	}
 
 }

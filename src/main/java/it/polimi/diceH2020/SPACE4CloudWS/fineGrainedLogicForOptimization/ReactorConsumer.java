@@ -27,6 +27,8 @@ import reactor.fn.Consumer;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 
 import static reactor.bus.selector.Selectors.$;
@@ -66,10 +68,15 @@ public class ReactorConsumer implements Consumer<Event<SpjWrapperGivenHandN>>{
 		SolutionPerJob spj = ev.getData().getSpj();
 		SpjOptimizerGivenH spjOptimizer = ev.getData().getHandler();
 		logger.info("|Q-STATUS| received spjWrapper"+spj.getJob().getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
+		Instant first = Instant.now();
 		if(calculateDuration(spj)){
-			spjOptimizer.registerCorrectSolutionPerJob(spj);
+			Instant after = Instant.now();
+			double exeTime = Duration.between(first, after).toMillis();
+			spjOptimizer.registerCorrectSolutionPerJob(spj, exeTime);
 		}else{
-			spjOptimizer.registerFailedSolutionPerJob(spj);
+			Instant after = Instant.now();
+			double exeTime = Duration.between(first, after).toMillis();
+			spjOptimizer.registerFailedSolutionPerJob(spj, exeTime);
 		}
 		dispatcher.notifyReadyChannel(this);
 	}

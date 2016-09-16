@@ -17,8 +17,14 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import lombok.NonNull;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -26,7 +32,10 @@ import java.math.RoundingMode;
 
 @Component
 class Evaluator implements IEvaluator {
-
+	
+	@Autowired
+	private DataProcessor dataProcessor;
+	
 	@Override
 	public double evaluate(Solution solution) {
 		BigDecimal cost = BigDecimal.valueOf(solution.getLstSolutions().parallelStream()
@@ -67,6 +76,21 @@ class Evaluator implements IEvaluator {
 		}
 		solPerJob.setFeasible(false);
 		return false;
+	}
+	
+	protected void calculateDuration(@NonNull Solution sol) {
+		long exeTime = dataProcessor.calculateDuration(sol);
+		Phase ph = new Phase(PhaseID.EVALUATION, exeTime); 
+		sol.addPhase(ph);
+		return; 
+	}
+
+	protected void calculateDuration(@NonNull Matrix matrix, @NonNull Solution sol){
+		long exeTime = dataProcessor.calculateDuration(matrix);
+		sol.setEvaluated(false);
+		Phase ph = new Phase(PhaseID.EVALUATION, exeTime); 
+		sol.addPhase(ph);
+		return;
 	}
 
 }

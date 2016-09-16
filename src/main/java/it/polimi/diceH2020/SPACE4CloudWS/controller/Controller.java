@@ -24,6 +24,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineTypes;
+import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
@@ -40,6 +41,9 @@ class Controller {
 
 	@Autowired
 	private EngineProxy engineProxy;
+	
+	@Autowired
+	private Validator validator;
 	
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
@@ -89,7 +93,7 @@ class Controller {
 			logger.info("Starting simulation for "+inputData.getScenario()+" scenario...");
 			refreshEngine(inputData.getScenario());
 			
-			engineService.setInstanceData(inputData);
+			validator.setInstanceData(inputData);
 			stateHandler.sendEvent(Events.TO_CHARGED_INPUTDATA);
 		}
 		return getWebServiceState();

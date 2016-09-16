@@ -46,6 +46,7 @@ public class SpjOptimizerGivenH {
 
 	private TreeMap<Integer,SolutionPerJob> nVMxSPJ;
 	private ArrayList<Integer> sentNVM;
+	private long executionTime;
 
 	@Min(1)
 	private int minVM;
@@ -60,7 +61,7 @@ public class SpjOptimizerGivenH {
 		this.initialSpjWithGivenH = spj;
 		this.minVM = minVM;
 		this.maxVM = maxVM;
-		
+		this.executionTime = 0L;
 		/*
 		 * To send |n| parallel executions of the same SolutionPerJob with a fixed H but variable number of VM, just add |n| function to batchFunctionList
 		 * the initial N (for the first iteration) is obtained by the Initialization Phase, or can be obtained by a ML SVR model.
@@ -95,12 +96,13 @@ public class SpjOptimizerGivenH {
 		sentNVM.add(job.getNumberVM());
 	}
 
-	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj){
+	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, double executionTime){
 		nVMxSPJ.put(spj.getNumberVM(), spj);
 		printStatus();
-
 		if (finished) return;
 
+		System.out.println("execution time upgraded "+this.executionTime+"-->"+executionTime);
+		this.executionTime += executionTime;
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
 				try{ if(!sendNextEvent() && sentNVM.size()==nVMxSPJ.size()){ //encode Next spj
@@ -122,10 +124,11 @@ public class SpjOptimizerGivenH {
 		}
 	}
 
-	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj){
+	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj, double executionTime){
 		nVMxSPJ.put(spj.getNumberVM(), spj);
 		printStatus();
 		if (finished) return;
+		this.executionTime += executionTime;
 		logger.info("class" + initialSpjWithGivenH.getJob().getId() +"."+	initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - duration not received");
 		finished(-3);
 	}
@@ -158,10 +161,10 @@ public class SpjOptimizerGivenH {
 		finished = true;
 
 		if(nVM>0){
-			optimizer.registerSPJGivenHOptimalNVM(nVMxSPJ.get(nVM));
+			optimizer.registerSPJGivenHOptimalNVM(nVMxSPJ.get(nVM),executionTime);
 		}else{
 			initialSpjWithGivenH.setNumberVM(nVM);
-			optimizer.registerSPJGivenHOptimalNVM(initialSpjWithGivenH);
+			optimizer.registerSPJGivenHOptimalNVM(initialSpjWithGivenH,executionTime);
 		}
 
 		dispatcher.dequeue(this);
