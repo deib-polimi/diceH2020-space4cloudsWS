@@ -23,10 +23,10 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.cache.CacheBuilder;
-import it.polimi.diceH2020.SPACE4Cloud.shared.generators.InstanceDataGenerator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.generators.SolutionGenerator;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.generatorsDataMultiProvider.InstanceDataMultiProviderGenerator;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVMJobClassKey;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,15 +70,15 @@ public class Configurator {
 
 	@Bean
 	@Profile("dev")
-	public InstanceData applData() {
-		return new InstanceData();
+	public InstanceDataMultiProvider applData() {
+		return new InstanceDataMultiProvider();
 	}
 
 	//
 	@Bean
 	@Profile("test")
-	public InstanceData applDataTest() {
-		return InstanceDataGenerator.build();
+	public InstanceDataMultiProvider applDataTest() {
+		return InstanceDataMultiProviderGenerator.build();
 	}
 
 	@Bean
@@ -87,16 +87,21 @@ public class Configurator {
 		return SolutionGenerator.build();
 	}
 
-//	@Autowired
-//	public void configJackson(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
-//		SimpleModule module = new SimpleModule();
-//		module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
-//		jackson2ObjectMapperBuilder.modules(module,new Jdk8Module());//.configureAbsentsAsNulls(true));
-//		//jackson2ObjectMapperBuilder.configure(new ObjectMapper().registerModule(new Jdk8Module()));//.configureAbsentsAsNulls(true));
-//	}
+	// @Autowired
+	// public void configJackson(Jackson2ObjectMapperBuilder
+	// jackson2ObjectMapperBuilder) {
+	// SimpleModule module = new SimpleModule();
+	// module.addKeyDeserializer(TypeVMJobClassKey.class,
+	// TypeVMJobClassKey.getDeserializer());
+	// jackson2ObjectMapperBuilder.modules(module,new
+	// Jdk8Module());//.configureAbsentsAsNulls(true));
+	// //jackson2ObjectMapperBuilder.configure(new
+	// ObjectMapper().registerModule(new
+	// Jdk8Module()));//.configureAbsentsAsNulls(true));
+	// }
 
 	@Bean
-	public Module java8Module(){
+	public Module java8Module() {
 		return new Jdk8Module();
 	}
 
@@ -109,7 +114,7 @@ public class Configurator {
 	}
 
 	@Bean
-	public SimpleModule customModule(){
+	public SimpleModule customModule() {
 		SimpleModule module = new SimpleModule();
 		module.addKeyDeserializer(TypeVMJobClassKey.class, TypeVMJobClassKey.getDeserializer());
 		return module;
@@ -139,7 +144,7 @@ public class Configurator {
 
 	@Bean
 	public CacheManager cacheManager() {
-		GuavaCacheManager guavaCacheManager =  new GuavaCacheManager("cachedEval");
+		GuavaCacheManager guavaCacheManager = new GuavaCacheManager("cachedEval");
 		guavaCacheManager.setCacheBuilder(CacheBuilder.newBuilder());
 		return guavaCacheManager;
 	}

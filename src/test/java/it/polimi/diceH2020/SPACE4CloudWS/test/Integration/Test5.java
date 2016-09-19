@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVMJobClassKey;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVMJobClassKey;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
@@ -58,7 +58,7 @@ public class Test5 {
     @Autowired
     WebApplicationContext wac;
     MockMvc mockMvc;
-    private InstanceData data;
+    private InstanceDataMultiProvider data;
     private ObjectMapper mapper;
     private Solution solution;
 
@@ -74,7 +74,7 @@ public class Test5 {
         mapper.registerModule(module);
         String serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/myJson.json")));
 //		System.out.println(serialized);
-        data = mapper.readValue(serialized, InstanceData.class);
+        data = mapper.readValue(serialized, InstanceDataMultiProvider.class);
         System.out.println(data.toString());
         serialized = new String(Files.readAllBytes(Paths.get("src/test/resources/sol.json")));
 //		System.out.println(serialized);

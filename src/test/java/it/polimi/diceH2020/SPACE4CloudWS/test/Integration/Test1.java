@@ -17,7 +17,8 @@ package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
@@ -52,7 +53,7 @@ public class Test1 {
 	MockMvc mockMvc;
 	boolean setUp = false;
 	@Autowired
-	private InstanceData data;
+	private InstanceDataMultiProvider data;
 
 	@Before
 	public void setUp() {
@@ -69,19 +70,21 @@ public class Test1 {
 				.body(matchesJsonSchemaInClasspath("AMPL/applData.json"));
 	}
 
-//	@Test
-//	public void test2PutInputData() {
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
-//
-//		given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
-//				.statusCode(HttpStatus.SC_OK);
-//
-//		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
-//
-//		given().contentType("application/json; charset=UTF-16").body(Events.RESET, ObjectMapperType.JACKSON_2).when()
-//		.post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
-//
-//	}
+	// @Test
+	// public void test2PutInputData() {
+	// when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
+	//
+	// given().contentType("application/json;
+	// charset=UTF-16").body(data).when().post("/inputdata").then()
+	// .statusCode(HttpStatus.SC_OK);
+	//
+	// when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
+	//
+	// given().contentType("application/json;
+	// charset=UTF-16").body(Events.RESET, ObjectMapperType.JACKSON_2).when()
+	// .post("/event").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("IDLE"));
+	//
+	// }
 
 	@Test
 	public void test3OptimizationAlgorithm() {
@@ -90,7 +93,8 @@ public class Test1 {
 			given().contentType("application/json; charset=UTF-16").body(data).when().post("/inputdata").then()
 					.statusCode(HttpStatus.SC_OK);
 
-			when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INPUTDATA"));
+			when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat()
+					.body(Matchers.is("CHARGED_INPUTDATA"));
 		}
 
 		given().contentType("application/json; charset=UTF-16").body(Events.TO_RUNNING_INIT, ObjectMapperType.JACKSON_2)
@@ -109,16 +113,17 @@ public class Test1 {
 		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED_INITSOLUTION"));
 	}
 
-//	@BeforeTransaction
-//	public void possiblyRecover() {
-//		if (!setUp) {
-//			setUp();
-//		}
-//		while (!get("/state").getBody().asString().equals("IDLE")) {
-//
-//			given().contentType("application/json; charset=UTF-16").body(Events.MIGRATE, ObjectMapperType.JACKSON_2)
-//					.when().post("/event").then().statusCode(HttpStatus.SC_OK);
-//		}
-//	}
+	// @BeforeTransaction
+	// public void possiblyRecover() {
+	// if (!setUp) {
+	// setUp();
+	// }
+	// while (!get("/state").getBody().asString().equals("IDLE")) {
+	//
+	// given().contentType("application/json;
+	// charset=UTF-16").body(Events.MIGRATE, ObjectMapperType.JACKSON_2)
+	// .when().post("/event").then().statusCode(HttpStatus.SC_OK);
+	// }
+	// }
 
 }

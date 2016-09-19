@@ -17,7 +17,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.test.Integration;
 
 import com.jayway.restassured.internal.mapper.ObjectMapperType;
 import com.jayway.restassured.module.mockmvc.RestAssuredMockMvc;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import org.apache.commons.httpclient.HttpStatus;
 import org.hamcrest.Matchers;
@@ -49,7 +49,7 @@ public class Test3 {
 	WebApplicationContext wac;
 	MockMvc mockMvc;
 	@Autowired
-	private InstanceData data;
+	private InstanceDataMultiProvider data;
 
 	@Before
 	public void setUp() {
@@ -67,7 +67,7 @@ public class Test3 {
 
 		when().get("/state").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("CHARGED"));
 
-		post("/debug/event").body().as(InstanceData.class);
+		post("/debug/event").body().as(InstanceDataMultiProvider.class);
 
 		given().contentType("application/json; charset=UTF-16").body(Events.MIGRATE, ObjectMapperType.JACKSON_2).when()
 				.post("/debug/sendevent").then().statusCode(HttpStatus.SC_OK).assertThat().body(Matchers.is("RUNNING"));

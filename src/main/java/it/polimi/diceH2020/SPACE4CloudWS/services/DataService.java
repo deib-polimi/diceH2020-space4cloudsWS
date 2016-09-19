@@ -16,13 +16,13 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfilesMap;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.PublicCloudParameters;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfiguration;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
