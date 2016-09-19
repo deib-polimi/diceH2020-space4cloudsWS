@@ -126,7 +126,7 @@ class AMPLSolFileParser {
 
 	private void initializeSolution(Solution solution, Matrix matrix){
 		for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
-			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getJob().getId()), entry.getValue()[0].getNumberUsers()));
+			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()), entry.getValue()[0].getNumberUsers()));
 		}
 	}
 

@@ -17,6 +17,7 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
@@ -54,6 +55,8 @@ public class EngineService implements Engine{
 	private Evaluator evaluator;
 
 	private Solution solution;
+	
+	private Matrix matrix;
 
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {
@@ -102,6 +105,14 @@ public class EngineService implements Engine{
 	@Override
 	public Future<String> reduceMatrix() {
 		return null;
+	}
+	
+	public Matrix getMatrix() {
+		return matrix;
+	}
+
+	public void setMatrix(Matrix matrix) {
+		this.matrix = matrix;
 	}
 	
 	//Used only for Tests

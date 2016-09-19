@@ -15,9 +15,9 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import org.apache.log4j.Logger;
@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,13 +52,16 @@ public class BuilderMatrix extends Builder{
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
-		startingSol.setPrivateCloudParameters(dataService.getData().getPrivateCloudParameters());
+		startingSol.setPrivateCloudParameters(Optional.of(dataService.getData().getPrivateCloudParameters()));
+		startingSol.setProvider(dataService.getProviderName());
+		startingSol.setScenario(Optional.of(dataService.getScenario()));
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
-		dataService.getListJobClass().forEach(jobClass -> {
-			SolutionPerJob solutionPerJob = createSolPerJob(jobClass);
+		for(Entry<String, ClassParameters> jobClass : dataService.getMapJobClass().entrySet()){
+			SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getKey(),jobClass.getValue());
+			
 			startingSol.setSolutionPerJob(solutionPerJob);
-		});
+		}
 		return startingSol;
 	}
 
@@ -76,8 +80,8 @@ public class BuilderMatrix extends Builder{
 			int i = 0;
 			for(SolutionPerJob spj : matrixRow.getValue()){
 				Map<SolutionPerJob, Double> mapResults = new ConcurrentHashMap<>();
-				dataService.getListTypeVM(spj.getJob()).forEach(tVM -> {
-					SolutionPerJob spj2 = createSolPerJob(cloneJob(spj.getJob()));
+				dataService.getLstTypeVM(spj.getId()).forEach(tVM -> {
+					SolutionPerJob spj2 = createSolPerJob(spj.getId(),cloneJob(spj.getJob()));
 					spj2.setParentID(dataService.getData().getId());
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
@@ -86,7 +90,7 @@ public class BuilderMatrix extends Builder{
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(spj2);
-						logger.debug("Class"+spj2.getJob().getId()+"-> cost:"+cost+" users:"+spj2.getNumberUsers()+" #vm"+spj2.getNumberVM());
+						logger.debug("Class"+spj2.getId()+"-> cost:"+cost+" users:"+spj2.getNumberUsers()+" #vm"+spj2.getNumberVM());
 					} else {
 						// as in this::fallback
 						spj2.setNumberUsers(spj2.getJob().getHup());
@@ -103,7 +107,7 @@ public class BuilderMatrix extends Builder{
 					min.ifPresent(s -> {
 						error = false;
 						TypeVM minTVM = s.getTypeVMselected();
-						logger.info("For job class " + s.getJob().getId() + " with H="+s.getNumberUsers()+ " has been selected the machine " + minTVM.getId());
+						logger.info("For job class " + s.getId() + " with H="+s.getNumberUsers()+ " has been selected the machine " + minTVM.getId());
 					});
 					matrixLine[i] = min.get();
 				}
@@ -136,34 +140,35 @@ public class BuilderMatrix extends Builder{
 			int Hlow = spj.getJob().getHlow();
 			SolutionPerJob[] matrixLine = new SolutionPerJob[Hup-Hlow+1];
 			for(int i=Hup; i >= Hlow ; i--){
-				SolutionPerJob spjGivenH = createSolPerJob(cloneJob(spj.getJob()));
+				SolutionPerJob spjGivenH = createSolPerJob(spj.getId(),cloneJob(spj.getJob()));
 				spjGivenH.setNumberUsers(i);
 				spjGivenH.getJob().setHlow(i);
 				spjGivenH.getJob().setHup(i);
 				matrixLine[i-Hlow] = spjGivenH;
 			}
-			matrix.put(spj.getJob().getId(), matrixLine);
+			matrix.put(spj.getId(), matrixLine);
 		});
 		return matrix;
 	}
 
-	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass) {
+	private SolutionPerJob createSolPerJob(@NotNull String classID,@NotNull ClassParameters jobClass) {
 		SolutionPerJob solPerJob = new SolutionPerJob();
 		solPerJob.setChanged(Boolean.TRUE);
 		solPerJob.setFeasible(Boolean.FALSE);
 		solPerJob.setDuration(Double.MAX_VALUE);
 		solPerJob.setJob(jobClass);
+		solPerJob.setId(classID);
 
 		return solPerJob;
 	}
 
-	private void setTypeVM(SolutionPerJob solPerJob, @NotNull TypeVM typeVM){
+	private void setTypeVM(@NotNull SolutionPerJob solPerJob, @NotNull TypeVM typeVM){
 		solPerJob.setTypeVMselected(typeVM);
-		solPerJob.setNumCores(dataService.getNumCores(typeVM));
-		solPerJob.setDeltaBar(dataService.getDeltaBar(typeVM));
-		solPerJob.setRhoBar(dataService.getRhoBar(typeVM));
-		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM));
-		solPerJob.setProfile(dataService.getProfile(solPerJob.getJob(), typeVM));
+		solPerJob.setNumCores(dataService.getNumCores(typeVM.getId()));
+		solPerJob.setDeltaBar(dataService.getDeltaBar(typeVM.getId()));
+		solPerJob.setRhoBar(dataService.getRhoBar(typeVM.getId()));
+		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM.getId()));
+		solPerJob.setProfile(dataService.getProfile(solPerJob.getId(), solPerJob.getTypeVMselected().getId()));
 	}
 
 
@@ -171,6 +176,7 @@ public class BuilderMatrix extends Builder{
 		SolutionPerJob newSpj = new SolutionPerJob();
 
 		newSpj.setChanged(oldSpj.getChanged());
+		newSpj.setId(oldSpj.getId());
 		newSpj.setCost(oldSpj.getCost());
 		newSpj.setDeltaBar(oldSpj.getDeltaBar());
 		newSpj.setDuration(oldSpj.getDuration());
@@ -184,7 +190,6 @@ public class BuilderMatrix extends Builder{
 		//newSpj.setNumReservedVM(oldSpj.getNumReservedVM());
 		//newSpj.setNumSpotVM(oldSpj.getNumSpotVM());
 		newSpj.setParentID(oldSpj.getParentID());
-		newSpj.setPos(oldSpj.getPos());
 		newSpj.setRhoBar(oldSpj.getRhoBar());
 		newSpj.setSigmaBar(oldSpj.getSigmaBar());
 		newSpj.setXi(oldSpj.getXi());
@@ -196,18 +201,17 @@ public class BuilderMatrix extends Builder{
 		return newSpj;
 	}
 
-	private Profile cloneProfile(Profile oldProfile){
+	private JobProfile cloneProfile(JobProfile oldProfile){
 		Map<String,Double> map = new HashMap<>(oldProfile.getProfileMap());
-		return new Profile(map);
+		return new JobProfile(map);
 	}
 
-	private JobClass cloneJob(JobClass oldJob){
-		JobClass job = new JobClass();
+	private ClassParameters cloneJob(ClassParameters oldJob){
+		ClassParameters job = new ClassParameters();
 		job.setD(oldJob.getD());
 		job.setHlow(oldJob.getHlow());
 		job.setHup(oldJob.getHup());
-		job.setId(oldJob.getId());
-		job.setJob_penalty(oldJob.getJob_penalty());
+		job.setPenalty(oldJob.getPenalty());
 		job.setM(oldJob.getM());
 		job.setThink(oldJob.getThink());
 		job.setV(oldJob.getV());

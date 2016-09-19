@@ -17,8 +17,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import org.apache.log4j.Logger;
@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -48,25 +49,26 @@ public class BuilderSolution extends Builder{
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
+		startingSol.setProvider(dataService.getProviderName());
+		startingSol.setScenario(Optional.of(dataService.getScenario()));
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
 
-		dataService.getListJobClass().forEach(jobClass -> {
+		for(Entry<String, ClassParameters> jobClass : dataService.getMapJobClass().entrySet()){
 			Map<SolutionPerJob, Double> mapResults = new ConcurrentHashMap<>();
-			dataService.getListTypeVM(jobClass).forEach(tVM -> {
+			dataService.getLstTypeVM(jobClass.getKey()).forEach(tVM -> {
 				if (checkState()) {
 					logger.info(String.format(
 							"---------- Starting optimization jobClass %s considering VM type %s ----------",
-							jobClass.getId(), tVM.getId()));
-					SolutionPerJob solutionPerJob = createSolPerJob(jobClass, tVM);
+							jobClass.getKey(), tVM.getId()));
+					SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getValue(), tVM, jobClass.getKey());
 					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
-					solutionPerJob.getJob().setHlow(solutionPerJob.getJob().getHup());
 					Optional<BigDecimal> result = approximator.approximate(solutionPerJob);
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(solutionPerJob);
-						logger.debug("Class"+solutionPerJob.getJob().getId()+"-> cost:"+cost+" users:"+solutionPerJob.getNumberUsers()+" #vm"+solutionPerJob.getNumberVM());
+						logger.debug("Class"+solutionPerJob.getId()+"-> cost:"+cost+" users:"+solutionPerJob.getNumberUsers()+" #vm"+solutionPerJob.getNumberVM());
 					} else {
 						// as in this::fallback
 						solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
@@ -82,11 +84,11 @@ public class BuilderSolution extends Builder{
 				min.ifPresent(s -> {
 					error = false;
 					TypeVM minTVM = s.getTypeVMselected();
-					logger.info("For job class " + jobClass.getId() + " has been selected the machine " + minTVM.getId());
+					logger.info("For job class " + s.getId() + " has been selected the machine " + minTVM.getId());
 					startingSol.setSolutionPerJob(s);
 				});
 			}
-		});
+		};
 
 		if (checkState() && !error) {
 			evaluator.evaluate(startingSol);
@@ -104,18 +106,20 @@ public class BuilderSolution extends Builder{
 		return startingSol;
 	}
 
-	private SolutionPerJob createSolPerJob(@NotNull JobClass jobClass, @NotNull TypeVM typeVM) {
+	private SolutionPerJob createSolPerJob(@NotNull ClassParameters jobClass, @NotNull TypeVM typeVM, String id) {
+		String vmName = typeVM.getId();
 		SolutionPerJob solPerJob = new SolutionPerJob();
+		solPerJob.setId(id);
 		solPerJob.setChanged(Boolean.TRUE);
 		solPerJob.setFeasible(Boolean.FALSE);
 		solPerJob.setDuration(Double.MAX_VALUE);
 		solPerJob.setJob(jobClass);
 		solPerJob.setTypeVMselected(typeVM);
-		solPerJob.setNumCores(dataService.getNumCores(typeVM));
-		solPerJob.setDeltaBar(dataService.getDeltaBar(typeVM));
-		solPerJob.setRhoBar(dataService.getRhoBar(typeVM));
-		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM));
-		solPerJob.setProfile(dataService.getProfile(jobClass, typeVM));
+		solPerJob.setNumCores(dataService.getNumCores(vmName));
+		solPerJob.setDeltaBar(dataService.getDeltaBar(vmName));
+		solPerJob.setRhoBar(dataService.getRhoBar(vmName));
+		solPerJob.setSigmaBar(dataService.getSigmaBar(vmName));
+		solPerJob.setProfile(dataService.getProfile(id, vmName));
 		solPerJob.setParentID(dataService.getData().getId());
 		return solPerJob;
 	}

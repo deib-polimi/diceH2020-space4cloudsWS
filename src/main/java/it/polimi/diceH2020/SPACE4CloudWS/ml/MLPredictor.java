@@ -15,8 +15,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.ml;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.SVRFeature;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
@@ -34,7 +34,7 @@ public class MLPredictor {
 	@Autowired
 	private DataService dataService;
 
-	private Map<String,MLPrediction> predictedSPJ = new HashMap<>();//caches SPJ, in order to recalculate only xi 
+	private Map<String,MLPrediction> predictedSPJ = new HashMap<>();//caches SPJ, in order to recalculate only xi TODO @Cacheable 
 
 	/**
 	 * Precondition:
@@ -45,7 +45,7 @@ public class MLPredictor {
 	 * @return
 	 */
 	public Optional<BigDecimal> approximate(SolutionPerJob spj) {
-		if(predictedSPJ.containsKey(spj.getJob().getId())){
+		if(predictedSPJ.containsKey(spj.getId())){
 			return retrievePrediction(spj);
 		}else{
 			return calculatePrediction(spj);
@@ -54,8 +54,8 @@ public class MLPredictor {
 
 
 	private Optional<BigDecimal> calculatePrediction(SolutionPerJob spj){
-		JobMLProfile features = dataService.getMLProfile(spj.getJob().getId());
-		Profile profile = spj.getProfile();
+		JobMLProfile features = dataService.getMLProfile(spj.getId());
+		JobProfile profile = spj.getProfile();
 
 		double deadline = spj.getJob().getD();
 		double chi_c = calculateChi_c(features);
@@ -71,12 +71,12 @@ public class MLPredictor {
 		spj.setDuration(duration);
 		spj.setNumberContainers(c); //TODO
 
-		predictedSPJ.put(spj.getJob().getId(), new MLPrediction(deadline,chi_c,chi_h,chi_0));
+		predictedSPJ.put(spj.getId(), new MLPrediction(deadline,chi_c,chi_h,chi_0));
 		return Optional.of(BigDecimal.valueOf(duration));
 	}
 
 	private Optional<BigDecimal> retrievePrediction(SolutionPerJob spj){
-		MLPrediction prediction = predictedSPJ.get(spj.getJob().getId());
+		MLPrediction prediction = predictedSPJ.get(spj.getId());
 
 		double deadline = prediction.getDeadline();
 		double chi_c = prediction.getChi_c();
@@ -129,17 +129,16 @@ public class MLPredictor {
 	}
 
 	private double calculateXi(SolutionPerJob spj){
-		double M = dataService.getMemory(spj.getTypeVMselected());
+		double M = dataService.getMemory(spj.getTypeVMselected().getId());
 		double m = spj.getJob().getM();
-		double V = dataService.getNumCores(spj.getTypeVMselected());;
+		double V = dataService.getNumCores(spj.getTypeVMselected().getId());
 		double v = spj.getJob().getV();
 		double xi = Math.min(M/m,V/v);
 
 		return xi;
 	}
 
-	private double calculateChi_0(Profile profile,JobMLProfile features){
-		//Reflection to inspect Profile 
+	private double calculateChi_0(JobProfile profile,JobMLProfile features){
 
 		double defaultParametersContribution = calculateDefaultParametersContribution(features);
 		double featureContribution = 0;

@@ -16,9 +16,13 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.*;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfilesMap;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.PublicCloudParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfiguration;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
@@ -35,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Map.Entry;
 
 /**
  * @author ciavotta
@@ -45,7 +49,7 @@ import java.util.stream.Collectors;
 public class DataService {
 
 	@Autowired(required = false)
-	private InstanceData data;
+	private InstanceDataMultiProvider data;
 
 	@Autowired
 	private DAOService daoService;
@@ -56,45 +60,54 @@ public class DataService {
 
 	private Scenarios scenario = Scenarios.PublicAvgWorkLoad;
 
-	private Map<EntityKey, EntityTypeVM> mapTypeVM;
+	private Map<EntityKey, EntityTypeVM> mapCloudParameters;
+	
+	private Map<String,List<TypeVM>> mapTypeVM;
 
-	private String NameProvider;
+	
+	private String providerName;
 
 	private Matrix matrix;
+	
+	private int gamma = 1500;
 
 	@Getter(AccessLevel.PRIVATE)
 	private Optional<JobMLProfilesMap> mlProfileMap;
 
-	public Double getDeltaBar(TypeVM tVM) {
-		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
-		return this.mapTypeVM.get(key).getDeltabar();
+	public Double getDeltaBar(String tVM) {
+		EntityKey key = new EntityKey(tVM, this.providerName);
+		return this.mapCloudParameters.get(key).getDeltabar();
 	}
 
-	public Double getRhoBar(TypeVM tVM) {
-		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
-		return this.mapTypeVM.get(key).getRhoBar();
+	public Double getRhoBar(String tVM) {
+		EntityKey key = new EntityKey(tVM, this.providerName);
+		return this.mapCloudParameters.get(key).getRhoBar();
 	}
 
-	public Double getSigmaBar(TypeVM tVM) {
-		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
-		return this.mapTypeVM.get(key).getSigmaBar();
+	public Double getSigmaBar(String tVM) {
+		EntityKey key = new EntityKey(tVM, this.providerName);
+		return this.mapCloudParameters.get(key).getSigmaBar();
+	}
+	
+	public Double getNumCores(String tVM) {
+		EntityKey key = new EntityKey(tVM, this.providerName);
+		return this.mapCloudParameters.get(key).getNumCores();
 	}
 
-	public Double getNumCores(TypeVM tVM) {
-		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
-		return this.mapTypeVM.get(key).getNumCores();
+	public Double getMemory(String tVM) {
+		EntityKey key = new EntityKey(tVM, this.providerName);
+		return this.mapCloudParameters.get(key).getMemory();
 	}
 
-	public Double getMemory(TypeVM tVM) {
-		EntityKey key = new EntityKey(tVM.getId(), this.NameProvider);
-		return this.mapTypeVM.get(key).getMemory();
-	}
-
-	public void setInstanceData(InstanceData inputData) {
+	public void setInstanceData(InstanceDataMultiProvider inputData) {
 		this.data = inputData;
-		this.jobNumber = data.getNumberJobs();
-		this.NameProvider = data.getProvider();
+		this.jobNumber = data.getNumberOfClasses();
+		this.providerName = data.getProvider();
 		this.scenario = data.getScenario().get();
+		
+		if(providerName == null || scenario == null){
+			//TODO
+		}
 		
 		if(data.getMapJobMLProfiles() != null ){
 			if(data.getMapJobMLProfiles().getMapJobMLProfile()!=null){
@@ -103,7 +116,7 @@ public class DataService {
 		}
 
 		if(scenario.getCloudType().equals(CloudType.Public)){
-			loadDataFromDB(new EntityProvider(this.NameProvider));
+			loadDataFromDB(new EntityProvider(this.providerName));
 			if(scenario.equals(Scenarios.PublicAvgWorkLoad)){
 				considerOnlyReserved();
 				overrideDBLocalData();
@@ -121,20 +134,17 @@ public class DataService {
 	}
 
 	private void loadDataFromDB(EntityProvider provider) {
-		this.mapTypeVM = daoService.typeVMFindAllToMap(provider);
+		this.mapCloudParameters = daoService.typeVMFindAllToMap(provider);
 	}
 
 	/**
 	 * Set mapTypeVm by fetching JSON data (In the Public Case this map is retrieved from DB) 
 	 */
 	private void loadDataFromJson(){
-		if(mapTypeVM.isEmpty()){
-			//TODO error state
-		}
 		HashMap<EntityKey, EntityTypeVM> map = new HashMap<EntityKey, EntityTypeVM>();
 		
-		if(data.getMapVMConfigurations().get().getMapVMConfigurations().size()>0){
-			for (Map.Entry<String, VMConfiguration> vm : data.getMapVMConfigurations().get().getMapVMConfigurations().entrySet()) {
+		if(data.getMapVMConfigurations().getMapVMConfigurations().size()>0){
+			for (Map.Entry<String, VMConfiguration> vm : data.getMapVMConfigurations().getMapVMConfigurations().entrySet()) {
 				EntityKey key = new EntityKey(vm.getKey(), vm.getValue().getProvider());
 				EntityTypeVM typeVM  = new EntityTypeVM(vm.getKey());
 				typeVM.setCore(vm.getValue().getCore());
@@ -149,67 +159,66 @@ public class DataService {
 				map.put(key, typeVM);
 			}
 		}
-		this.mapTypeVM = map ;
+		this.mapCloudParameters = map ;
 	}
 	
 	private void overrideDBLocalData(){
-		for(Map.Entry<EntityKey, EntityTypeVM> entry : mapTypeVM.entrySet()){
+		for(Map.Entry<EntityKey, EntityTypeVM> entry : mapCloudParameters.entrySet()){
 			entry.getValue().setRhobar(0);
 			entry.getValue().setSigmabar(0);
 		}
 	}
 
 	private void considerOnlyReserved(){
-		this.data.setMapTypeVMs(Optional.of(initializeMapTypeVMs(data.getMapProfiles())));
+		if(data.getMapPublicCloudParameters() == null || data.getMapPublicCloudParameters().getMapPublicCloudParameters() == null) return;
+		for (Map.Entry<String, Map<String, Map<String, PublicCloudParameters>>> jobIDs : this.data.getMapPublicCloudParameters().getMapPublicCloudParameters().entrySet()) {
+		    for (Map.Entry<String, Map<String, PublicCloudParameters>> providers : jobIDs.getValue().entrySet()) {
+		    	for (Map.Entry<String, PublicCloudParameters> typeVMs : providers.getValue().entrySet()) {
+		    		PublicCloudParameters vm = typeVMs.getValue();
+					vm.setEta(0);
+					vm.setR(0);
+		    	}
+		    }
+		}
 	}
 	
 	private void makeInputDataConsistent(){
-		for(JobClass jobClass : this.data.getLstClass()){
+		for(ClassParameters jobClass : this.data.getMapClassParameters().getMapClassParameters().values()){
 			jobClass.setHlow(jobClass.getHup());
-			jobClass.setJob_penalty(0);
+			jobClass.setPenalty(0);
 		}
 	}
 	
-	/**
-	 *
-	 * @param mapProfiles is used to get all couples (typeVM_id, job_id) (unique json common parameter that have this list)
-	 * @return
-	 */
-	private Map<String,List<TypeVM>> initializeMapTypeVMs(Map<TypeVMJobClassKey, Profile> mapProfiles){
-		Map<String,List<TypeVM>> map = new HashMap<String,List<TypeVM>>();
 
-		Set<TypeVMJobClassKey> set = mapProfiles.keySet();
+	public Map<String, ClassParameters> getMapJobClass() {
+		return data.getMapClassParameters().getMapClassParameters();
+	}
 
-		List<String> jobIDs = set.stream().map(TypeVMJobClassKey::getJob).distinct().collect(Collectors.toList());
-
-		for (String jobID : jobIDs) {
-			List<TypeVMJobClassKey> lst = set.stream().filter(t->t.getJob().equals(jobID)).collect(Collectors.toList());
-			List<TypeVM> lst2 = new ArrayList<>();
-
-			for (TypeVMJobClassKey key : lst) {
+	public List<TypeVM> getLstTypeVM(String jobID) {
+		List<TypeVM> lst = new ArrayList<>();
+		if(data.getMapPublicCloudParameters()==null || data.getMapPublicCloudParameters().getMapPublicCloudParameters()==null || data.getMapPublicCloudParameters().getMapPublicCloudParameters().isEmpty()){
+			for (Entry<String, JobProfile> entry : data.getMapJobProfiles().getMapJobProfile().get(jobID).get(providerName).entrySet()) {
 				TypeVM vm = new TypeVM();
-				vm.setId(key.getTypeVM());
-
+				vm.setId(entry.getKey());
 				vm.setEta(0);
 				vm.setR(0);
-
-				lst2.add(vm);
+				lst.add(vm);
 			}
-			map.put(jobID,lst2);
 		}
-		return map;
+		else{
+			for (Entry<String, PublicCloudParameters> entry : data.getMapPublicCloudParameters().getMapPublicCloudParameters().get(jobID).get(providerName).entrySet()) {
+				TypeVM vm = new TypeVM();
+				vm.setId(entry.getKey());
+				vm.setEta(entry.getValue().getEta());
+				vm.setR(entry.getValue().getR());
+				lst.add(vm);
+			}
+		}
+		return lst;
 	}
 
-	public List<JobClass> getListJobClass() {
-		return data.getLstClass();
-	}
-
-	public List<TypeVM> getListTypeVM(JobClass jobClass) {
-		return data.getLstTypeVM(jobClass);
-	}
-
-	public Profile getProfile(JobClass jobClass, TypeVM tVM) {
-		return data.getProfile(jobClass, tVM);
+	public JobProfile getProfile(String classID, String tVM) {
+		return data.getProfile(classID, providerName, tVM);
 	}
 
 	public JobMLProfile getMLProfile(String id) throws NullPointerException{
@@ -218,7 +227,7 @@ public class DataService {
 	}
 
 	public int getGamma() {
-		return data.getGamma();
+		return gamma;
 	}
 
 }

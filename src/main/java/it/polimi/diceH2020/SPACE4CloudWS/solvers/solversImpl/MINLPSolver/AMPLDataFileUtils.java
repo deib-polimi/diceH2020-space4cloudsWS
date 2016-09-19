@@ -17,7 +17,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.*;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
@@ -30,14 +30,14 @@ class AMPLDataFileUtils {
 
 
 	@SuppressWarnings("unchecked")
-	static AMPLDataFileBuilder knapsackBuilder(InstanceData data, Matrix matrixWithoutHoles) {
+	static AMPLDataFileBuilder knapsackBuilder(InstanceDataMultiProvider data, Matrix matrixWithoutHoles) {
 		boolean tail = false;
 		Matrix matrix = matrixWithoutHoles.removeFailedSimulations();
 
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(matrix.getNumRows());
-		builder.addScalarParameter("N", data.getPrivateCloudParameters().get().getN());
-		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
-		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
+		builder.addScalarParameter("N", data.getPrivateCloudParameters().getN());
+		builder.addDoubleParameter("V", data.getPrivateCloudParameters().getV());
+		builder.addDoubleParameter("M", data.getPrivateCloudParameters().getM());
 
 		Pair<Iterable<Integer>, Iterable<Double>>[] bigC = null;
 		Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = null;
@@ -63,8 +63,8 @@ class AMPLDataFileUtils {
 			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
 			Iterable<Double> rowCost = matrix.getAllCost(row.getKey());
 			System.out.println(rowCost);
-			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations().get());
-			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations().get());
+			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations());
+			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations());
 			Iterable<Integer> rowNu = matrix.getAllNu(row.getKey());
 
 			if(i==0){
@@ -100,15 +100,15 @@ class AMPLDataFileUtils {
 
 
 	@SuppressWarnings("unchecked")
-	static AMPLDataFileBuilder binPackingBuilder(InstanceData data, Matrix matrixWithoutHoles) {
+	static AMPLDataFileBuilder binPackingBuilder(InstanceDataMultiProvider data, Matrix matrixWithoutHoles) {
 		boolean tail = false;
 		Matrix matrix = matrixWithoutHoles.removeFailedSimulations();
 
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(matrix.getNumRows());
-		builder.addScalarParameter("N", data.getPrivateCloudParameters().get().getN());
-		builder.addDoubleParameter("V", data.getPrivateCloudParameters().get().getV());
-		builder.addDoubleParameter("M", data.getPrivateCloudParameters().get().getM());
-		builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().get().getE());
+		builder.addScalarParameter("N", data.getPrivateCloudParameters().getN());
+		builder.addDoubleParameter("V", data.getPrivateCloudParameters().getV());
+		builder.addDoubleParameter("M", data.getPrivateCloudParameters().getM());
+		builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().getE());
 
 
 		Pair<Iterable<Integer>, Iterable<Double>>[] bigP = null;
@@ -136,8 +136,8 @@ class AMPLDataFileUtils {
 		for(Entry<String,SolutionPerJob[]> row : matrix.entrySet()){
 			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
 			Iterable<Double> rowPenalty = matrix.getAllPenalty(row.getKey());
-			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations().get());
-			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations().get());
+			Iterable<Double> rowMtilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations());
+			Iterable<Double> rowVtilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations());
 			Iterable<Integer> rowNu = matrix.getAllNu(row.getKey());
 
 			if(i==0){

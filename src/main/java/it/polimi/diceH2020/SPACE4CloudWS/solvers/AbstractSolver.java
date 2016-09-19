@@ -16,7 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
@@ -92,8 +92,8 @@ public abstract class AbstractSolver implements Solver {
         if (!solPerJob.getChanged()) {
             return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
         }
-        JobClass jobClass = solPerJob.getJob();
-        String jobID = jobClass.getId();
+        ClassParameters jobClass = solPerJob.getJob();
+        String jobID = solPerJob.getId();
         int nUsers = solPerJob.getNumberUsers();
         double think = jobClass.getThink();
         List<File> pFiles;

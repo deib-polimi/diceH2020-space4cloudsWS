@@ -69,6 +69,14 @@ public class EngineServiceWithACService implements Engine{
 	public void setSolution(Solution sol) {
 		this.solution = sol;
 	}
+	
+	public Matrix getMatrix() {
+		return matrix;
+	}
+
+	public void setMatrix(Matrix matrix) {
+		this.matrix = matrix;
+	}
 
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {

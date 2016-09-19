@@ -3,7 +3,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 
 @Service
 public class Validator {
@@ -19,7 +19,7 @@ public class Validator {
 	 * @param inputData
 	 *            the inputData to set
 	 */
-	public void setInstanceData(InstanceData inputData) {
+	public void setInstanceData(InstanceDataMultiProvider inputData) {
 		dataService.setInstanceData(inputData);
 	}
 

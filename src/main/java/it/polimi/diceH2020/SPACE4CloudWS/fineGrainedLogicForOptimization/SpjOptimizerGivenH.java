@@ -88,7 +88,7 @@ public class SpjOptimizerGivenH {
 	}
 
 	private synchronized void sendJob(SolutionPerJob job){
-		logger.info("J"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+" enqueued job with NVM:"+job.getNumberVM());
+		logger.info("J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+" enqueued job with NVM:"+job.getNumberVM());
 
 		SpjWrapperGivenHandN spjWrapper =  new SpjWrapperGivenHandN(job,this);
 
@@ -106,19 +106,19 @@ public class SpjOptimizerGivenH {
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
 				try{ if(!sendNextEvent() && sentNVM.size()==nVMxSPJ.size()){ //encode Next spj
-					logger.info("class" + initialSpjWithGivenH.getJob().getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
+					logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
 					finished(-1); //not enough VM
 				}
 				}catch(Exception e){logger.error("Exception sending a new spj "+e);}
 			else{
-				logger.info("class" + initialSpjWithGivenH.getJob().getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - its durations aren't decreasing enough");
+				logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - its durations aren't decreasing enough");
 				finished(-2);
 			}
 		}
 		else{
 			int optimalNVM = getOptimalVMNum();
 			if(optimalNVM != -1){ //optimal nVM founded
-				logger.info("J"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+" optimal VM number is"+ optimalNVM );
+				logger.info("J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+" optimal VM number is"+ optimalNVM );
 			}
 			finished(optimalNVM);
 		}
@@ -129,13 +129,13 @@ public class SpjOptimizerGivenH {
 		printStatus();
 		if (finished) return;
 		this.executionTime += executionTime;
-		logger.info("class" + initialSpjWithGivenH.getJob().getId() +"."+	initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - duration not received");
+		logger.info("class" + initialSpjWithGivenH.getId() +"."+	initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - duration not received");
 		finished(-3);
 	}
 
 	private void printStatus(){
 		String printText = new String();
-		printText += "\nJ"+initialSpjWithGivenH.getJob().getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
+		printText += "\nJ"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
 		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
 		printText += "sent nVM: "+sentNVM.stream().map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
 		printText += "finished: "+finished+"\n";
@@ -280,7 +280,7 @@ public class SpjOptimizerGivenH {
 				prevFeasibility = currFeasibility;
 			}
 		}
-		logger.info("class" + initialSpjWithGivenH.getJob().getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
+		logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
 		return -1; //maxVM isn't big enough.
 	}
 

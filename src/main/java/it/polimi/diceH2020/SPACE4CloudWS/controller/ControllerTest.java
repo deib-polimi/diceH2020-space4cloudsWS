@@ -15,7 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.EngineService;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -57,9 +57,7 @@ public class ControllerTest {
 	
 	@Autowired
 	Validator validator;
-	
-	@Autowired
-	InstanceData inputData;
+
 	// I could use the daoService, but this class is only for testing purposes
 	@Autowired
 	JobRepository jobRepository;
@@ -72,7 +70,7 @@ public class ControllerTest {
 
 	@RequestMapping(method = RequestMethod.GET, value = "appldata")
 	@Profile("test")
-	public @ResponseBody InstanceData applData(){
+	public @ResponseBody InstanceDataMultiProvider applData(){
 		return dataService.getData();
 	}
 	
@@ -115,6 +113,7 @@ public class ControllerTest {
 	@RequestMapping(method = RequestMethod.GET, value = "debug/solution")
 	@Profile("test")
 	public Solution getSolutionDebug() {
+		InstanceDataMultiProvider inputData = new InstanceDataMultiProvider();
 		validator.setInstanceData(inputData);
 		//stateHandler.sendEvent(Events.MIGRATE);
 		Optional<Solution> sol = engineService.generateInitialSolution(); 

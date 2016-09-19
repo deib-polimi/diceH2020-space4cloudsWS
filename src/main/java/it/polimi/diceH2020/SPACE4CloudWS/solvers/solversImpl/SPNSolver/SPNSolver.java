@@ -16,8 +16,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.Profile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
@@ -122,9 +122,9 @@ public class SPNSolver extends AbstractSolver {
 
     private List<File> createWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration) throws IOException {
         int nContainers = solPerJob.getNumberContainers();
-        JobClass jobClass = solPerJob.getJob();
-        Profile prof = solPerJob.getProfile();
-        String jobID = jobClass.getId();
+        ClassParameters jobClass = solPerJob.getJob();
+        JobProfile prof = solPerJob.getProfile();
+        String jobID = solPerJob.getId();
         double mAvg = prof.get("mavg");
         double rAvg = prof.get("ravg");
         double shTypAvg = prof.get("shtypavg");

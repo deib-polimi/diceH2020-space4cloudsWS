@@ -17,7 +17,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.InstanceData;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
@@ -28,6 +28,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 
+import java.io.File;
 import java.util.Optional;
 
 import org.apache.log4j.Logger;
@@ -35,6 +36,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 @RestController
 class Controller {
@@ -61,6 +65,14 @@ class Controller {
 				engineService.runningInitSolution();
 				break;
 			case EVALUATING_INIT:
+				
+				ObjectMapper mapper = new ObjectMapper(); //TODO delete
+				mapper.registerModule(new Jdk8Module());
+				mapper.writeValue(new File("/Users/jacoporigoli/Desktop/PROVA/test/"+engineService.getSolution().getId()+"_"+engineService.getSolution().getScenario()+".json"), engineService.getSolution());
+				if(engineService.getMatrix()!= null){
+					mapper.writeValue(new File("/Users/jacoporigoli/Desktop/PROVA/test/"+engineService.getSolution().getId()+"_"+engineService.getSolution().getScenario()+"_MATRIX.json"), engineService.getMatrix());
+				}
+				
 				engineService.evaluatingInitSolution();
 				break;
 			case RUNNING_LS:
@@ -87,8 +99,10 @@ class Controller {
 	
 	@RequestMapping(method = RequestMethod.POST, value = "/inputdata")
 	@ResponseStatus(value = HttpStatus.OK)
-	public String endpointInputData(@RequestBody InstanceData inputData) throws Exception {
-		
+	public String endpointInputData(@RequestBody InstanceDataMultiProvider inputData) throws Exception {
+		ObjectMapper mapper = new ObjectMapper(); //TODO delete
+		mapper.registerModule(new Jdk8Module());
+		mapper.writeValue(new File("/Users/jacoporigoli/Desktop/PROVA/test/input.json"), inputData);
 		if (getWebServiceState().equals("IDLE")) {
 			logger.info("Starting simulation for "+inputData.getScenario()+" scenario...");
 			refreshEngine(inputData.getScenario());

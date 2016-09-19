@@ -67,7 +67,7 @@ public class ReactorConsumer implements Consumer<Event<SpjWrapperGivenHandN>>{
 	public void accept(Event<SpjWrapperGivenHandN> ev) {
 		SolutionPerJob spj = ev.getData().getSpj();
 		SpjOptimizerGivenH spjOptimizer = ev.getData().getHandler();
-		logger.info("|Q-STATUS| received spjWrapper"+spj.getJob().getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
+		logger.info("|Q-STATUS| received spjWrapper"+spj.getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
 		Instant first = Instant.now();
 		if(calculateDuration(spj)){
 			Instant after = Instant.now();

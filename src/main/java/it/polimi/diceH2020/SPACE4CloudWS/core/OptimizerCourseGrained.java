@@ -15,7 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputData.JobClass;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
@@ -82,7 +82,7 @@ public class OptimizerCourseGrained extends Optimizer {
 	}
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {
-		JobClass jobClass = solPerJob.getJob();
+		ClassParameters jobClass = solPerJob.getJob();
 		double deadline = jobClass.getD();
 		FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction;
 		Function<Integer, Integer> updateFunction;
@@ -105,11 +105,11 @@ public class OptimizerCourseGrained extends Optimizer {
 				int nVM = result.get().getLeft();
 				solPerJob.setDuration(dur.doubleValue());
 				solPerJob.setNumberVM(nVM);
-				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getJob().getId(), dur.toString(), nVM));
+				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getId(), dur.toString(), nVM));
 				return true;
 			}
 		}
-		logger.info("class" + solPerJob.getJob().getId() + "-> MakeFeasible ended with ERROR");
+		logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
 		return false;
 	}
 
@@ -131,7 +131,7 @@ public class OptimizerCourseGrained extends Optimizer {
 		lst.add(new ImmutableTriple<>(nVM, optDuration, optDuration.isPresent() && (optDuration.get().doubleValue() < deadline)));
 		Boolean condition = checkFunction.apply(previous, optDuration, deadline, nVM, maxVM);
 		if (!condition) {
-			logger.info("class" + solPerJob.getJob().getId() + "-> num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
+			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
 			solPerJob.setNumberVM(updateFunction.apply(nVM));
 			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		}
@@ -168,7 +168,7 @@ public class OptimizerCourseGrained extends Optimizer {
 			// pass
 		}
 		Optional<Double> res = Optional.of(10.0);
-		logger.info("Local search num " + solPerJob.getPos() + " finished");
+		logger.info("Local search finished");
 		return res;
 	}
 

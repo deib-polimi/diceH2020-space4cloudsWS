@@ -85,7 +85,7 @@ public class OptimizerFineGrained extends Optimizer{
 		finished = true;
 		this.executionTime += executionTime;
 		//optimalNVMGivenH[spj.getJob().getId()-1][h-1] = nVM;
-		matrix.get(spj.getJob().getId())[spj.getNumberUsers()-matrix.getHlow(spj.getJob().getId())] = spj;
+		matrix.get(spj.getId())[spj.getNumberUsers()-matrix.getHlow(spj.getId())] = spj;
 
 		registeredSolutionsPerJob++;
 		if(registeredSolutionsPerJob != matrix.getNumCells() ) finished = false;
@@ -98,6 +98,7 @@ public class OptimizerFineGrained extends Optimizer{
 	
 	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
 		SolutionPerJob newSpj = new SolutionPerJob();
+		newSpj.setId(oldSpj.getId());
 		newSpj.setChanged(oldSpj.getChanged());
 		newSpj.setCost(oldSpj.getCost());
 		newSpj.setDeltaBar(oldSpj.getDeltaBar());
@@ -113,7 +114,6 @@ public class OptimizerFineGrained extends Optimizer{
 		newSpj.setNumReservedVM(oldSpj.getNumReservedVM());
 		newSpj.setNumSpotVM(oldSpj.getNumSpotVM());
 		newSpj.setParentID(oldSpj.getParentID());
-		newSpj.setPos(oldSpj.getPos());
 		newSpj.setProfile(oldSpj.getProfile());
 		newSpj.setRhoBar(oldSpj.getRhoBar());
 		newSpj.setSigmaBar(oldSpj.getSigmaBar());
