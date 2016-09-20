@@ -64,7 +64,6 @@ public class DataService {
 	
 	private Map<String,List<TypeVM>> mapTypeVM;
 
-	
 	private String providerName;
 
 	private Matrix matrix;
@@ -150,8 +149,8 @@ public class DataService {
 				typeVM.setCore(vm.getValue().getCore());
 				typeVM.setMemory(vm.getValue().getMemory());
 
-				typeVM.setRhobar(0);
-				typeVM.setSigmabar(0);
+				typeVM.setRhobar(0.0);
+				typeVM.setSigmabar(0.0);
 				if(vm.getValue().getCost().isPresent()) typeVM.setDeltabar(vm.getValue().getCost().get());
 				else  typeVM.setDeltabar(1);
 
@@ -163,9 +162,10 @@ public class DataService {
 	}
 	
 	private void overrideDBLocalData(){
+		//TODO if empty throw exception
 		for(Map.Entry<EntityKey, EntityTypeVM> entry : mapCloudParameters.entrySet()){
-			entry.getValue().setRhobar(0);
-			entry.getValue().setSigmabar(0);
+			entry.getValue().setRhobar(0.0);
+			entry.getValue().setSigmabar(0.0);
 		}
 	}
 
@@ -175,7 +175,7 @@ public class DataService {
 		    for (Map.Entry<String, Map<String, PublicCloudParameters>> providers : jobIDs.getValue().entrySet()) {
 		    	for (Map.Entry<String, PublicCloudParameters> typeVMs : providers.getValue().entrySet()) {
 		    		PublicCloudParameters vm = typeVMs.getValue();
-					vm.setEta(0);
+					vm.setEta(0.0);
 					vm.setR(0);
 		    	}
 		    }
