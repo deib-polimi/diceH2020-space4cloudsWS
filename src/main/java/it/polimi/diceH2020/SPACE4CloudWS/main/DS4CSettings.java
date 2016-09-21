@@ -18,6 +18,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.main;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Min;
@@ -29,4 +30,8 @@ public class DS4CSettings {
 	private boolean parallel= false;
 	@Min(1)
 	private Integer availableCores = 1; //for fine Grained Optimization
+	
+	@NestedConfigurationProperty
+	private CacheSettings cache;
 }
+
