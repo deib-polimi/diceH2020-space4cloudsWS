@@ -24,6 +24,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineTypes;
+import it.polimi.diceH2020.SPACE4CloudWS.main.CacheSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
@@ -32,28 +34,39 @@ import java.util.Optional;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.*;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheStats;
 
 @RestController
 class Controller {
 
 	@Autowired
+	private DS4CSettings settings;
+
+	@Autowired
 	private EngineProxy engineProxy;
-	
+
 	@Autowired
 	private Validator validator;
-	
+
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
 	private final Logger logger = Logger.getLogger(getClass());
-	
+
 	@Autowired
 	private Engine engineService;
-	
+
+	@Autowired
+	private CacheManager cacheManager;
+
+	private CacheStats cacheStats;
+
 	@RequestMapping(method = RequestMethod.POST, value = "/event")
 	public @ResponseBody String changeState(@RequestBody Events event) throws Exception {
 		stateHandler.sendEvent(event);
@@ -80,19 +93,21 @@ class Controller {
 
 	@RequestMapping(method = RequestMethod.POST, value = "/settings")
 	public @ResponseBody String changeState(@RequestBody Settings settings) {
-		if (getWebServiceState().equals("IDLE")) engineService.changeSettings(settings);
+		if (getWebServiceState().equals("IDLE"))
+			engineService.changeSettings(settings);
 		String msg = "settings changed";
 		logger.info(msg);
 		return msg;
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST, value = "/inputdata")
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointInputData(@RequestBody InstanceDataMultiProvider inputData) throws Exception {
 		if (getWebServiceState().equals("IDLE")) {
-			logger.info("Starting simulation for "+inputData.getScenario()+" scenario...");
+			logger.info("Starting simulation for " + inputData.getScenario() + " scenario...");
 			refreshEngine(inputData.getScenario());
-			
+			cacheInitialization();
+
 			validator.setInstanceData(inputData);
 			stateHandler.sendEvent(Events.TO_CHARGED_INPUTDATA);
 		}
@@ -102,7 +117,7 @@ class Controller {
 	@RequestMapping(method = RequestMethod.POST, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointSolution(@RequestBody Solution sol) throws Exception {
-		if(getWebServiceState().equals("IDLE")) {
+		if (getWebServiceState().equals("IDLE")) {
 			engineService.setSolution(sol);
 			stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		}
@@ -112,8 +127,13 @@ class Controller {
 	@RequestMapping(method = RequestMethod.GET, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
 	public Solution endpointSolution() throws Exception {
+
 		String state = stateHandler.getState().getId().toString();
-		if (state.equals("CHARGED_INITSOLUTION") || state.equals("EVALUATED_INITSOLUTION")  || state.equals("FINISH")) return engineService.getSolution();
+		if (state.equals("CHARGED_INITSOLUTION") || state.equals("EVALUATED_INITSOLUTION") || state.equals("FINISH")) {
+			if (state.equals("FINISH"))
+				logCacheStats();
+			return engineService.getSolution();
+		}
 		return null;
 	}
 
@@ -125,19 +145,45 @@ class Controller {
 	private String getWebServiceState() {
 		return stateHandler.getState().getId().toString();
 	}
-	
-	private void refreshEngine(Optional<Scenarios> receivedScenario){
-		
+
+	private void refreshEngine(Optional<Scenarios> receivedScenario) {
+
 		Scenarios submittedScenario = Scenarios.PublicPeakWorkload;
-		
-		if(receivedScenario.isPresent()) {
+
+		if (receivedScenario.isPresent()) {
 			submittedScenario = receivedScenario.get();
 		}
-		//TODO edit shared project in order to add EngineTypes to each case.
-		if(submittedScenario.equals(Scenarios.PrivateAdmissionControl) || submittedScenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
+		// TODO edit shared project in order to add EngineTypes to each case.
+		if (submittedScenario.equals(Scenarios.PrivateAdmissionControl)
+				|| submittedScenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
 			engineService = engineProxy.refreshEngine(EngineTypes.AC);
-		}else{
+		} else {
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);
+		}
+	}
+
+	private void cacheInitialization() {
+		CacheSettings cache = settings.getCache();
+		logger.info(
+				String.format("Cache has been initializied (maxSize:%d, max days before expiry:%d, register stats:%b).",
+						cache.getSize(), cache.getDaysBeforeExpire(), cache.isRecordStats()));
+		logCacheStats();
+	}
+
+	private void refreshCacheStats() {
+		cacheStats = ((Cache<?, ?>) cacheManager
+				.getCache(it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME).getNativeCache()).stats();
+	}
+
+	private void logCacheStats() {
+		if (settings.getCache().isRecordStats()) {
+			refreshCacheStats();
+			logger.debug(String.format(
+					"Cache Statistics:\n" + "\t\t\t\t\tload time avg: %f\n" + "\t\t\t\t\teviction #: %d\n"
+							+ "\t\t\t\t\thit #: %d\n" + "\t\t\t\t\thit rate: %f\n" + "\t\t\t\t\tload attempts: %d\n"
+							+ "\t\t\t\t\tmiss #:%d",
+					cacheStats.averageLoadPenalty(), cacheStats.evictionCount(), cacheStats.hitCount(),
+					cacheStats.hitRate(), cacheStats.loadCount(), cacheStats.missCount()));
 		}
 	}
 

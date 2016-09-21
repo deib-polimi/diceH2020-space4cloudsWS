@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +23,11 @@ import lombok.NonNull;
  */
 @Component
 public class DataProcessor {
+	
+	private final Logger logger = Logger.getLogger(getClass());
+	
 	@Autowired
 	protected SolverProxy solverCache;
-	
 	
 	protected long calculateDuration(@NonNull Solution sol) {
 		return calculateDuration(sol.getLstSolutions());
@@ -56,6 +59,7 @@ public class DataProcessor {
 	protected Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
 		Optional<BigDecimal> result = solverCache.evaluate(solPerJob);
 		if (! result.isPresent()) solverCache.invalidate(solPerJob);
+		else logger.info(solPerJob.getId()+"->"+" Duration with "+solPerJob.getNumberVM()+"VM and h="+solPerJob.getNumberUsers()+"has been calculated" +result.get());
 		return result;
 	}
 	

@@ -23,16 +23,24 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.cache.CacheBuilder;
+
 import it.polimi.diceH2020.SPACE4Cloud.shared.generators.SolutionGenerator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.generatorsDataMultiProvider.InstanceDataMultiProviderGenerator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVMJobClassKey;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.guava.GuavaCacheManager;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.*;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -42,6 +50,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ComponentScan("it.polimi.diceH2020.SPACE4CloudWS.services")
 @EnableCaching
 public class Configurator {
+	public final static String CACHE_NAME = "cachedEval";
+	public final static String CACHEMANAGER_NAME = "guavaCM";
+	public final static String SPJ_KEYGENERATOR = "spjKeyGenerator";
+	
+	@Autowired 
+	private DS4CSettings settings;
 
 	@Value("${pool.size:10}")
 	private int poolSize;
@@ -143,10 +157,37 @@ public class Configurator {
 	}
 
 	@Bean
-	public CacheManager cacheManager() {
-		GuavaCacheManager guavaCacheManager = new GuavaCacheManager("cachedEval");
-		guavaCacheManager.setCacheBuilder(CacheBuilder.newBuilder());
-		return guavaCacheManager;
+	public CacheBuilder<Object, Object> builder(){
+		CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
+		CacheSettings cache = settings.getCache();
+		builder.maximumSize(cache.getSize()).expireAfterAccess(cache.getDaysBeforeExpire(), TimeUnit.DAYS);
+		if(cache.isRecordStats()) builder.recordStats();
+		return builder;
 	}
+	
+	@Bean(name=CACHEMANAGER_NAME)
+	public CacheManager cacheManager() {
+		GuavaCacheManager cacheManager = new GuavaCacheManager();
+	    cacheManager.setCacheBuilder(builder());
+	    cacheManager.setCacheNames(Arrays.asList(CACHE_NAME));
+	    return cacheManager;
+	}
+	
+	@Bean(name=SPJ_KEYGENERATOR)
+	 public KeyGenerator spjKeyGen() {
+	    return new KeyGenerator() {
+	      @Override
+	      public Object generate(Object o, Method method, Object... objects) {
+	        StringBuilder sb = new StringBuilder();
+	        sb.append(o.getClass().getName());
+	        sb.append(method.getName());
+	        for (Object obj : objects) {
+	          sb.append(obj.toString());
+	        }
+	        
+	        return sb.toString();
+	      }
+	    };
+	  }
 
 }

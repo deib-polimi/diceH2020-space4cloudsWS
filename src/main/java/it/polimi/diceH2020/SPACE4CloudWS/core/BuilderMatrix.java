@@ -28,10 +28,10 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -202,7 +202,7 @@ public class BuilderMatrix extends Builder{
 	}
 
 	private JobProfile cloneProfile(JobProfile oldProfile){
-		Map<String,Double> map = new HashMap<>(oldProfile.getProfileMap());
+		TreeMap<String,Double> map = new TreeMap<>(oldProfile.getProfileMap());
 		return new JobProfile(map);
 	}
 

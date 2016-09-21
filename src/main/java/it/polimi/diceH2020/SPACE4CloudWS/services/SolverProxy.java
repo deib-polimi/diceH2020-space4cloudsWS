@@ -71,8 +71,7 @@ public class SolverProxy {
 		solver = solverFactory.create();
 		solver.restoreDefaults();
 	}
-
-	@Cacheable(value="cachedEval")
+	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME, keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
 	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
 		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
 		return solver.evaluate(solPerJob);
