@@ -96,29 +96,4 @@ public class OptimizerFineGrained extends Optimizer{
 		}
 	}
 	
-	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
-		SolutionPerJob newSpj = new SolutionPerJob();
-		newSpj.setId(oldSpj.getId());
-		newSpj.setChanged(oldSpj.getChanged());
-		newSpj.setCost(oldSpj.getCost());
-		newSpj.setDeltaBar(oldSpj.getDeltaBar());
-		newSpj.setDuration(oldSpj.getDuration());
-		newSpj.setError(oldSpj.getError());
-		newSpj.setFeasible(oldSpj.getFeasible());
-		newSpj.setJob(oldSpj.getJob());
-		newSpj.setNumberContainers(oldSpj.getNumberContainers());
-		newSpj.setNumberUsers(oldSpj.getNumberUsers());
-		newSpj.setNumberVM(oldSpj.getNumberVM());
-		newSpj.setNumCores(oldSpj.getNumCores());
-		newSpj.setNumOnDemandVM(oldSpj.getNumOnDemandVM());
-		newSpj.setNumReservedVM(oldSpj.getNumReservedVM());
-		newSpj.setNumSpotVM(oldSpj.getNumSpotVM());
-		newSpj.setParentID(oldSpj.getParentID());
-		newSpj.setProfile(oldSpj.getProfile());
-		newSpj.setRhoBar(oldSpj.getRhoBar());
-		newSpj.setSigmaBar(oldSpj.getSigmaBar());
-		newSpj.setTypeVMselected(oldSpj.getTypeVMselected());
-		newSpj.setXi(oldSpj.getXi());
-		return newSpj;
-	}
 }

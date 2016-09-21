@@ -79,8 +79,7 @@ public class SpjOptimizerGivenH {
 		batchFunctionsList.stream().forEach(fun->{
 			int nVMtmp = fun.apply(initialNVM);
 			if(1<=nVMtmp && nVMtmp<=maxVM){
-				SolutionPerJob nextJob = optimizer.cloneSpj(initialSpjWithGivenH);
-
+				SolutionPerJob nextJob = initialSpjWithGivenH.clone();
 				nextJob.setNumberVM(nVMtmp);
 				sendJob(nextJob);
 			}
@@ -197,7 +196,7 @@ public class SpjOptimizerGivenH {
 
 		if(nextN == -1) return false; //nVM exceeded limits 
 
-		SolutionPerJob nextJob =  optimizer.cloneSpj(initialSpjWithGivenH);
+		SolutionPerJob nextJob =  initialSpjWithGivenH.clone();
 		nextJob.setNumberVM(nextN);
 		sendJob(nextJob);
 
