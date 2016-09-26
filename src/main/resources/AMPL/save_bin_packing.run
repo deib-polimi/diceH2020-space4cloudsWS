@@ -1,6 +1,7 @@
 # vim: set filetype=ampl : #
 
 # Copyright 2016 Eugenio Gianniti
+# Copyright 2016 Jacopo Rigoli
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +32,8 @@ printf "### Variables\n" >> (solfile);
 display x >> (solfile);
 display y >> (solfile);
 display n >> (solfile);
+display p >> (solfile);
+
 
 printf "### Concurrency\n" >> (solfile);
 printf "param: h :=\n" >> (solfile);

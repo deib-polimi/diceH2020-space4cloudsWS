@@ -1,4 +1,5 @@
 # Copyright 2016 Eugenio Gianniti
+# Copyright 2016 Jacopo Rigoli
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,5 +27,7 @@ let solfile := "@@OUTPUT_PATH@@";
 
 include ../problems/bin_packing.run;
 solve bin_packing_prob;
+
+include ../utils/post_processing.run;
 
 include ../utils/save_bin_packing.run;

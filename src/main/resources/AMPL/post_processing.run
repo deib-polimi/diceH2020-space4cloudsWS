@@ -1,4 +1,4 @@
-# Copyright 2015 Liliane Tueguem
+# Copyright 2016 Jacopo Rigoli
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-param t {i in AM} >=0 default 0;
-var energy_total >=0 default Infinity;
 
-let energy_total := sum {i in AM} (r[i] * rhobar[i] + d[i] * deltabar[i] + s[i] * sigmabar[i]) ;
-let {i in AM} t[i] := A[i] / (psi[i] * sM[i]) + B[i] / (psi[i] * sR[i]) + C[i];
+var p >=0 default 0;
+
+let p:= sum {i in AM, j in H[i]} (bigP[i, j] * x[i, j]);
