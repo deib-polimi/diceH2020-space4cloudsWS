@@ -62,7 +62,7 @@ class Evaluator implements IEvaluator {
 		double maxNumberOfUsers =  solPerJob.getJob().getHup();
 		
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
-		+ sigmaBar * solPerJob.getNumSpotVM() + ( maxNumberOfUsers - currentNumberOfUsers);
+		+ sigmaBar * solPerJob.getNumSpotVM() + ( maxNumberOfUsers - currentNumberOfUsers)*solPerJob.getJob().getPenalty();
 		
 		BigDecimal c = BigDecimal.valueOf(cost).setScale(4, RoundingMode.HALF_EVEN);
 		double decCost = c.doubleValue();
