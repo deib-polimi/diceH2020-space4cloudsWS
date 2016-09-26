@@ -41,7 +41,7 @@ class AMPLDataFileBuilder {
     }
 
     AMPLDataFileBuilder addDoubleParameter(String name, double value) {
-        String currentLine = String.format("param %s := %.1f;", name, value);
+        String currentLine = String.format("param %s := %.5f;", name, value);
         lines.add(currentLine);
         return this;
     }
