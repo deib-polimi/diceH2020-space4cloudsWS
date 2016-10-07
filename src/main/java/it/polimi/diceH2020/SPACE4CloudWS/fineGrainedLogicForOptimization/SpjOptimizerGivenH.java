@@ -43,10 +43,7 @@ public class SpjOptimizerGivenH {
 
 	private SolutionPerJob initialSpjWithGivenH;
 
-	private ArrayList<Function<Integer,Integer>> batchFunctionsList = new ArrayList<>();
-
 	private TreeMap<Integer,SolutionPerJob> nVMxSPJ;
-	private ArrayList<Integer> sentNVM;
 	private long executionTime;
 
 	@Min(1)
@@ -54,7 +51,6 @@ public class SpjOptimizerGivenH {
 	@Min(1)
 	private int maxVM;
 
-	private int batchStep = 1; //optimality works only with step = 1 till now
 	private boolean finished = false;
 
 	public SpjOptimizerGivenH(SolutionPerJob spj, int minVM, int maxVM){
@@ -67,24 +63,15 @@ public class SpjOptimizerGivenH {
 		 * To send |n| parallel executions of the same SolutionPerJob with a fixed H but variable number of VM, just add |n| function to batchFunctionList
 		 * the initial N (for the first iteration) is obtained by the Initialization Phase, or can be obtained by a ML SVR model.
 		 */
-		batchFunctionsList.add(n -> n);
-		//Neighborhood: 
-//		batchFunctionsList.add(n -> n + batchStep);
-//		batchFunctionsList.add(n -> n - batchStep);
 
-		sentNVM = new ArrayList<Integer>();
 	}
 
 	public void start(){
 		int initialNVM = getInitialNVM();
-		batchFunctionsList.stream().forEach(fun->{
-			int nVMtmp = fun.apply(initialNVM);
-			if(1<=nVMtmp && nVMtmp<=maxVM){
-				SolutionPerJob nextJob = initialSpjWithGivenH.clone();
-				nextJob.updateNumberVM(nVMtmp);
-				sendJob(nextJob);
-			}
-		});
+		SolutionPerJob nextJob = initialSpjWithGivenH.clone();
+		nextJob.updateNumberVM(initialNVM);
+		sendJob(nextJob);
+		//TODO check minVM≤initialNVM≤maxVM is not really useful
 	}
 
 	private synchronized void sendJob(SolutionPerJob job){
@@ -93,7 +80,6 @@ public class SpjOptimizerGivenH {
 		SpjWrapperGivenHandN spjWrapper =  new SpjWrapperGivenHandN(job,this);
 
 		dispatcher.enqueueJob(spjWrapper);
-		sentNVM.add(job.getNumberVM());
 	}
 
 	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, double executionTime){
@@ -105,7 +91,7 @@ public class SpjOptimizerGivenH {
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
 				try{ 
-					if(!sendNextEvent() && sentNVM.size()==nVMxSPJ.size()){ //encode Next spj
+					if(!sendNextEvent()){ //encode Next spj
 						logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
 						finished(-1); //not enough VM
 					}
@@ -137,7 +123,7 @@ public class SpjOptimizerGivenH {
 		String printText = new String();
 		printText += "\nJ"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
 		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
-		printText += "sent nVM: "+sentNVM.stream().map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
+		printText += "Calculated nVM: "+nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
 		printText += "finished: "+finished+"\n";
 		printText += "deadline: "+initialSpjWithGivenH.getJob().getD()+"\n";
 		printText += "nVM feas duration\n";
@@ -236,18 +222,18 @@ public class SpjOptimizerGivenH {
 	}
 
 	private int getRightN(){
-		Optional<Integer> maxN = sentNVM.stream().max(Integer::compareTo);
+		Optional<Integer> maxN = nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).max(Integer::compareTo);
 		if(maxN.isPresent())
-			if( maxN.get() + batchStep <= maxVM)
-				return maxN.get() + batchStep;
+			if( maxN.get() + 1 <= maxVM)
+				return maxN.get() + 1;
 		return -1;
 	}
 
 	private int getLeftN(){
-		Optional<Integer> minN = sentNVM.stream().min(Integer::compareTo);
+		Optional<Integer> minN = nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).min(Integer::compareTo);
 		if(minN.isPresent())
-			if( minN.get() - batchStep >= minVM)
-				return minN.get() - batchStep;
+			if( minN.get() - 1 >= minVM)
+				return minN.get() - 1;
 		return -1;
 	}
 
