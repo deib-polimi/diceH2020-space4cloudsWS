@@ -23,12 +23,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Min;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
-import java.util.function.Function;
 
 @Component
 @Scope("prototype")
@@ -71,7 +67,7 @@ public class SpjOptimizerGivenH {
 		SolutionPerJob nextJob = initialSpjWithGivenH.clone();
 		nextJob.updateNumberVM(initialNVM);
 		sendJob(nextJob);
-		//TODO check minVM≤initialNVM≤maxVM is not really useful
+		//check minVM≤initialNVM≤maxVM is not really useful (this spj has already been cached i don't waste time on it), and i can also use a point out of range to study hyperbola
 	}
 
 	private synchronized void sendJob(SolutionPerJob job){
@@ -191,50 +187,67 @@ public class SpjOptimizerGivenH {
 	}
 
 	/**
-	 * Precondition:
-	 * nVMxSPJ !verifyFinalAssumption()
-	 * so or FFFFF or IIIII not both so it cannot contain solution
-	 * and cannot be empty (called after adding a spj to it)
-	 *
-	 *
-	 * @return -1 if nVMxSPJ is empty (precondition violation) or contains solution (precondition violation)
-	 * 			  or nVM exceeds limits
+	 * Precondition: I've not a final solution yet, so i'm guaranteed that there are some holes in the ThreeMap 
+	 */
+	private int updateN(int nVM){
+		if(nVMxSPJ.containsKey(nVM)){
+			if(!nVMxSPJ.get(nVM).getFeasible()) return updateN(nVM+1);
+			else return updateN(nVM-1);
+		}else{
+			return nVM;
+		}
+	}
+	
+	/**
+	 * Preconditions:
+	 * <ul>
+	 * <li>At least 1 solution in the TreeMap, it can also exceeds limits imposed by minNVM and maxNVM</li>
+	 * <li>I've not a final solution yet, so i'm guaranteed that there are some holes in the ThreeMap and updateN() will return one of them</li>
+	 * </ul>
 	 */
 	private synchronized int getNextN(){
-		boolean left = false;
-		boolean right = false;
 		int nextN = -1;
-
-		for (Map.Entry<Integer, SolutionPerJob> entry : nVMxSPJ.entrySet())
-		{
-			if(entry.getValue().getFeasible()) left = true;
-			else right = true;
+		
+		if(nVMxSPJ.size() == 1){
+			if(nVMxSPJ.firstEntry().getValue().getFeasible()){ //
+				nextN = updateN(nextN);
+				nextN = checkNVMAgainstRange(nextN);
+			}
+		}else{ //size≥2
+			nextN = hyperbolicAssestment(nVMxSPJ.firstEntry().getValue(),nVMxSPJ.lastEntry().getValue());
+			nextN = updateN(nextN);
 		}
-
-		if(left&&!right || !left&&right){
-			if(left) nextN = getLeftN();
-			if(right) nextN = getRightN();
-		}else{
-			logger.info("Error with precondition!");
+		
+		if(nextN>minVM || nextN<minVM || nVMxSPJ.containsKey(nextN)){
+			logger.info("Error with preconditions!");
+			return -1;
 		}
-
+		
 		return nextN;
 	}
-
-	private int getRightN(){
-		Optional<Integer> maxN = nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).max(Integer::compareTo);
-		if(maxN.isPresent())
-			if( maxN.get() + 1 <= maxVM)
-				return maxN.get() + 1;
-		return -1;
+	
+	private int checkNVMAgainstRange(int nVM){
+		nVM = Math.max(nVM, minVM);
+		nVM = Math.min(nVM, maxVM);
+		return nVM;
 	}
-
-	private int getLeftN(){
-		Optional<Integer> minN = nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).min(Integer::compareTo);
-		if(minN.isPresent())
-			if( minN.get() - 1 >= minVM)
-				return minN.get() - 1;
-		return -1;
+	
+	private int hyperbolicAssestment(SolutionPerJob spj1, SolutionPerJob spj2){
+		int nVM = (int) Math.ceil(getPointCoordinate(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
+		nVM = checkNVMAgainstRange(nVM);
+		return nVM;
+	}
+	
+	/**
+	 * From a hyperbola given two points coordinates and a third point y coordinate
+	 * retrieves this third point x coordinate.
+	 */
+	private double getPointCoordinate(int x1, double y1, int x2, double y2, double y){
+		double x = 0.0;
+		double a =  x1*x2*(y1-y2)/(double)(x2-x1);
+		double b = (x2*y2-x1*y1)/(double)(x2-x1);
+		x = a / (y - b);
+		return x;
 	}
 
 	/**
