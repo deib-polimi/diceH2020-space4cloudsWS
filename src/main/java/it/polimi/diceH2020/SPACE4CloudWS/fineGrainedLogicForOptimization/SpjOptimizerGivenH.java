@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Min;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -103,11 +104,12 @@ public class SpjOptimizerGivenH {
 		this.executionTime += executionTime;
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
-				try{ if(!sendNextEvent() && sentNVM.size()==nVMxSPJ.size()){ //encode Next spj
-					logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
-					finished(-1); //not enough VM
-				}
-				}catch(Exception e){logger.error("Exception sending a new spj "+e);}
+				try{ 
+					if(!sendNextEvent() && sentNVM.size()==nVMxSPJ.size()){ //encode Next spj
+						logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
+						finished(-1); //not enough VM
+					}
+				}catch(Exception e){logger.error("Exception sending a new spj "+e);finished(-1);}
 			else{
 				logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - its durations aren't decreasing enough");
 				finished(-2);
@@ -279,7 +281,7 @@ public class SpjOptimizerGivenH {
 			}
 		}
 		logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
-		return -1; //maxVM isn't big enough.
+		return -1; //maxVM isn't big enough. (case maxVM is I)
 	}
 
 	private boolean acceptableDurationDecrease(){
@@ -315,13 +317,20 @@ public class SpjOptimizerGivenH {
 	 * 			when already sent spjs arrive
 	 */
 	private boolean verifyFinalAssumption(){
-		if(!nVMxSPJ.firstEntry().getValue().getFeasible() && nVMxSPJ.lastEntry().getValue().getFeasible() ) return true;
 		if(nVMxSPJ.firstEntry().getValue().getFeasible() && nVMxSPJ.firstEntry().getValue().getNumberVM()==minVM) return true;
 		if(!nVMxSPJ.lastEntry().getValue().getFeasible() && nVMxSPJ.lastEntry().getValue().getNumberVM()==maxVM) return true;
+		if(solutionPresent()) return true;
 
 		return false;
 	}
-
+	
+	private boolean solutionPresent(){
+		SolutionPerJob sol = nVMxSPJ.values().stream().filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM)).get();
+		if(nVMxSPJ.containsKey(sol.getNumberVM()-1)){
+			if(!nVMxSPJ.get(sol.getNumberVM()-1).getFeasible()) return true;
+		}
+		return false;
+	}
 
 	public boolean isFinished() {
 		return finished;
