@@ -95,7 +95,7 @@ public class BuilderMatrix extends Builder{
 						// as in this::fallback
 						spj2.setNumberUsers(spj2.getJob().getHup());
 						spj2.setXi(1); //TODO
-						spj2.setNumberVM(1);
+						spj2.updateNumberVM(1);
 						logger.info("No result from solver for evaluating SPJ");
 					}
 					mapResults.put(spj2, cost);

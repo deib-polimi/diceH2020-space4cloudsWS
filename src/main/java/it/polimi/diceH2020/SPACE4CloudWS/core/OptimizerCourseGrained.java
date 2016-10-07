@@ -104,7 +104,7 @@ public class OptimizerCourseGrained extends Optimizer {
 				BigDecimal dur = result.get().getMiddle().get();
 				int nVM = result.get().getLeft();
 				solPerJob.setDuration(dur.doubleValue());
-				solPerJob.setNumberVM(nVM);
+				solPerJob.updateNumberVM(nVM);
 				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getId(), dur.toString(), nVM));
 				return true;
 			}
@@ -132,7 +132,7 @@ public class OptimizerCourseGrained extends Optimizer {
 		Boolean condition = checkFunction.apply(previous, optDuration, deadline, nVM, maxVM);
 		if (!condition) {
 			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
-			solPerJob.setNumberVM(updateFunction.apply(nVM));
+			solPerJob.updateNumberVM(updateFunction.apply(nVM));
 			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		}
 	}

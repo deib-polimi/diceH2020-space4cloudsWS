@@ -80,7 +80,7 @@ public class SpjOptimizerGivenH {
 			int nVMtmp = fun.apply(initialNVM);
 			if(1<=nVMtmp && nVMtmp<=maxVM){
 				SolutionPerJob nextJob = initialSpjWithGivenH.clone();
-				nextJob.setNumberVM(nVMtmp);
+				nextJob.updateNumberVM(nVMtmp);
 				sendJob(nextJob);
 			}
 		});
@@ -100,7 +100,6 @@ public class SpjOptimizerGivenH {
 		printStatus();
 		if (finished) return;
 
-		System.out.println("execution time upgraded "+this.executionTime+"-->"+executionTime);
 		this.executionTime += executionTime;
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
@@ -162,7 +161,7 @@ public class SpjOptimizerGivenH {
 		if(nVM>0){
 			optimizer.registerSPJGivenHOptimalNVM(nVMxSPJ.get(nVM),executionTime);
 		}else{
-			initialSpjWithGivenH.setNumberVM(nVM);
+			initialSpjWithGivenH.updateNumberVM(nVM);
 			optimizer.registerSPJGivenHOptimalNVM(initialSpjWithGivenH,executionTime);
 		}
 
@@ -197,7 +196,7 @@ public class SpjOptimizerGivenH {
 		if(nextN == -1) return false; //nVM exceeded limits 
 
 		SolutionPerJob nextJob =  initialSpjWithGivenH.clone();
-		nextJob.setNumberVM(nextN);
+		nextJob.updateNumberVM(nextN);
 		sendJob(nextJob);
 
 		return true;

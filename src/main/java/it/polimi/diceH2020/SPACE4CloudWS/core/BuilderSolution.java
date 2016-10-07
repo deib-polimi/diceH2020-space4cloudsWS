@@ -72,7 +72,7 @@ public class BuilderSolution extends Builder{
 					} else {
 						// as in this::fallback
 						solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
-						solutionPerJob.setNumberVM(1);
+						solutionPerJob.updateNumberVM(1);
 					}
 					mapResults.put(solutionPerJob, cost);
 				}

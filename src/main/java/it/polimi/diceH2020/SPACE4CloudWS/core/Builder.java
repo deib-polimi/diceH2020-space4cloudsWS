@@ -35,7 +35,7 @@ public abstract class Builder {
 
 	protected void fallBack(Solution sol) {
 		sol.getLstSolutions().forEach(s -> {
-			s.setNumberVM(1);
+			s.updateNumberVM(1);
 			s.setNumberUsers(s.getJob().getHup());
 		});
 	}
