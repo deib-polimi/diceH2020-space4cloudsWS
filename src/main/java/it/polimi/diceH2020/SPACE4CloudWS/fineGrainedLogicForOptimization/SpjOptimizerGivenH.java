@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Min;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.TreeMap;
 
 @Component
@@ -41,6 +42,9 @@ public class SpjOptimizerGivenH {
 
 	private TreeMap<Integer,SolutionPerJob> nVMxSPJ;
 	private long executionTime;
+	
+	private int predictedNVM_SVR = 0;
+	private int predictedNVM_Hyperbola = 0;
 
 	@Min(1)
 	private int minVM;
@@ -64,6 +68,7 @@ public class SpjOptimizerGivenH {
 
 	public void start(){
 		int initialNVM = getInitialNVM();
+		predictedNVM_SVR = initialNVM;
 		SolutionPerJob nextJob = initialSpjWithGivenH.clone();
 		nextJob.updateNumberVM(initialNVM);
 		sendJob(nextJob);
@@ -141,7 +146,7 @@ public class SpjOptimizerGivenH {
 
 	private void finished(int nVM){
 		finished = true;
-
+		System.out.println("[J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"]LS finished, sol_VM="+nVM+" SVR_VM="+predictedNVM_SVR+" hyperbola_VM="+predictedNVM_Hyperbola);
 		if(nVM>0){
 			optimizer.registerSPJGivenHOptimalNVM(nVMxSPJ.get(nVM),executionTime);
 		}else{
@@ -209,16 +214,17 @@ public class SpjOptimizerGivenH {
 		int nextN = -1;
 		
 		if(nVMxSPJ.size() == 1){
-			if(nVMxSPJ.firstEntry().getValue().getFeasible()){ //
-				nextN = updateN(nextN);
-				nextN = checkNVMAgainstRange(nextN);
-			}
+			nextN = updateN(nVMxSPJ.firstEntry().getKey());
+			nextN = checkNVMAgainstRange(nextN);
 		}else{ //size≥2
 			nextN = hyperbolicAssestment(nVMxSPJ.firstEntry().getValue(),nVMxSPJ.lastEntry().getValue());
+			System.out.println("[J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"]Hyperbolic prevision: "+nextN);
+			predictedNVM_Hyperbola = nextN;
 			nextN = updateN(nextN);
 		}
 		
-		if(nextN>minVM || nextN<minVM || nVMxSPJ.containsKey(nextN)){
+		if(nextN>maxVM || nextN<minVM || nVMxSPJ.containsKey(nextN)){
+			System.out.println(" max:"+maxVM+" min:"+minVM+" next:"+nextN+" contain:"+nVMxSPJ.containsKey(nextN));
 			logger.info("Error with preconditions!");
 			return -1;
 		}
@@ -235,6 +241,7 @@ public class SpjOptimizerGivenH {
 	private int hyperbolicAssestment(SolutionPerJob spj1, SolutionPerJob spj2){
 		int nVM = (int) Math.ceil(getPointCoordinate(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
 		nVM = checkNVMAgainstRange(nVM);
+		System.out.println("NVM with Hyperbola:"+ nVM);
 		return nVM;
 	}
 	
@@ -247,6 +254,7 @@ public class SpjOptimizerGivenH {
 		double a =  x1*x2*(y1-y2)/(double)(x2-x1);
 		double b = (x2*y2-x1*y1)/(double)(x2-x1);
 		x = a / (y - b);
+		System.out.println("Hyperbola: x="+x+"="+"a/(y-n)"+a+"/("+y+"-"+b+")");
 		return x;
 	}
 
@@ -324,9 +332,11 @@ public class SpjOptimizerGivenH {
 	}
 	
 	private boolean solutionPresent(){
-		SolutionPerJob sol = nVMxSPJ.values().stream().filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM)).get();
-		if(nVMxSPJ.containsKey(sol.getNumberVM()-1)){
-			if(!nVMxSPJ.get(sol.getNumberVM()-1).getFeasible()) return true;
+		if(nVMxSPJ.size()<2) return false;
+		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
+		if(!sol.isPresent()) return false;
+		if(nVMxSPJ.containsKey(sol.get().getNumberVM()-1)){
+			if(!nVMxSPJ.get(sol.get().getNumberVM()-1).getFeasible()) return true;
 		}
 		return false;
 	}
