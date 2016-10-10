@@ -62,16 +62,17 @@ public class OptimizerFineGrained extends Optimizer{
 			double m_tilde = dataService.getMemory(spj.getTypeVMselected().getId());
 			double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
 			int maxNumVM = (int)(Math.floor(Math.min(Math.ceil(p.getM()/m_tilde), Math.ceil(p.getV()/v_tilde)))*p.getN());
-			
+			System.out.println("MAX NUMVM:"+maxNumVM);
 			SpjOptimizerGivenH spjOptimizer =  (SpjOptimizerGivenH) context.getBean("spjOptimizerGivenH",spj,1,maxNumVM);
 			spjOptimizer.start();
 		}
 	}
 
 	private void aggregateAndFinish(){
-		
-		for(SolutionPerJob spj : matrix.getAllSolutions()){
-			evaluator.evaluate(spj);
+		if(!matrix.getAllSolutions().isEmpty()){
+			for(SolutionPerJob spj : matrix.getAllSolutions()){
+				evaluator.evaluate(spj);
+			}
 		}
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
