@@ -16,12 +16,15 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.NonNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +39,30 @@ class Evaluator implements IEvaluator {
 	@Autowired
 	private DataProcessor dataProcessor;
 	
+	@Autowired
+	private DataService dataService;
+	
 	@Override
 	public double evaluate(Solution solution) {
-		BigDecimal cost = BigDecimal.valueOf(solution.getLstSolutions().parallelStream()
-				.mapToDouble(this::calculateCostPerJob).sum()).setScale(4, RoundingMode.HALF_EVEN);
+		Double cost = BigDecimal.valueOf(solution.getLstSolutions().parallelStream()
+				.mapToDouble(this::calculateCostPerJob).sum()).setScale(4, RoundingMode.HALF_EVEN).doubleValue();
 		solution.getLstSolutions().parallelStream().forEach(this::evaluateFeasibility);
 		solution.setEvaluated(true);
+		
+		if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
+			int activeNodes = 0;
+			if(dataService.getScenario().getModel().equals(Models.binPacking)){
+				if(solution.getActiveNodes()!=null && !solution.getActiveNodes().isEmpty()){
+					for(Boolean b : solution.getActiveNodes().values()){
+						if(b){
+							activeNodes++;
+						}
+					}
+				}
+				cost = solution.getPrivateCloudParameters().get().getE()*activeNodes;
+			}
+		}
+		
 		solution.setCost(cost.doubleValue());
 		return cost.doubleValue();
 	}
@@ -60,7 +81,7 @@ class Evaluator implements IEvaluator {
 		double sigmaBar = solPerJob.getSigmaBar();
 		double currentNumberOfUsers = solPerJob.getNumberUsers();
 		double maxNumberOfUsers =  solPerJob.getJob().getHup();
-		
+		System.out.println("Hup-H "+maxNumberOfUsers+"-"+currentNumberOfUsers);
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
 		+ sigmaBar * solPerJob.getNumSpotVM() + ( maxNumberOfUsers - currentNumberOfUsers)*solPerJob.getJob().getPenalty();
 		
