@@ -15,6 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.PrivateCloudParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
@@ -42,9 +43,7 @@ public class OptimizerFineGrained extends Optimizer{
 
 	private Matrix matrix;
 
-	String matrixNVMString;
-
-	int registeredSolutionsPerJob;
+	private int registeredSolutionsPerJob;
 	
 	private long executionTime;
 	
@@ -59,7 +58,12 @@ public class OptimizerFineGrained extends Optimizer{
 	private void start(){
 		executionTime = 0L;
 		for(SolutionPerJob spj: matrix.getAllSolutions() ){
-			SpjOptimizerGivenH spjOptimizer =  (SpjOptimizerGivenH) context.getBean("spjOptimizerGivenH",spj,1,dataService.getGamma());
+			PrivateCloudParameters p = dataService.getData().getPrivateCloudParameters();
+			double m_tilde = dataService.getMemory(spj.getTypeVMselected().getId());
+			double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
+			int maxNumVM = (int)(Math.floor(Math.min(Math.ceil(p.getM()/m_tilde), Math.ceil(p.getV()/v_tilde)))*p.getN());
+			
+			SpjOptimizerGivenH spjOptimizer =  (SpjOptimizerGivenH) context.getBean("spjOptimizerGivenH",spj,1,maxNumVM);
 			spjOptimizer.start();
 		}
 	}
