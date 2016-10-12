@@ -129,17 +129,11 @@ public class SpjOptimizerGivenH {
 		printText += "deadline: "+initialSpjWithGivenH.getJob().getD()+"\n";
 		printText += "nVM feas duration\n";
 
-		for(int i = nVMxSPJ.firstKey(); i <= nVMxSPJ.lastKey(); i++){
-			printText +=  i;
-			if( ! nVMxSPJ.containsKey(i) ){
-				printText +=  "   -  -  -\n";
-				continue;
-			}else{
-				double currentDuration = nVMxSPJ.get(i).getDuration();
-				if(nVMxSPJ.get(i).getFeasible()) printText +=  " F ";
-				else printText +=  " I ";
-				printText +=  currentDuration+"\n";
-			}
+		for(SolutionPerJob nvm : nVMxSPJ.values()){
+			double currentDuration = nvm.getDuration();
+			if(nvm.getFeasible()) printText +=  " F ";
+			else printText +=  " I ";
+			printText +=  currentDuration+"\n";
 		}
 		System.out.println(printText);
 	}
@@ -153,7 +147,6 @@ public class SpjOptimizerGivenH {
 			initialSpjWithGivenH.updateNumberVM(nVM);
 			optimizer.registerSPJGivenHOptimalNVM(initialSpjWithGivenH,executionTime);
 		}
-
 		dispatcher.dequeue(this);
 	}
 
@@ -209,12 +202,14 @@ public class SpjOptimizerGivenH {
 	 * <li>At least 1 solution in the TreeMap, it can also exceeds limits imposed by minNVM and maxNVM</li>
 	 * <li>I've not a final solution yet, so i'm guaranteed that there are some holes in the ThreeMap and updateN() will return one of them</li>
 	 * </ul>
+	 *	Constraint:
+	 *	QN, with negative nVM give me the result of |nVM|, so i cannot use negative nVM.... if SVR gives negative nVM evaluator must evaluate nVM > 0
 	 */
 	private synchronized int getNextN(){
 		int nextN = -1;
 		
 		if(nVMxSPJ.size() == 1){
-			nextN = updateN(nVMxSPJ.firstEntry().getKey());
+			nextN = updateN(Math.max(1,nVMxSPJ.firstEntry().getKey())); 
 			nextN = checkNVMAgainstRange(nextN);
 		}else{ //size≥2
 			nextN = hyperbolicAssestment(nVMxSPJ.firstEntry().getValue(),nVMxSPJ.lastEntry().getValue());
@@ -333,8 +328,13 @@ public class SpjOptimizerGivenH {
 	
 	private boolean solutionPresent(){
 		if(nVMxSPJ.size()<2) return false;
-		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
+		logger.info("ASNARES;"); //TODO delete
+		for(SolutionPerJob spj :nVMxSPJ.values()){
+			logger.info(spj.getNumberVM().toString() + spj.getFeasible().toString());
+		}
+		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(!sol.isPresent()) return false;
+		
 		if(nVMxSPJ.containsKey(sol.get().getNumberVM()-1)){
 			if(!nVMxSPJ.get(sol.get().getNumberVM()-1).getFeasible()) return true;
 		}
