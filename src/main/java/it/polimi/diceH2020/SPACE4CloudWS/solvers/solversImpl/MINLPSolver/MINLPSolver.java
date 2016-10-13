@@ -31,6 +31,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.jcraft.jsch.JSchException;
+
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -67,12 +69,12 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	public void reinitialize() {
-		modelType = AMPLModelType.KNAPSACK; 
+		modelType = AMPLModelType.KNAPSACK;
 	}
 
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
-		String objective = modelType.toString().toLowerCase()+"_obj = ";
+		String objective = modelType.toString().toLowerCase() + "_obj = ";
 		int startPos = fileToString.indexOf(objective);
 		int endPos = fileToString.indexOf('\n', startPos);
 		Double objFunctionValue = Double.parseDouble(fileToString.substring(startPos + objective.length(), endPos));
@@ -124,11 +126,13 @@ public class MINLPSolver extends AbstractSolver {
 			System.out.print("[####    ] Sending work files\r");
 			sendFile(localPath + "/bin_packing.run", connSettings.getRemoteWorkDir() + "/problems/bin_packing.run");
 			System.out.print("[#####   ] Sending work files\r");
-			sendFile(localPath + "/post_processing.run", connSettings.getRemoteWorkDir() + "/utils/post_processing.run");
+			sendFile(localPath + "/post_processing.run",
+					connSettings.getRemoteWorkDir() + "/utils/post_processing.run");
 			System.out.print("[######  ] Sending work files\r");
 			sendFile(localPath + "/save_knapsack.run", connSettings.getRemoteWorkDir() + "/utils/save_knapsack.run");
 			System.out.print("[####### ] Sending work files\r");
-			sendFile(localPath + "/save_bin_packing.run", connSettings.getRemoteWorkDir() + "/utils/save_bin_packing.run");
+			sendFile(localPath + "/save_bin_packing.run",
+					connSettings.getRemoteWorkDir() + "/utils/save_bin_packing.run");
 			System.out.print("[########] Sending work files\r");
 
 			logger.info("AMPL files sent");
@@ -150,12 +154,13 @@ public class MINLPSolver extends AbstractSolver {
 		return connector.exec(command, getClass());
 	}
 
-	private void clearResultDir() throws Exception {
+	private void clearResultDir() throws JSchException, IOException {
 		String command = "rm -rf " + connSettings.getRemoteWorkDir() + REMOTE_RESULTS + "/*";
 		connector.exec(command, getClass());
 	}
 
-	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
+	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration)
+			throws JSchException, IOException {
 		if (iteration < MAX_ITERATIONS) {
 			File dataFile = pFiles.get(0);
 			File solutionFile = pFiles.get(1);
@@ -166,26 +171,28 @@ public class MINLPSolver extends AbstractSolver {
 			String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 			String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
 			Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.dat").matcher(dataFile.getName());
-			if (! matcher.matches()) {
+			if (!matcher.matches()) {
 				throw new RuntimeException(String.format("problem matching %s", dataFile.getName()));
 			}
 			String prefix = matcher.group(1);
 			File runFile = fileUtility.provideTemporaryFile(prefix, ".run");
-			String runFileContent =  new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
-					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath).setModelType(modelType).build();
+			String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
+					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath)
+					.setModelType(modelType).build();
 			fileUtility.writeContentToFile(runFileContent, runFile);
 
 			fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
 			connector.sendFile(runFile.getAbsolutePath(), fullRemotePath, getClass());
 			logger.info(remoteName + "-> AMPL .run file sent");
-			if (fileUtility.delete(runFile)) logger.debug(runFile + " deleted");
+			if (fileUtility.delete(runFile))
+				logger.debug(runFile + " deleted");
 
 			logger.debug(remoteName + "-> Cleaning result directory");
 			clearResultDir();
 
 			logger.info(remoteName + "-> Processing execution...");
-			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(),
-					REMOTE_SCRATCH, ((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
+			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(), REMOTE_SCRATCH,
+					((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
 			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) {
 				logger.info(remoteName + "-> The remote optimization process completed correctly");
@@ -205,17 +212,18 @@ public class MINLPSolver extends AbstractSolver {
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
-			// TODO: this always returns false, should check if every error just throws
+			// TODO: this always returns false, should check if every error just
+			// throws
 			return Pair.of(BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN), false);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");
-			throw new Exception("Error in the initial solution creation process");
+			throw new IOException("Error in the initial solution creation process");
 		}
 
 	}
 
 	@Override
-	protected Pair<BigDecimal, Boolean> run(@NotNull List<File> pFiles, String s) throws Exception {
+	protected Pair<BigDecimal, Boolean> run(@NotNull List<File> pFiles, String s) throws JSchException, IOException {
 		return run(pFiles, s, 0);
 	}
 
@@ -224,10 +232,13 @@ public class MINLPSolver extends AbstractSolver {
 		return null;
 	}
 
-	protected List<File> createWorkingFiles(Matrix matrix,Solution sol) throws IOException{
+	protected List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, IllegalStateException {
 		AMPLDataFileBuilder builder = null;
-		if(modelType.equals(AMPLModelType.KNAPSACK)) builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(),matrix);
-		else builder = AMPLDataFileUtils.binPackingBuilder(dataService.getData(),matrix);
+
+		if (modelType.equals(AMPLModelType.KNAPSACK))
+			builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(), matrix);
+		else
+			builder = AMPLDataFileUtils.binPackingBuilder(dataService.getData(), matrix);
 
 		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
 		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
@@ -239,21 +250,21 @@ public class MINLPSolver extends AbstractSolver {
 		return lst;
 	}
 
-	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix,@NonNull Solution solution) {
+	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
+			throws IllegalStateException {
 		List<File> pFiles;
 		try {
-			pFiles = createWorkingFiles(matrix,solution);
+			pFiles = createWorkingFiles(matrix, solution);
 			Pair<BigDecimal, Boolean> result = run(pFiles, modelType + " solution");
 			File resultsFile = pFiles.get(1);
-			solParser.updateResults(solution,matrix,resultsFile);
+			solParser.updateResults(solution, matrix, resultsFile);
 			delete(pFiles);
 			return Optional.of(result.getLeft());
-		} catch (Exception e) {
-			logger.debug("Evaluate Matrix-no result due to an exception",e);
+		} catch (IOException | JSchException e) {
+			logger.debug("Evaluate Matrix-no result due to an exception", e);
 			return Optional.empty();
 		}
 	}
-
 
 	@Override
 	public List<String> pwd() throws Exception {
@@ -265,19 +276,23 @@ public class MINLPSolver extends AbstractSolver {
 		return connector;
 	}
 
-	public void setModelType(AMPLModelType modelType){
+	public void setModelType(AMPLModelType modelType) {
 		this.modelType = modelType;
 		solParser.setModelType(modelType);
 		logger.debug("MINLP model set to: " + modelType);
 	}
 
-	public void refresh(){
+	public void refresh() {
 		setModelType(AMPLModelType.KNAPSACK);
 	}
 
 	@Override
 	public Optional<BigDecimal> evaluate(Solution solution) {
 		return null;
+	}
+	
+	public void initializeSpj(Solution solution,Matrix matrix){
+		solParser.initializeSolution(solution, matrix);
 	}
 
 }

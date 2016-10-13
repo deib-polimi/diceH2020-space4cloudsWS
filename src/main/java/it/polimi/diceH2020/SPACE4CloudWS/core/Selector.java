@@ -3,6 +3,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 import java.time.Duration;
 import java.time.Instant;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,8 @@ public class Selector {
 	@Autowired
 	private DataService dataService;
 	
+	private final Logger logger = Logger.getLogger(getClass());
+	
 	/**
 	 * Perform the selection of matrix cells to retrieve the best combination.
 	 * One and only one cell per row (one H for each Job).
@@ -34,24 +37,31 @@ public class Selector {
 	public void selectMatrixCells(Matrix matrix, Solution solution){
 		Instant first = Instant.now();
 		Phase ph = new Phase();
-		if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControl)){
-			cellsSelectionWithKnapsack(matrix, solution);
-			ph.setId(PhaseID.SELECTION_KN);
-		}else if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
-			cellsSelectionWithBinPacking(matrix, solution);
-			ph.setId(PhaseID.SELECTION_BP);
+		try{
+			if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControl)){
+				cellsSelectionWithKnapsack(matrix, solution);
+				ph.setId(PhaseID.SELECTION_KN);
+			}else if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
+				cellsSelectionWithBinPacking(matrix, solution);
+				ph.setId(PhaseID.SELECTION_BP);
+			}
+		}catch(IllegalStateException e){
+			logger.info(e.getMessage());
+			solution.setFeasible(false);
+			minlpSolver.initializeSpj(solution, matrix);
+			return;
 		}
 		Instant after = Instant.now();
 		ph.setDuration(Duration.between(first, after).toMillis());
 		solution.addPhase(ph);
 	}
 	
-	public void cellsSelectionWithKnapsack(Matrix matrix, Solution solution){
+	public void cellsSelectionWithKnapsack(Matrix matrix, Solution solution) throws IllegalStateException{
 		minlpSolver.setModelType(AMPLModelType.KNAPSACK);
 		minlpSolver.evaluate(matrix,solution);
 	}
 
-	public void cellsSelectionWithBinPacking(Matrix matrix, Solution solution){
+	public void cellsSelectionWithBinPacking(Matrix matrix, Solution solution) throws IllegalStateException{
 		minlpSolver.setModelType(AMPLModelType.BIN_PACKING);
 		minlpSolver.evaluate(matrix,solution);
 	}

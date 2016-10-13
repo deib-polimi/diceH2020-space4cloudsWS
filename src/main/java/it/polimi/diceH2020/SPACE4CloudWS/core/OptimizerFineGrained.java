@@ -69,10 +69,8 @@ public class OptimizerFineGrained extends Optimizer{
 	}
 
 	private void aggregateAndFinish(){
-		if(!matrix.getAllSolutions().isEmpty()){
-			for(SolutionPerJob spj : matrix.getAllSolutions()){
-				evaluator.evaluate(spj);
-			}
+		for(SolutionPerJob spj : matrix.getAllSolutions()){
+			evaluator.evaluate(spj);
 		}
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);

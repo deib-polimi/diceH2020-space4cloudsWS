@@ -130,6 +130,7 @@ public class SpjOptimizerGivenH {
 		printText += "nVM feas duration\n";
 
 		for(SolutionPerJob nvm : nVMxSPJ.values()){
+			printText += nvm.getNumberVM();
 			double currentDuration = nvm.getDuration();
 			if(nvm.getFeasible()) printText +=  " F ";
 			else printText +=  " I ";

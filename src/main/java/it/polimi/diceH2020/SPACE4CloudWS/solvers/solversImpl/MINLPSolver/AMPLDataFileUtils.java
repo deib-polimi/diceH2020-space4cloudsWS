@@ -28,9 +28,8 @@ import java.util.Map.Entry;
 
 class AMPLDataFileUtils {
 
-
 	@SuppressWarnings("unchecked")
-	static AMPLDataFileBuilder knapsackBuilder(InstanceDataMultiProvider data, Matrix matrixWithoutHoles) {
+	static AMPLDataFileBuilder knapsackBuilder(InstanceDataMultiProvider data, Matrix matrixWithoutHoles) throws IllegalStateException {
 		boolean tail = false;
 		Matrix matrix = matrixWithoutHoles.removeFailedSimulations();
 
@@ -100,7 +99,7 @@ class AMPLDataFileUtils {
 
 
 	@SuppressWarnings("unchecked")
-	static AMPLDataFileBuilder binPackingBuilder(InstanceDataMultiProvider data, Matrix matrixWithoutHoles) {
+	static AMPLDataFileBuilder binPackingBuilder(InstanceDataMultiProvider data, Matrix matrixWithoutHoles) throws IllegalStateException {
 		boolean tail = false;
 		Matrix matrix = matrixWithoutHoles.removeFailedSimulations();
 
@@ -109,7 +108,7 @@ class AMPLDataFileUtils {
 		builder.addDoubleParameter("V", data.getPrivateCloudParameters().getV());
 		builder.addDoubleParameter("M", data.getPrivateCloudParameters().getM());
 		builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().getE());
-
+		System.out.println("BIGE"+data.getPrivateCloudParameters().getE());
 
 		Pair<Iterable<Integer>, Iterable<Double>>[] bigP = null;
 		Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = null;

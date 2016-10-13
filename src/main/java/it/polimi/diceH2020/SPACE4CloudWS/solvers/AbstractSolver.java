@@ -78,12 +78,12 @@ public abstract class AbstractSolver implements Solver {
 
     }
 
-    private static double calculateResponseTime(double throughput, int numServers, double thinkTime) {
-        return (double) numServers / throughput - thinkTime;
+    private static double calculateResponseTime(double throughput, int numUsers, double thinkTime) {
+        return (double) numUsers / throughput - thinkTime;
     }
 
-    private static BigDecimal calculateResponseTime(@NonNull BigDecimal throughput, int numServers, double thinkTime) {
-        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numServers, thinkTime))
+    private static BigDecimal calculateResponseTime(@NonNull BigDecimal throughput, int numUsers, double thinkTime) {
+        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numUsers, thinkTime))
                 .setScale(8, RoundingMode.HALF_EVEN);
     }
 
