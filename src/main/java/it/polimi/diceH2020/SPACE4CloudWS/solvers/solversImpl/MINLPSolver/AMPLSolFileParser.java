@@ -23,6 +23,8 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 @Component
@@ -35,25 +37,26 @@ class AMPLSolFileParser {
 			solution.getLstSolutions().clear();
 			int[] selectedCells = new int[matrix.numNotFailedRows()];
 
-			String line = reader.readLine();
+			String line = reader.readLine().trim();
 
 			while (! line.contains("solve_result ")) {
-				line = reader.readLine();
+				line = reader.readLine().trim();
 			}
 
 			String[] bufferStr = line.split("\\s+");
 			if (bufferStr[2].equals("infeasible")) {
 				logger.info("The problem is infeasible");
 				initializeSolution(solution,matrix);
+				
 				return;
 			}
 
 			while (! line.contains("### Concurrency")) {
-				line = reader.readLine();
+				line = reader.readLine().trim();
 			}
-			reader.readLine();
+			reader.readLine().trim();
 			for(int i=0; i< selectedCells.length; i++){
-				line = reader.readLine();
+				line = reader.readLine().trim();
 				bufferStr = line.split("\\s+");
 
 				String currentRow = bufferStr[0].replaceAll("\\s+", "");
@@ -70,17 +73,18 @@ class AMPLSolFileParser {
 
 		}
 	}
-
+	
 	protected void parseBinPackingSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
 			solution.getLstSolutions().clear();
-
+			String log = matrix.getIdentifier()+" "+solution.getScenario();
+			
 			int[] selectedCells = new int[matrix.numNotFailedRows()]; //foreach rows one and only one cell has to be selected
 
-			String line = reader.readLine();
+			String line = reader.readLine().trim();
 
 			while (! line.contains("solve_result ")) {
-				line = reader.readLine();
+				line = reader.readLine().trim();
 			}
 
 			String[] bufferStr = line.split("\\s+");
@@ -89,13 +93,50 @@ class AMPLSolFileParser {
 				initializeSolution(solution,matrix);
 				return;
 			}
-
-			while (! line.contains("### Concurrency")) {
-				line = reader.readLine();
+			
+			Map<Integer,Boolean> map = new HashMap<>();
+			while (! line.contains("y [*] ")) {
+				line = reader.readLine().trim();
 			}
-			reader.readLine();
+			line = reader.readLine().trim();
+			while(line.indexOf(';')==-1){
+				bufferStr = line.split("\\s+");
+				boolean activeNode = "1".equals(bufferStr[1]);
+
+				map.put(Integer.valueOf(bufferStr[0]), activeNode);
+				line = reader.readLine().trim();
+			}
+			solution.setActiveNodes(map);
+
+			Map<String,Integer> map2 = new HashMap<>();
+			while (! line.contains("n :=")) {
+				line = reader.readLine().trim();
+			}
+			line = reader.readLine().trim();
+			while(line.indexOf(';')==-1){
+				String s = new String();
+				bufferStr = line.split("\\s+");
+				s += Integer.valueOf(bufferStr[0]) +" ";
+				s +=Integer.valueOf(bufferStr[1])+" ";
+				s +=Integer.valueOf(bufferStr[2]);
+				map2.put(s, Integer.valueOf(bufferStr[3]));
+				line = reader.readLine().trim();
+			}
+			solution.setNumVMPerNodePerClass(map2);
+			
+			while (! line.contains("p = ")) {
+				line = reader.readLine().trim();
+			}
+			bufferStr = line.split("\\s+");
+			String p = bufferStr[2];
+			solution.setPenalty(Double.valueOf(p));
+			
+			while (! line.contains("### Concurrency")) {
+				line = reader.readLine().trim();
+			}
+			reader.readLine().trim();
 			for(int i=0; i< selectedCells.length; i++){
-				line = reader.readLine();
+				line = reader.readLine().trim();
 				bufferStr = line.split("\\s+");
 
 				String currentRow = bufferStr[0].replaceAll("\\s+", "");
@@ -103,14 +144,21 @@ class AMPLSolFileParser {
 				selectedCells[Integer.valueOf(currentRow)-1] = Integer.valueOf(currentH);
 			}
 
-
-
 			for(int c=0; c<selectedCells.length; c++){
 				solution.setSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
 			}
 
 			//TODO for failed rows.. add json property? (so add rows to the final solution)
 			//Currently if a class has failed a partial solution is returned.
+			
+			System.out.println("[BP-RESULTS]"+log);
+			try (BufferedReader br = new BufferedReader(new FileReader(resultsFile))) {
+			   String line2 = null;
+			   while ((line2 = br.readLine()) != null) {
+			       System.out.println(line2);
+			   }
+			}
+		
 
 		}
 	}
@@ -124,12 +172,14 @@ class AMPLSolFileParser {
 		parseSolution(solution,matrix,resultsFile);
 	}
 
-	private void initializeSolution(Solution solution, Matrix matrix){
+	public void initializeSolution(Solution solution, Matrix matrix){
+		solution.getLstSolutions().clear();
 		for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
 			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()), entry.getValue()[0].getNumberUsers()));
 		}
+		solution.setFeasible(false);
 	}
-
+	
 	private void parseSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException  {
 		switch (model) {
 			case KNAPSACK:

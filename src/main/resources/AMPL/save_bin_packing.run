@@ -23,6 +23,9 @@
 printf "### Saved solution ###\n" > (solfile);
 printf "### Bin packing problem ###\n\n" >> (solfile);
 
+#avoid table view of displays
+option display_1col 100000000;
+
 display solve_result >> (solfile);
 
 printf "### Objective\n" >> (solfile);
@@ -30,8 +33,13 @@ display bin_packing_obj >> (solfile);
 
 printf "### Variables\n" >> (solfile);
 display x >> (solfile);
+
+option omit_zero_rows 1;
 display y >> (solfile);
 display n >> (solfile);
+
+#deault
+option omit_zero_rows 0;
 display p >> (solfile);
 
 

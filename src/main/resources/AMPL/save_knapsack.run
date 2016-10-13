@@ -22,6 +22,9 @@
 printf "### Saved solution ###\n" > (solfile);
 printf "### Knapsack problem ###\n\n" >> (solfile);
 
+#avoid table view of displays
+option display_1col 100000000;
+
 display solve_result >> (solfile);
 
 printf "### Objective\n" >> (solfile);
