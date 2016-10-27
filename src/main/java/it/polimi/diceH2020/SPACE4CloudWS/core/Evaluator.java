@@ -24,6 +24,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.NonNull;
 
@@ -41,6 +42,19 @@ class Evaluator implements IEvaluator {
 	
 	@Autowired
 	private DataService dataService;
+	
+	boolean finished = false;
+
+	private Matrix matrix;
+	
+	private Solution solution;
+
+	private int registeredSolutionsPerJob;
+	
+	private long executionTime;
+	
+	@Autowired
+	private EngineProxy engineProxy;
 	
 	@Override
 	public double evaluate(Solution solution) {
@@ -107,12 +121,38 @@ class Evaluator implements IEvaluator {
 		return; 
 	}
 
-	protected void calculateDuration(@NonNull Matrix matrix, @NonNull Solution sol){
-		long exeTime = dataProcessor.calculateDuration(matrix);
-		sol.setEvaluated(false);
-		Phase ph = new Phase(PhaseID.EVALUATION, exeTime); 
-		sol.addPhase(ph);
-		return;
+	protected void calculateDuration(@NonNull Matrix matrix, @NonNull Solution solution){
+		this.matrix = matrix;
+		this.solution = solution;
+		executionTime = 0L;
+		registeredSolutionsPerJob = 0;
+		
+		dataProcessor.calculateDuration(matrix);
 	}
+	
+	public synchronized void register(SolutionPerJob spj, long executionTime){
+		finished = true;
+		boolean error = false;
+		this.executionTime += executionTime;
+		//optimalNVMGivenH[spj.getJob().getId()-1][h-1] = nVM;
+		matrix.get(spj.getId())[spj.getNumberUsers()-matrix.getHlow(spj.getId())] = spj;
 
+		registeredSolutionsPerJob++;
+		
+		System.out.println("evaluated solution: "+ registeredSolutionsPerJob+" of "+matrix.getNumCells());//TODOd elete
+		
+		if(registeredSolutionsPerJob != matrix.getNumCells() ) finished = false;
+
+		if(matrix.getAllSolutions().stream().map(SolutionPerJob::getNumberVM).anyMatch(s->s<0)){
+			error = true;
+			engineProxy.getEngine().error();
+		}
+		
+		if(finished&&!error){
+			solution.setEvaluated(false);
+			Phase ph = new Phase(PhaseID.EVALUATION, this.executionTime); 
+			solution.addPhase(ph);
+			engineProxy.getEngine().evaluated(); 
+		}
+	}
 }

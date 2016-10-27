@@ -97,6 +97,9 @@ public class EngineService implements Engine{
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
 		evaluator.calculateDuration(solution);
+	}
+	
+	public void evaluated(){
 		evaluator.evaluate(solution);
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
@@ -134,6 +137,10 @@ public class EngineService implements Engine{
 
 	public void setSolution(Solution sol) {
 		this.solution = sol;
+	}
+
+	public void error() {
+		stateHandler.sendEvent(Events.STOP);
 	}
 	
 }

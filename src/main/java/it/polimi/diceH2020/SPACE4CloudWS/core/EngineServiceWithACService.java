@@ -132,9 +132,16 @@ public class EngineServiceWithACService implements Engine{
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
 		evaluator.calculateDuration(matrix,solution);
-		
+	}
+	
+	public void evaluated(){
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
+	}
+	
+	public void error(){
+		logger.error("Error while performing evaluation!\n Are the simulators working?");
+		stateHandler.sendEvent(Events.STOP);
 	}
 	
 }

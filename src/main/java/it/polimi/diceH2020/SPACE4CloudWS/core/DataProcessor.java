@@ -9,12 +9,14 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForEvaluation;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 import lombok.NonNull;
 
@@ -29,14 +31,24 @@ public class DataProcessor {
 	@Autowired
 	protected SolverProxy solverCache;
 	
+	@Autowired
+	private ApplicationContext context;
+	
 	protected long calculateDuration(@NonNull Solution sol) {
 		return calculateDuration(sol.getLstSolutions());
 	}
 
-	protected long calculateDuration(@NonNull Matrix matrix){
-		return calculateDuration(matrix.getAllSolutions());
+	protected void calculateDuration(@NonNull Matrix matrix){
+		 calculateDuration2(matrix.getAllSolutions());
 	}
-
+	
+	private void calculateDuration2(@NonNull List<SolutionPerJob> spjList){ //TODO collapse also calculateDuration in this method, by implementing fineGrained Matrix also in the public case
+		spjList.forEach(s -> {
+				ContainerLogicForEvaluation container =  (ContainerLogicForEvaluation) context.getBean("containerLogicForEvaluation",s);
+				container.start();
+		});
+	}
+	
 	private long calculateDuration(@NonNull List<SolutionPerJob> spjList){
 		AtomicLong executionTime = new AtomicLong(); //to support also parallel stream.
 		
