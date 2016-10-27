@@ -28,6 +28,10 @@ public interface Engine {
 	public Future<String> runningInitSolution();
 
 	public void evaluatingInitSolution() ;
+	
+	public void evaluated();
+	
+	public void error();
 
 	public void localSearch();
 

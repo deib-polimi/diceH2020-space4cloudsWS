@@ -15,20 +15,21 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
-import org.springframework.stereotype.Service;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
-import java.util.Iterator;
+public class ContainerForOptimization extends ContainerGivenHandN {
+	private SolutionPerJob spj;
+	private ContainerLogicForOptimization handler;
 
-@Service
-public class WrapperDispatcher  extends QueueHandler<ContainerGivenHandN> {
-
-	public synchronized void dequeue(ContainerLogicGivenH spjH){ //TODO this synch or the Q?both?
-		for (Iterator<ContainerGivenHandN> iterator = jobsQueue.iterator(); iterator.hasNext();) {
-			ContainerGivenHandN wrapper = iterator.next();
-			if(wrapper.getHandler().equals(spjH)){
-				iterator.remove();
-			}
-		}
+	public ContainerForOptimization(SolutionPerJob spj, ContainerLogicForOptimization handler){
+		this.spj = spj;
+		this.handler = handler;
 	}
 
+	public SolutionPerJob getSpj() {
+		return spj;
+	}
+	public ContainerLogicForOptimization  getHandler() {
+		return handler;
+	}
 }

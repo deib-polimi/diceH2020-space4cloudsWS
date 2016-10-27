@@ -21,7 +21,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
-import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.SpjOptimizerGivenH;
+import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForOptimization;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class OptimizerFineGrained extends Optimizer{
 			double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
 			int maxNumVM = (int)(Math.floor(Math.min(Math.ceil(p.getM()/m_tilde), Math.ceil(p.getV()/v_tilde)))*p.getN());
 			System.out.println("MAX NUMVM:"+maxNumVM);
-			SpjOptimizerGivenH spjOptimizer =  (SpjOptimizerGivenH) context.getBean("spjOptimizerGivenH",spj,1,maxNumVM);
+			ContainerLogicForOptimization spjOptimizer =  (ContainerLogicForOptimization) context.getBean("containerLogicForOptimization",spj,1,maxNumVM);
 			spjOptimizer.start();
 		}
 	}

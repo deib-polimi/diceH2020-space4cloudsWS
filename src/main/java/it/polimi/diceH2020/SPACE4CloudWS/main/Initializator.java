@@ -73,7 +73,6 @@ public class Initializator {
 			fileUtility.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
 			solver.initRemoteEnvironment();
-
 			stateHandler.sendEvent(Events.MIGRATE);
 			logger.info("Current service state: " + stateHandler.getState().getId());
 		} catch (Exception e) {

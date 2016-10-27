@@ -85,7 +85,7 @@ public class BuilderMatrix extends Builder{
 					spj2.setParentID(dataService.getData().getId());
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
-					Optional<BigDecimal> result = approximator.approximate(spj2);
+					Optional<BigDecimal> result = approximator.approximateWithSVR(spj2);
 
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {

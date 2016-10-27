@@ -17,11 +17,11 @@ package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
-public class SpjWrapperGivenHandN {
+public class ContainerForEvaluation extends ContainerGivenHandN{
 	private SolutionPerJob spj;
-	private SpjOptimizerGivenH handler;
+	private ContainerLogicForEvaluation handler;
 
-	public SpjWrapperGivenHandN(SolutionPerJob spj, SpjOptimizerGivenH handler){
+	public ContainerForEvaluation(SolutionPerJob spj, ContainerLogicForEvaluation handler){
 		this.spj = spj;
 		this.handler = handler;
 	}
@@ -29,7 +29,7 @@ public class SpjWrapperGivenHandN {
 	public SolutionPerJob getSpj() {
 		return spj;
 	}
-	public SpjOptimizerGivenH  getHandler() {
+	public ContainerLogicForEvaluation  getHandler() {
 		return handler;
 	}
 }

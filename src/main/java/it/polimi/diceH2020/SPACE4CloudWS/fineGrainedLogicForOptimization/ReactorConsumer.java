@@ -35,7 +35,7 @@ import static reactor.bus.selector.Selectors.$;
 
 @Component
 @Scope("prototype")
-public class ReactorConsumer implements Consumer<Event<SpjWrapperGivenHandN>>{
+public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>>{
 
 	private final Logger logger = Logger.getLogger(ReactorConsumer.class.getName());
 
@@ -63,25 +63,23 @@ public class ReactorConsumer implements Consumer<Event<SpjWrapperGivenHandN>>{
 		eventBus.on($("channel"+id), this);
 	}
 
-	@Override
-	public void accept(Event<SpjWrapperGivenHandN> ev) {
+	public void accept(Event<ContainerGivenHandN> ev) {
 		SolutionPerJob spj = ev.getData().getSpj();
-		SpjOptimizerGivenH spjOptimizer = ev.getData().getHandler();
+		ContainerLogicGivenH containerLogic = ev.getData().getHandler();
 		logger.info("|Q-STATUS| received spjWrapper"+spj.getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
 		Instant first = Instant.now();
 		if(calculateDuration(spj)){
 			Instant after = Instant.now();
 			double exeTime = Duration.between(first, after).toMillis();
-			spjOptimizer.registerCorrectSolutionPerJob(spj, exeTime);
+			containerLogic.registerCorrectSolutionPerJob(spj, exeTime);
 		}else{
 			Instant after = Instant.now();
 			double exeTime = Duration.between(first, after).toMillis();
-			spjOptimizer.registerFailedSolutionPerJob(spj, exeTime);
+			containerLogic.registerFailedSolutionPerJob(spj, exeTime);
 		}
 		dispatcher.notifyReadyChannel(this);
 	}
-
-
+	
 	private boolean calculateDuration(SolutionPerJob solPerJob) {
 		Optional<BigDecimal> duration = solverCache.evaluate(solPerJob);
 		if (duration.isPresent()) {
@@ -109,4 +107,5 @@ public class ReactorConsumer implements Consumer<Event<SpjWrapperGivenHandN>>{
 	public void setId(int id) {
 		this.id = id;
 	}
+
 }

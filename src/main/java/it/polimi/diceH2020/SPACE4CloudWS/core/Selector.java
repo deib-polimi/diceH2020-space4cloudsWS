@@ -23,7 +23,7 @@ public class Selector {
 	private MINLPSolver minlpSolver;
 	
 	@Autowired
-	private DataService dataService;
+	private DataService dataService; //TODO dataProcessor
 	
 	private final Logger logger = Logger.getLogger(getClass());
 	

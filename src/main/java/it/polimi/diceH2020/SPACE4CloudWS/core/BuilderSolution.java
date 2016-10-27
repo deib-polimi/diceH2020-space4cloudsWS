@@ -63,7 +63,7 @@ public class BuilderSolution extends Builder{
 							jobClass.getKey(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getValue(), tVM, jobClass.getKey());
 					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
-					Optional<BigDecimal> result = approximator.approximate(solutionPerJob);
+					Optional<BigDecimal> result = approximator.approximateWithSVR(solutionPerJob);
 					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {

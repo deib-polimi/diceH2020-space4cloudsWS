@@ -29,8 +29,8 @@ import java.util.TreeMap;
 
 @Component
 @Scope("prototype")
-public class SpjOptimizerGivenH {
-	private final Logger logger = Logger.getLogger(SpjOptimizerGivenH.class.getName());
+public class ContainerLogicForOptimization implements ContainerLogicGivenH {
+	private final Logger logger = Logger.getLogger(ContainerLogicForOptimization.class.getName());
 
 	@Autowired
 	private WrapperDispatcher dispatcher;
@@ -53,7 +53,7 @@ public class SpjOptimizerGivenH {
 
 	private boolean finished = false;
 
-	public SpjOptimizerGivenH(SolutionPerJob spj, int minVM, int maxVM){
+	public ContainerLogicForOptimization(SolutionPerJob spj, int minVM, int maxVM){
 		nVMxSPJ = new TreeMap<Integer,SolutionPerJob>(); //from each spj I essentially need (nVM, feasibility) and (nVM, duration) 
 		this.initialSpjWithGivenH = spj;
 		this.minVM = minVM;
@@ -78,7 +78,7 @@ public class SpjOptimizerGivenH {
 	private synchronized void sendJob(SolutionPerJob job){
 		logger.info("J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+" enqueued job with NVM:"+job.getNumberVM());
 
-		SpjWrapperGivenHandN spjWrapper =  new SpjWrapperGivenHandN(job,this);
+		ContainerForOptimization spjWrapper =  new ContainerForOptimization(job,this);
 
 		dispatcher.enqueueJob(spjWrapper);
 	}
@@ -235,7 +235,7 @@ public class SpjOptimizerGivenH {
 	}
 	
 	private int hyperbolicAssestment(SolutionPerJob spj1, SolutionPerJob spj2){
-		int nVM = (int) Math.ceil(getPointCoordinate(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
+		int nVM = (int) Math.ceil(getPointCoordinateOnHyperbola(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
 		nVM = checkNVMAgainstRange(nVM);
 		System.out.println("NVM with Hyperbola:"+ nVM);
 		return nVM;
@@ -245,7 +245,7 @@ public class SpjOptimizerGivenH {
 	 * From a hyperbola given two points coordinates and a third point y coordinate
 	 * retrieves this third point x coordinate.
 	 */
-	private double getPointCoordinate(int x1, double y1, int x2, double y2, double y){
+	private double getPointCoordinateOnHyperbola(int x1, double y1, int x2, double y2, double y){
 		double x = 0.0;
 		double a =  x1*x2*(y1-y2)/(double)(x2-x1);
 		double b = (x2*y2-x1*y1)/(double)(x2-x1);
@@ -329,10 +329,6 @@ public class SpjOptimizerGivenH {
 	
 	private boolean solutionPresent(){
 		if(nVMxSPJ.size()<2) return false;
-		logger.info("ASNARES;"); //TODO delete
-		for(SolutionPerJob spj :nVMxSPJ.values()){
-			logger.info(spj.getNumberVM().toString() + spj.getFeasible().toString());
-		}
 		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(!sol.isPresent()) return false;
 		
