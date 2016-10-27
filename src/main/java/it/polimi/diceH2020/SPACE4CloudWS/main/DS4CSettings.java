@@ -31,6 +31,8 @@ public class DS4CSettings {
 	@Min(1)
 	private Integer availableCores = 1; //for fine Grained Optimization
 	
+	private boolean verbose = false;
+	
 	@NestedConfigurationProperty
 	private CacheSettings cache;
 }
