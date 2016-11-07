@@ -189,7 +189,7 @@ limitations under the License.
                         <subParameter classPath="jmt.engine.random.Replayer" name="Replayer"/>
                         <subParameter classPath="jmt.engine.random.ReplayerPar" name="distrPar">
                             <subParameter classPath="java.lang.String" name="fileName">
-                                <value>@@REDUCESHUFFLEPATH@@</value>
+                                <value>@@RSPATH@@</value>
                             </subParameter>
                         </subParameter>
                     </subParameter>
