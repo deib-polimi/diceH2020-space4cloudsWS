@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -96,7 +97,7 @@ public abstract class AbstractSolver implements Solver {
         String jobID = solPerJob.getId();
         int nUsers = solPerJob.getNumberUsers();
         double think = jobClass.getThink();
-        List<File> pFiles;
+        List<File> pFiles = new ArrayList<>();
         try {
             pFiles = createWorkingFiles(solPerJob);
             Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);

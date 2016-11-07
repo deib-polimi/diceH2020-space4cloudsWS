@@ -86,7 +86,8 @@ public class BuilderMatrix extends Builder{
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
 					Optional<BigDecimal> result = approximator.approximateWithSVR(spj2);
-
+					
+					logger.info("Preliminary evaluation for class: "+spj2.getId()+" with "+ tVM.getId());
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
 						cost = evaluator.evaluate(spj2);

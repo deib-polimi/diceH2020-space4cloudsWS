@@ -1,5 +1,6 @@
 /*
 Copyright 2016 Eugenio Gianniti
+Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,5 +18,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
 enum QueueingNetworkModel {
     SIMPLE,
-    CLASS_SWITCH
+    CLASS_SWITCH,
+    Q1
 }

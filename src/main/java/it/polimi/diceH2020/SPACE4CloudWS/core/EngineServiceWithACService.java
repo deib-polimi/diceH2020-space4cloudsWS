@@ -111,7 +111,7 @@ public class EngineServiceWithACService implements Engine{
 			optimizer.finish();
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
-			logger.error("Error while performing optimization", e);
+			logger.info("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
 		logger.info(stateHandler.getState().getId());

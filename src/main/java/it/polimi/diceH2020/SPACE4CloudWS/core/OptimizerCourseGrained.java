@@ -24,6 +24,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,9 +89,9 @@ public class OptimizerCourseGrained extends Optimizer {
 		Function<Integer, Integer> updateFunction;
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> res;
 
-		Optional<BigDecimal> duration = dataProcessor.calculateDuration(solPerJob);
-		if (duration.isPresent()) {
-			if (duration.get().doubleValue() > deadline) {
+		Pair<Optional<BigDecimal>,Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
+		if (simulatorResult.getLeft().isPresent()) {
+			if (simulatorResult.getLeft().get().doubleValue() > deadline) {
 				checkFunction = this::checkConditionToFeasibility;
 				updateFunction = n -> n + 1;
 			} else {
@@ -122,16 +123,16 @@ public class OptimizerCourseGrained extends Optimizer {
 
 	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
 								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
-		Optional<BigDecimal> optDuration = dataProcessor.calculateDuration(solPerJob);
+		Pair<Optional<BigDecimal>,Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
 		if (lst.size() > 0) previous = lst.get(lst.size() - 1).getMiddle();
 		else previous = Optional.empty();
 
-		lst.add(new ImmutableTriple<>(nVM, optDuration, optDuration.isPresent() && (optDuration.get().doubleValue() < deadline)));
-		Boolean condition = checkFunction.apply(previous, optDuration, deadline, nVM, maxVM);
+		lst.add(new ImmutableTriple<>(nVM, simulatorResult.getLeft(), simulatorResult.getLeft().isPresent() && (simulatorResult.getLeft().get().doubleValue() < deadline)));
+		Boolean condition = checkFunction.apply(previous, simulatorResult.getLeft(), deadline, nVM, maxVM);
 		if (!condition) {
-			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " + (optDuration.isPresent() ? optDuration.get() : "null ") + " deadline: " + deadline);
+			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " + (simulatorResult.getLeft().isPresent() ? simulatorResult.getLeft().get() : "null ") + " deadline: " + deadline);
 			solPerJob.updateNumberVM(updateFunction.apply(nVM));
 			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		}

@@ -19,29 +19,38 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.jcraft.jsch.JSchException;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ciavotta on 11/02/16.
  */
 @Component
 public class QNSolver extends AbstractSolver {
-
+	@Autowired
+	private DataProcessor dataProcessor;
+	
+	private Pattern patternMap = Pattern.compile("(.*)(Map[0-9]*)(J)(.*)");
+	private Pattern patternRS = Pattern.compile("(.*)(RS[0-9]*)(J)(.*)");
+	
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
 		return QNSettings.class;
@@ -53,7 +62,7 @@ public class QNSolver extends AbstractSolver {
 
 			String jmtFileName = jmtFile.getName();
 
-			String remotePath = connSettings.getRemoteWorkDir() + "/" + jmtFileName;
+			String remotePath = connSettings.getRemoteWorkDir() + File.separator + dataProcessor.getCurrentInputsSubFolderName() + File.separator + jmtFileName;
 			logger.info(remoteName + "-> Starting Queuing Net resolution on the server");
 
 			sendFiles(pFiles);
@@ -94,46 +103,25 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	private List<File> createProfileFiles(@NonNull SolutionPerJob solutionPerJob) throws IOException {
-		String solID = solutionPerJob.getParentID();
-		String jobID = solutionPerJob.getId();
-		String vmID = solutionPerJob.getTypeVMselected().getId();
-
-		InputStream inputStreamMap = getClass().getResourceAsStream(String.format("/QN/%sMapJ%s%s.txt",  solID, jobID, vmID));
-		if (inputStreamMap == null) inputStreamMap = fileUtility.getFileAsStream(String.format("%sMapJ%s%s.txt", solID, jobID, vmID));
-
-		File tempFileMap = null;
-
-		if (inputStreamMap != null) {
-			tempFileMap = fileUtility.provideTemporaryFile(String.format("MapJ%s", jobID), ".txt");
-			FileOutputStream outputStreamTempMap = new FileOutputStream(tempFileMap);
-			IOUtils.copy(inputStreamMap, outputStreamTempMap);
-		}else{
-			logger.info("Missing replayer Map file");
-		}
-
-		InputStream inputStreamRS = getClass().getResourceAsStream(String.format("/QN/%sRSJ%s%s.txt", solID, jobID, vmID));
-		if (inputStreamRS == null) inputStreamRS = fileUtility.getFileAsStream(String.format("%sRSJ%s%s.txt", solID, jobID, vmID));
-
-		File tempFileRS = null;
-		if (inputStreamRS != null) {
-			tempFileRS = fileUtility.provideTemporaryFile(String.format("RSJ%s", jobID), ".txt");
-			FileOutputStream outputStreamTempRS = new FileOutputStream(tempFileRS);
-			IOUtils.copy(inputStreamRS, outputStreamTempRS);
-		}else{
-			logger.info("Missing replayer RS file");
-		}
-
-		List<File> lst = new ArrayList<>(2);
-
-		lst.add(tempFileMap);
-		lst.add(tempFileRS);
-		return lst;
+		String solutionID = solutionPerJob.getParentID();
+		String spjID = solutionPerJob.getId();
+		String provider = dataProcessor.getProviderName();
+		String typeVM = solutionPerJob.getTypeVMselected().getId();
+		
+		return dataProcessor.getCurrentReplayersInputFiles(solutionID, spjID, provider, typeVM);
 	}
 
 	private void sendFiles(List<File> lstFiles) {
+		try {
+			connector.exec("mkdir -p "+connSettings.getRemoteWorkDir() + File.separator + dataProcessor.getCurrentInputsSubFolderName(), getClass());
+		} catch (JSchException | IOException e1) {
+			logger.debug("Cannot create new Simulation Folder!\n"+e1.getStackTrace());
+		}
+		
+		
 		lstFiles.stream().forEach((File file) -> {
 			try {
-				connector.sendFile(file.getAbsolutePath(), connSettings.getRemoteWorkDir() + "/" + file.getName(),
+				connector.sendFile(file.getAbsolutePath(), connSettings.getRemoteWorkDir() + File.separator + dataProcessor.getCurrentInputsSubFolderName() + File.separator + file.getName(),
 						getClass());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -158,24 +146,46 @@ public class QNSolver extends AbstractSolver {
 		Integer numReduce = (int)solPerJob.getProfile().get("nr");
 		Double think = solPerJob.getJob().getThink();
 		String jobID = solPerJob.getId();
-		String mapFileName = lst.get(0).getName();
-		String rsFileName = lst.get(1).getName();
 
-		String remoteMapFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), mapFileName);
-		String remoteRSFilePath = String.format("%s/%s", connSettings.getRemoteWorkDir(), rsFileName);
+		
+		QueueingNetworkModel model = ((QNSettings) connSettings).getModel();
+		if(lst.size()>2){ //TODO verify
+			model = QueueingNetworkModel.Q1;
+		}
+		
+		
+		Map<String,String> inputFilesSet = new HashMap<>(); 
+		for(File file : lst){
+			String name = file.getName();
+			Matcher mapMatcher = patternMap.matcher(name);
+			Matcher rsMatcher = patternRS.matcher(name);
+			String stringToBeReplaced = new String();
+			if(mapMatcher.find()){
+				stringToBeReplaced = mapMatcher.group(2).toUpperCase();
+			}
+			else if(rsMatcher.find()){
+				stringToBeReplaced = rsMatcher.group(2).toUpperCase();
+			}
+			else{
+				logger.error("Replayer file name does not match the required regex");
+			}
+			System.out.println("Pattern to replace in jsimg: "+ stringToBeReplaced);//TODO delete
+			inputFilesSet.put(stringToBeReplaced, connSettings.getRemoteWorkDir()+File.separator+dataProcessor.getCurrentInputsSubFolderName()+File.separator+file.getName()); //TODO + subfolder creation on Simulator
+		}
+		
 		String jsimgfileContent = new QNFileBuilder()
-				.setQueueingNetworkModel(((QNSettings) connSettings).getModel())
+				.setQueueingNetworkModel(model)
 				.setCores(nContainers).setConcurrency(concurrency)
 				.setNumberOfMapTasks(numMap).setNumberOfReduceTasks(numReduce)
-				.setMapFilePath(remoteMapFilePath).setRsFilePath(remoteRSFilePath)
+				.setReplayersInputFiles(inputFilesSet)
 				.setThinkRate(1 / think).setAccuracy(connSettings.getAccuracy() / 100)
 				.setSignificance(((QNSettings) connSettings).getSignificance()).build();
 
 		File jsimgTempFile;
 		if (iteration.isPresent()) jsimgTempFile = fileUtility.provideTemporaryFile(String
-				.format("QN-%s-class%s-it%d-", solPerJob.getParentID(), jobID, iteration.get()), ".jsimg");
-		else jsimgTempFile = fileUtility.provideTemporaryFile(String.format("QN-%s-class%s-",
-				solPerJob.getParentID(), jobID), ".jsimg");
+				.format("QN-%s-class%s%s%s-it%d-", solPerJob.getParentID(), jobID,dataProcessor.getProviderName(),solPerJob.getTypeVMselected().getId(), iteration.get()), ".jsimg");
+		else jsimgTempFile = fileUtility.provideTemporaryFile(String.format("QN-%s-class%s%s%s-",
+				solPerJob.getParentID(), jobID,dataProcessor.getProviderName(),solPerJob.getTypeVMselected().getId()), ".jsimg");
 
 		fileUtility.writeContentToFile(jsimgfileContent, jsimgTempFile);
 		lst.add(jsimgTempFile);

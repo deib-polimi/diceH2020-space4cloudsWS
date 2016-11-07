@@ -1,23 +1,32 @@
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForEvaluation;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
 
 /**
@@ -33,6 +42,12 @@ public class DataProcessor {
 	
 	@Autowired
 	private ApplicationContext context;
+	
+	@Autowired
+	private DataService dataService;
+	
+	@Autowired
+	private StateMachine<States, Events> stateHandler;
 	
 	protected long calculateDuration(@NonNull Solution sol) {
 		return calculateDuration(sol.getLstSolutions());
@@ -53,12 +68,10 @@ public class DataProcessor {
 		AtomicLong executionTime = new AtomicLong(); //to support also parallel stream.
 		
 		spjList.forEach(s -> {
-			Instant first = Instant.now();
-			Optional<BigDecimal> duration = calculateDuration(s);
-			Instant after = Instant.now();
-			executionTime.addAndGet(Duration.between(first, after).toMillis());
+			Pair<Optional<BigDecimal>,Double> duration = calculateDuration(s);
+			executionTime.addAndGet(duration.getRight().longValue());
 			
-			if (duration.isPresent()) s.setDuration(duration.get().doubleValue());
+			if (duration.getLeft().isPresent()) s.setDuration(duration.getLeft().get().doubleValue());
 			else {
 				s.setDuration(Double.MAX_VALUE);
 				s.setError(Boolean.TRUE);
@@ -68,10 +81,10 @@ public class DataProcessor {
 		return executionTime.get();
 	}
 
-	protected Optional<BigDecimal> calculateDuration(@NonNull SolutionPerJob solPerJob) {
-		Optional<BigDecimal> result = solverCache.evaluate(solPerJob);
-		if (! result.isPresent()) solverCache.invalidate(solPerJob);
-		else logger.info(solPerJob.getId()+"->"+" Duration with "+solPerJob.getNumberVM()+"VM and h="+solPerJob.getNumberUsers()+"has been calculated" +result.get());
+	protected Pair<Optional<BigDecimal>,Double> calculateDuration(@NonNull SolutionPerJob solPerJob) {
+		Pair<Optional<BigDecimal>,Double> result = solverCache.evaluate(solPerJob);
+		if (! result.getLeft().isPresent()) solverCache.invalidate(solPerJob);
+		else logger.info(solPerJob.getId()+"->"+" Duration with "+solPerJob.getNumberVM()+"VM and h="+solPerJob.getNumberUsers()+"has been calculated" +result.getLeft().get());
 		return result;
 	}
 	
@@ -82,4 +95,37 @@ public class DataProcessor {
 	public void changeSettings(Settings settings) {
 		solverCache.changeSettings(settings);
 	}
+
+	public String getCurrentInputsSubFolderPath(){
+		String currentInputSubFolder = dataService.getSimFoldersName();
+		File f = new File(currentInputSubFolder);
+		if(!f.exists()){
+			logger.error("Error with Current Input Folder! It doesn't exist!");
+			stateHandler.sendEvent(Events.STOP);
+		}
+		return currentInputSubFolder;
+	}
+	
+	public String getCurrentInputsSubFolderName(){
+		return Paths.get(getCurrentInputsSubFolderPath()).getFileName().toString();
+	}
+	
+	public List<File> getCurrentReplayersInputFiles() throws IOException{
+		List<File> txtList = new ArrayList<>();
+		for(String fileName: FileUtility.listFile(getCurrentInputsSubFolderPath(),  ".txt")){
+			File file = new File(getCurrentInputsSubFolderPath()+File.separator+fileName);
+			txtList.add(file);
+		}
+		return txtList;
+	}
+	
+	public String getProviderName(){
+		return dataService.getProviderName();
+	}
+	
+	public List<File> getCurrentReplayersInputFiles(String solutionID, String spjID, String provider, String typeVM) throws IOException{
+		List<File> txtList = getCurrentReplayersInputFiles();
+		return txtList.stream().filter(s->s.getName().contains(spjID+provider+typeVM)).filter(s->s.getName().contains(solutionID)).collect(Collectors.toList());
+	}
+	
 }

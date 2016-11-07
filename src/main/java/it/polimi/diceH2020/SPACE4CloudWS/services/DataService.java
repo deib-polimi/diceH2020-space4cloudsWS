@@ -28,16 +28,22 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -47,12 +53,20 @@ import java.util.Map.Entry;
 @Service
 @Data
 public class DataService {
-
+	
+	private static Logger logger = Logger.getLogger(DataService.class.getName());
+	
 	@Autowired(required = false)
 	private InstanceDataMultiProvider data;
+	
+	@Autowired
+	private StateMachine<States, Events> stateHandler;
 
 	@Autowired
 	private DAOService daoService;
+	
+	@Autowired
+	private FileUtility fileUtility;
 
 	private int jobNumber;
 
@@ -67,6 +81,10 @@ public class DataService {
 	private String providerName;
 
 	private Matrix matrix;
+	
+	private String simFoldersPath = new String();
+	
+	private List<String> usedSimFoldersName = new ArrayList<>(); 
 	
 	private int gamma = 1500;
 
@@ -129,11 +147,17 @@ public class DataService {
 		if(!scenario.equals(Scenarios.PrivateAdmissionControl)&&!scenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
 			makeInputDataConsistent();
 		}
+		
+		simFoldersPath = createInputSubFolder();
 		this.matrix = null;
 	}
 
 	private void loadDataFromDB(EntityProvider provider) {
 		this.mapCloudParameters = daoService.typeVMFindAllToMap(provider);
+	}
+	
+	public String getSimFoldersName(){
+		return simFoldersPath;
 	}
 
 	/**
@@ -228,6 +252,45 @@ public class DataService {
 
 	public int getGamma() {
 		return gamma;
+	}
+	
+	private synchronized String createInputSubFolder(){
+		String folderNameStaticPart = fileUtility.generateUniqueString();
+		if(usedSimFoldersName.stream().anyMatch(f->f.equals(folderNameStaticPart))){
+			return addFolder(folderNameStaticPart);
+		}
+		
+		return addFolder(incrementFolderName(folderNameStaticPart));
+	}
+	
+	private String incrementFolderName(String name){
+		String fol = name;
+		int i = 1;
+		while(usedSimFoldersName.stream().anyMatch(f->f.equals(name))){
+			fol = name+i;
+			i++;
+		}
+		return fol;
+	}
+	
+	private synchronized String addFolder(String folder){
+		String folderAbsolutePath = new String();
+		try {
+			folderAbsolutePath = fileUtility.createInputSubFolder(folder);
+		} catch (IOException e) {
+			logger.error("Error while performing optimization", e);
+			stateHandler.sendEvent(Events.STOP);
+		}
+		
+		usedSimFoldersName.add(0, folder);
+		if(usedSimFoldersName.size()==100){
+			usedSimFoldersName.remove(usedSimFoldersName.size()-1);
+		}
+		
+		if(usedSimFoldersName.size()>=100){
+			System.out.println("FolderList dimension doesn't respect the upper bound (99)");
+		}
+		return folderAbsolutePath;
 	}
 
 }

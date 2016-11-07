@@ -23,6 +23,9 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
 import lombok.NonNull;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -31,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -73,9 +78,12 @@ public class SolverProxy {
 	}
 	
 	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME, keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
-	public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
+	public Pair<Optional<BigDecimal>,Double> evaluate(@NonNull SolutionPerJob solPerJob) {
+		Instant first = Instant.now();
 		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
-		return solver.evaluate(solPerJob);
+		Optional<BigDecimal> duration = solver.evaluate(solPerJob);
+		Instant after = Instant.now();
+		return new ImmutablePair<Optional<BigDecimal>, Double>(duration,(double)Duration.between(first, after).toMillis());
 	}
 
 	@CacheEvict(cacheNames = "cachedEval")

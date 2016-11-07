@@ -17,6 +17,9 @@ package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -27,8 +30,6 @@ import reactor.fn.Consumer;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Optional;
 
 import static reactor.bus.selector.Selectors.$;
@@ -67,28 +68,28 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>>{
 		SolutionPerJob spj = ev.getData().getSpj();
 		ContainerLogicGivenH containerLogic = ev.getData().getHandler();
 		logger.info("|Q-STATUS| received spjWrapper"+spj.getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
-		Instant first = Instant.now();
-		if(calculateDuration(spj)){
-			Instant after = Instant.now();
-			double exeTime = Duration.between(first, after).toMillis();
+		Pair<Boolean,Double> solverResult = calculateDuration(spj);
+		if(solverResult.getLeft()){
+			double exeTime = solverResult.getRight();
 			containerLogic.registerCorrectSolutionPerJob(spj, exeTime);
 		}else{
-			Instant after = Instant.now();
-			double exeTime = Duration.between(first, after).toMillis();
+			double exeTime = solverResult.getRight();
 			containerLogic.registerFailedSolutionPerJob(spj, exeTime);
 		}
 		dispatcher.notifyReadyChannel(this);
 	}
 	
-	private boolean calculateDuration(SolutionPerJob solPerJob) {
-		Optional<BigDecimal> duration = solverCache.evaluate(solPerJob);
+	private Pair<Boolean,Double> calculateDuration(SolutionPerJob solPerJob) {
+		Pair<Optional<BigDecimal>,Double> solverResult = solverCache.evaluate(solPerJob);
+		Optional<BigDecimal> duration = solverResult.getLeft();
+		double runtime = solverResult.getRight();
 		if (duration.isPresent()) {
 			solPerJob.setDuration(duration.get().doubleValue());
 			evaluateFeasibility(solPerJob);
-			return true;
+			return new ImmutablePair<Boolean, Double>(Boolean.TRUE,runtime);
 		}
 		solverCache.invalidate(solPerJob);
-		return false;
+		return new ImmutablePair<Boolean, Double>(Boolean.FALSE,runtime);
 	}
 
 	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {
