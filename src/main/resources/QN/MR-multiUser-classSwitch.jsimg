@@ -45,7 +45,7 @@ limitations under the License.
             <section className="ServiceTunnel"/>
             <section className="Fork">
                 <parameter classPath="java.lang.Integer" name="jobsPerLink">
-                    <value>@@NUM_MAP@@</value>
+                    <value>@@NM@@</value>
                 </parameter>
                 <parameter classPath="java.lang.Integer" name="block">
                     <value>-1</value>
@@ -193,7 +193,7 @@ limitations under the License.
             </section>
             <section className="Server">
                 <parameter classPath="java.lang.Integer" name="maxJobs">
-                    <value>@@NCORES@@</value>
+                    <value>@@CAPACITY@@</value>
                 </parameter>
                 <parameter array="true" classPath="java.lang.Integer" name="numberOfVisits">
                     <refClass>ClassA</refClass>
@@ -319,7 +319,7 @@ limitations under the License.
             <section className="ServiceTunnel"/>
             <section className="Fork">
                 <parameter classPath="java.lang.Integer" name="jobsPerLink">
-                    <value>@@NUM_REDUCE@@</value>
+                    <value>@@NR@@</value>
                 </parameter>
                 <parameter classPath="java.lang.Integer" name="block">
                     <value>-1</value>
@@ -385,7 +385,7 @@ limitations under the License.
             </section>
             <section className="Server">
                 <parameter classPath="java.lang.Integer" name="maxJobs">
-                    <value>@@NCORES@@</value>
+                    <value>@@CAPACITY@@</value>
                 </parameter>
                 <parameter array="true" classPath="java.lang.Integer" name="numberOfVisits">
                     <refClass>ClassA</refClass>
@@ -525,10 +525,10 @@ limitations under the License.
         <blockingRegion name="FCRegion0" type="default">
             <regionNode nodeName="Queue 1"/>
             <regionNode nodeName="Queue 2"/>
-            <globalConstraint maxJobs="@@NCORES@@"/>
+            <globalConstraint maxJobs="@@CAPACITY@@"/>
             <globalMemoryConstraint maxMemory="-1"/>
-            <classConstraint jobClass="ClassA" maxJobsPerClass="@@NCORES@@"/>
-            <classConstraint jobClass="ClassB" maxJobsPerClass="@@NCORES@@"/>
+            <classConstraint jobClass="ClassA" maxJobsPerClass="@@CAPACITY@@"/>
+            <classConstraint jobClass="ClassB" maxJobsPerClass="@@CAPACITY@@"/>
             <classWeight jobClass="ClassA" weight="1"/>
             <classWeight jobClass="ClassB" weight="1"/>
             <classMemorySize jobClass="ClassA" size="1"/>
