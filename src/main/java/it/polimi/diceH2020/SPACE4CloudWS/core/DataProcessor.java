@@ -124,8 +124,7 @@ public class DataProcessor {
 	}
 	
 	public List<File> getCurrentReplayersInputFiles(String solutionID, String spjID, String provider, String typeVM) throws IOException{
-		List<File> txtList = getCurrentReplayersInputFiles();
-		return txtList.stream().filter(s->s.getName().contains(spjID+provider+typeVM)).filter(s->s.getName().contains(solutionID)).collect(Collectors.toList());
+		return getCurrentReplayersInputFiles().stream().filter(s->s.getName().contains(spjID+provider+typeVM)).filter(s->s.getName().contains(solutionID)).collect(Collectors.toList());
 	}
 	
 }

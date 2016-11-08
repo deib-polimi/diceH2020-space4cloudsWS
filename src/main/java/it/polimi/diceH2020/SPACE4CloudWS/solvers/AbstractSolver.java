@@ -101,12 +101,12 @@ public abstract class AbstractSolver implements Solver {
         try {
             pFiles = createWorkingFiles(solPerJob);
             Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
-            delete(pFiles);
+            //delete(pFiles); TODO list file already sent
             BigDecimal duration = calculateResponseTime(result.getLeft(), nUsers, think);
             solPerJob.setError(result.getRight());
             return Optional.of(duration);
         } catch (Exception e) {
-            System.out.println("Exception"+e.getMessage());
+            System.out.println("Exception "+e.getStackTrace());
             solPerJob.setError(Boolean.TRUE);
             return Optional.empty();
         }

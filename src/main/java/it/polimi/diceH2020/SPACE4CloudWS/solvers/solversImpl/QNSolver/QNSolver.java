@@ -36,6 +36,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +51,7 @@ public class QNSolver extends AbstractSolver {
 	
 	private Pattern patternMap = Pattern.compile("(.*)(Map[0-9]*)(J)(.*)");
 	private Pattern patternRS = Pattern.compile("(.*)(RS[0-9]*)(J)(.*)");
+	private Pattern patternNMR = Pattern.compile("((nm[0-9]*)|(nr[0-9]*))");
 	
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
@@ -58,7 +60,7 @@ public class QNSolver extends AbstractSolver {
 
 	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
 		if (iteration < MAX_ITERATIONS) {
-			File jmtFile = pFiles.get(2); // it is the third in the list (.jsimg)
+			File jmtFile = pFiles.stream().filter(s->s.getName().contains(".jsimg")).findFirst().get(); // it is the third in the list (.jsimg)
 
 			String jmtFileName = jmtFile.getName();
 
@@ -73,12 +75,12 @@ public class QNSolver extends AbstractSolver {
 					: String.format("java -cp %s jmt.commandline.Jmt sim %s -maxtime %d",
 					connSettings.getSolverPath(), remotePath, ((QNSettings) connSettings).getMaxDuration());
 
-			logger.debug(remoteName + "-> Starting JMT model...");
-			List<String> remoteMsg = connector.exec(command, getClass());
+			logger.debug(remoteName + "-> Starting JMT model...");			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) logger.info(remoteName + "-> The remote optimization process completed correctly");
 			else {
 				logger.debug(remoteName + "-> Remote exit status: " + remoteMsg);
 				iteration = iteration + 1;
+
 				return run(pFiles, remoteName, iteration);
 			}
 
@@ -142,15 +144,15 @@ public class QNSolver extends AbstractSolver {
 		List<File> lst = createProfileFiles(solPerJob);
 		Integer nContainers = solPerJob.getNumberContainers();
 		Integer concurrency = solPerJob.getNumberUsers();
-		Integer numMap = (int)solPerJob.getProfile().get("nm");
-		Integer numReduce = (int)solPerJob.getProfile().get("nr");
 		Double think = solPerJob.getJob().getThink();
 		String jobID = solPerJob.getId();
 
 		
 		QueueingNetworkModel model = ((QNSettings) connSettings).getModel();
-		if(lst.size()>2){ //TODO verify
+		int nMR = (int)solPerJob.getProfile().getProfileMap().keySet().stream().filter(s->{Matcher m = patternNMR.matcher(s);return m.matches();}).count();
+		if(nMR>2){ //TODO verify
 			model = QueueingNetworkModel.Q1;
+			System.out.println("QN MODEL SET TO Q1");
 		}
 		
 		
@@ -173,11 +175,20 @@ public class QNSolver extends AbstractSolver {
 			inputFilesSet.put(stringToBeReplaced, connSettings.getRemoteWorkDir()+File.separator+dataProcessor.getCurrentInputsSubFolderName()+File.separator+file.getName()); //TODO + subfolder creation on Simulator
 		}
 		
+		Map<String,String> numMR = new HashMap<>();
+		
+		for(Entry<String, Double> entry : solPerJob.getProfile().getProfileMap().entrySet()){
+			Matcher m = patternNMR.matcher(entry.getKey());
+			if(m.matches()){
+				numMR.put(entry.getKey().toUpperCase(),String.valueOf(entry.getValue().intValue()));
+			}
+		}
+		
 		String jsimgfileContent = new QNFileBuilder()
 				.setQueueingNetworkModel(model)
 				.setCores(nContainers).setConcurrency(concurrency)
-				.setNumberOfMapTasks(numMap).setNumberOfReduceTasks(numReduce)
 				.setReplayersInputFiles(inputFilesSet)
+				.setNumMR(numMR)
 				.setThinkRate(1 / think).setAccuracy(connSettings.getAccuracy() / 100)
 				.setSignificance(((QNSettings) connSettings).getSignificance()).build();
 

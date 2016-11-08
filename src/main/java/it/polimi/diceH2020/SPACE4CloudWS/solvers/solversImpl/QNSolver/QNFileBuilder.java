@@ -30,24 +30,13 @@ import java.util.Map;
 public class QNFileBuilder {
 
     private Integer concurrency = -1;
-    private Integer numberOfMapTasks = -1;
-    private Integer numberOfReduceTasks = -1;
     private Map<String,String> inputFiles = new HashMap<String,String>();
+    private Map<String,String> numMR = new HashMap<String,String>();
     private Double thinkRate;
     private Integer cores;
     private Double significance;
     private Double accuracy;
     private QueueingNetworkModel model = QueueingNetworkModel.SIMPLE;
-
-    public QNFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
-        this.numberOfReduceTasks = numberOfReduceTasks;
-        return this;
-    }
-
-    public QNFileBuilder setNumberOfMapTasks(int numberOfMapTasks) {
-        this.numberOfMapTasks = numberOfMapTasks;
-        return this;
-    }
 
     public QNFileBuilder setConcurrency(int concurrency) {
         this.concurrency = concurrency;
@@ -94,14 +83,16 @@ public class QNFileBuilder {
         while ((inputLine = reader.readLine()) != null) {
             String outputLine = inputLine
                     .replace("@@CONCURRENCY@@", concurrency.toString())
-                    .replace("@@NUM_MAP@@", numberOfMapTasks.toString())
-                    .replace("@@NUM_REDUCE@@", numberOfReduceTasks.toString())
-                    .replace("@@NCORES@@", cores.toString())
+                    .replace("@@CAPACITY@@", cores.toString())
                     .replace("@@THINK_RATE@@", thinkRate.toString())
                     .replace("@@ALPHA@@", significance.toString())
                     .replace("@@ACCURACY@@", accuracy.toString());
             for(Map.Entry<String, String> entry : inputFiles.entrySet()){
             	String furtherReplace = outputLine.replace("@@"+entry.getKey()+"PATH@@", entry.getValue());
+            	outputLine = furtherReplace;
+            }
+            for(Map.Entry<String, String> entry : numMR.entrySet()){
+            	String furtherReplace = outputLine.replace("@@"+entry.getKey()+"@@", entry.getValue()); // @@NR[0-9]*@@ & @@NM[0-9]*@@
             	outputLine = furtherReplace;
             }
             lines.add(outputLine);
@@ -116,6 +107,11 @@ public class QNFileBuilder {
     
     public QNFileBuilder setReplayersInputFiles(Map<String,String> inputFiles){
     	this.inputFiles = inputFiles;
+    	return this;
+    }
+    
+    public QNFileBuilder setNumMR(Map<String,String> numMR){
+    	this.numMR = numMR;
     	return this;
     }
 }
