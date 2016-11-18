@@ -15,8 +15,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
-import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileBuilder;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,31 +22,27 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PNDefFileBuilder implements FileBuilder {
+class PNDefFileBuilder {
     private Integer concurrency;
     private Integer numberOfMapTasks;
     private Integer numberOfReduceTasks;
 
-    @Override
-    public PNDefFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
+    PNDefFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
         this.numberOfReduceTasks = numberOfReduceTasks;
         return this;
     }
 
-    @Override
-    public PNDefFileBuilder setNumberOfMapTasks(int numberOfMapTasks) {
+    PNDefFileBuilder setNumberOfMapTasks(int numberOfMapTasks) {
         this.numberOfMapTasks = numberOfMapTasks;
         return this;
     }
 
-    @Override
-    public PNDefFileBuilder setConcurrency(int concurrency) {
+    PNDefFileBuilder setConcurrency(int concurrency) {
         this.concurrency = concurrency;
         return this;
     }
 
-    @Override
-    public String build() throws IOException {
+    String build() throws IOException {
         InputStream inputStream = getClass().getResourceAsStream("/GreatSPN/SingleClass.def");
         List<String> lines = new LinkedList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));

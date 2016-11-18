@@ -22,33 +22,33 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PNNetFileBuilder {
+class PNNetFileBuilder {
     private Double mapRate;
     private Double reduceRate;
     private Double thinkRate;
     private Integer cores;
 
-    public PNNetFileBuilder setMapRate(Double mapRate) {
+    PNNetFileBuilder setMapRate(Double mapRate) {
         this.mapRate = mapRate;
         return this;
     }
 
-    public PNNetFileBuilder setReduceRate(Double reduceRate) {
+    PNNetFileBuilder setReduceRate(Double reduceRate) {
         this.reduceRate = reduceRate;
         return this;
     }
 
-    public PNNetFileBuilder setThinkRate(Double thinkRate) {
+    PNNetFileBuilder setThinkRate(Double thinkRate) {
         this.thinkRate = thinkRate;
         return this;
     }
 
-    public PNNetFileBuilder setCores(Integer cores) {
+    PNNetFileBuilder setCores(Integer cores) {
         this.cores = cores;
         return this;
     }
 
-    public String build() throws IOException {
+    String build() throws IOException {
         InputStream inputStream = getClass().getResourceAsStream("/GreatSPN/SingleClass.net");
         List<String> lines = new LinkedList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -62,5 +62,4 @@ public class PNNetFileBuilder {
         }
         return String.join("\n", lines);
     }
-
 }
