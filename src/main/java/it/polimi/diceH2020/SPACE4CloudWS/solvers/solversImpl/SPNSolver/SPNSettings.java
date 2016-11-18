@@ -32,8 +32,11 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "SPN")
 final class SPNSettings extends AbstractConnectionSettings {
 
+    private SPNModel model = SPNModel.MAPREDUCE;
+
     private SPNSettings(SPNSettings that) {
         super(that);
+        model = that.getModel();
     }
 
     // Used by Spring Boot

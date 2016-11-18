@@ -141,13 +141,14 @@ public class SPNSolver extends AbstractSolver {
             prefix = String.format("PN-%s-class%s-", solPerJob.getParentID(), jobID);
         }
 
-        String netFileContent = new PNNetFileBuilder().setCores(nContainers).setMapRate(1 / mAvg)
-                .setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
+        final SPNModel model = ((SPNSettings) connSettings).getModel();
+        String netFileContent = new PNNetFileBuilder().setSPNModel(model).setCores(nContainers)
+                .setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
         File netFile = fileUtility.provideTemporaryFile(prefix, ".net");
         fileUtility.writeContentToFile(netFileContent, netFile);
 
-        String defFileContent = new PNDefFileBuilder().setConcurrency(nUsers).setNumberOfMapTasks(NM)
-                .setNumberOfReduceTasks(NR).build();
+        String defFileContent = new PNDefFileBuilder().setSPNModel(model).setConcurrency(nUsers)
+                .setNumberOfMapTasks(NM).setNumberOfReduceTasks(NR).build();
         File defFile = fileUtility.provideTemporaryFile(prefix, ".def");
         fileUtility.writeContentToFile(defFileContent, defFile);
 
@@ -160,5 +161,4 @@ public class SPNSolver extends AbstractSolver {
     public List<String> pwd() throws Exception {
         return connector.pwd(getClass());
     }
-
 }

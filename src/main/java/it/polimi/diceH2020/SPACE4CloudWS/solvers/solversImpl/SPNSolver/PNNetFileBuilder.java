@@ -15,10 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,6 +24,7 @@ class PNNetFileBuilder {
     private Double reduceRate;
     private Double thinkRate;
     private Integer cores;
+    private SPNModel model;
 
     PNNetFileBuilder setMapRate(Double mapRate) {
         this.mapRate = mapRate;
@@ -48,8 +46,22 @@ class PNNetFileBuilder {
         return this;
     }
 
+    PNNetFileBuilder setSPNModel(SPNModel spnModel) {
+        model = spnModel;
+        return this;
+    }
+
     String build() throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream("/GreatSPN/SingleClass.net");
+        String filename;
+        switch (model) {
+            case STORM:
+                filename = File.separator + "GreatSPN" + File.separator + "Storm.net";
+                break;
+            case MAPREDUCE:
+            default:
+                filename = File.separator + "GreatSPN" + File.separator + "SingleClass.net";
+        }
+        InputStream inputStream = getClass().getResourceAsStream(filename);
         List<String> lines = new LinkedList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         String inputLine;
