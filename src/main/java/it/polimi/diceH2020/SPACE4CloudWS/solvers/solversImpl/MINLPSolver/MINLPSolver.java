@@ -28,6 +28,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -211,12 +212,14 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected Pair<BigDecimal, Boolean> run(@NotNull List<File> pFiles, String s) throws JSchException, IOException {
-		return run(pFiles, s, 0);
+	protected Pair<BigDecimal, Boolean> run(@NotNull Pair<List<File>, List<File>> pFiles, String s)
+			throws JSchException, IOException {
+		List<File> amplFiles = pFiles.getLeft();
+		return run(amplFiles, s, 0);
 	}
 
 	@Override
-	protected List<File> createWorkingFiles(SolutionPerJob solPerJob) throws IOException {
+	protected Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException {
 		return null;
 	}
 
@@ -235,11 +238,12 @@ public class MINLPSolver extends AbstractSolver {
 
 	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution) {
 		try {
-			List<File> pFiles = createWorkingFiles(matrix, solution);
-			Pair<BigDecimal, Boolean> result = run(pFiles, modelType + " solution");
-			File resultsFile = pFiles.get(1);
+			List<File> filesList = createWorkingFiles(matrix, solution);
+			Pair<List<File>, List<File>> pair = new ImmutablePair<>(filesList, new ArrayList<>());
+			Pair<BigDecimal, Boolean> result = run(pair, modelType + " solution");
+			File resultsFile = filesList.get(1);
 			solParser.updateResults(solution, matrix, resultsFile);
-			delete(pFiles);
+			delete(filesList);
 			return Optional.of(result.getLeft());
 		} catch (IOException | JSchException e) {
 			logger.error("Evaluate Matrix-no result due to an exception", e);

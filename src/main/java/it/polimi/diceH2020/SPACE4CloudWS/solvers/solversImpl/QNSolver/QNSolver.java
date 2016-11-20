@@ -24,6 +24,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,11 +33,8 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,10 +52,11 @@ public class QNSolver extends AbstractSolver {
 		return QNSettings.class;
 	}
 
-	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration) throws Exception {
+	private Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName,
+										  Integer iteration) throws Exception {
 		if (iteration < MAX_ITERATIONS) {
 			// it is the third in the list (.jsimg)
-			File jmtFile = pFiles.stream().filter(s -> s.getName().contains(".jsimg")).findFirst().get();
+			File jmtFile = pFiles.getLeft().stream().filter(s -> s.getName().contains(".jsimg")).findFirst().get();
 
 			String jmtFileName = jmtFile.getName();
 
@@ -65,7 +64,8 @@ public class QNSolver extends AbstractSolver {
 					dataProcessor.getCurrentInputsSubFolderName() + File.separator + jmtFileName;
 			logger.info(remoteName + "-> Starting Queuing Net resolution on the server");
 
-			sendFiles(pFiles);
+			sendFiles(pFiles.getLeft());
+			sendFiles(pFiles.getRight());
 			logger.debug(remoteName + "-> Working files sent");
 
 			String command = connSettings.getMaxDuration() == Integer.MIN_VALUE
@@ -99,7 +99,7 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected Pair<BigDecimal, Boolean> run(List<File> pFiles, String s) throws Exception {
+	protected Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String s) throws Exception {
 		return run(pFiles, s, 0);
 	}
 
@@ -130,7 +130,7 @@ public class QNSolver extends AbstractSolver {
 		});
 	}
 
-	public List<File> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
+	public Pair<List<File>, List<File>> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
 		List<File> lst = createProfileFiles(solPerJob);
 		Integer nContainers = solPerJob.getNumberContainers();
 		Integer concurrency = solPerJob.getNumberUsers();
@@ -188,8 +188,9 @@ public class QNSolver extends AbstractSolver {
 				solPerJob.getTypeVMselected().getId()), ".jsimg");
 
 		fileUtility.writeContentToFile(jsimgfileContent, jsimgTempFile);
-		lst.add(jsimgTempFile);
-		return lst;
+		List<File> jmtModel = new ArrayList<>();
+		jmtModel.add(jsimgTempFile);
+		return new ImmutablePair<>(jmtModel, lst);
 	}
 
 	@Override

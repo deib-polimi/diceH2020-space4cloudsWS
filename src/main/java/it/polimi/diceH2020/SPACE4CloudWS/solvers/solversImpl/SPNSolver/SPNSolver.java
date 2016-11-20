@@ -49,9 +49,12 @@ public class SPNSolver extends AbstractSolver {
         return SPNSettings.class;
     }
 
-    public Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName) throws Exception {
-        if (pFiles.size() != 2) throw new IllegalArgumentException("wrong number of input files");
-        Pair<File, File> inputFiles = new ImmutablePair<>(pFiles.get(0), pFiles.get(1));
+    public Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+        List<File> aux = pFiles.getLeft();
+        if (! pFiles.getRight().isEmpty() || aux.size() != 2) {
+            throw new IllegalArgumentException("wrong number of input files");
+        }
+        Pair<File, File> inputFiles = new ImmutablePair<>(aux.get(0), aux.get(1));
         return run(inputFiles, remoteName, 0);
     }
 
@@ -110,7 +113,7 @@ public class SPNSolver extends AbstractSolver {
         }
     }
 
-    public List<File> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
+    public Pair<List<File>, List<File>> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
         int nContainers = solPerJob.getNumberContainers();
         ClassParameters jobClass = solPerJob.getJob();
         JobProfile prof = solPerJob.getProfile();
@@ -140,7 +143,7 @@ public class SPNSolver extends AbstractSolver {
         List<File> lst = new ArrayList<>(2);
         lst.add(netFile);
         lst.add(defFile);
-        return lst;
+        return new ImmutablePair<>(lst, new ArrayList<>());
     }
 
     @Override

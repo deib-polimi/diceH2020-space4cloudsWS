@@ -47,8 +47,9 @@ public abstract class AbstractSolver implements Solver {
 
     @Autowired
     protected FileUtility fileUtility;
+
     @Autowired
-    protected Environment environment; // this is to check which is the active
+    protected Environment environment;
 
     @Autowired
     protected SshConnectorProxy connector;
@@ -92,9 +93,9 @@ public abstract class AbstractSolver implements Solver {
         int nUsers = solPerJob.getNumberUsers();
         double think = jobClass.getThink();
         try {
-            List<File> pFiles = createWorkingFiles(solPerJob);
+            Pair<List<File>, List<File>> pFiles = createWorkingFiles(solPerJob);
             Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
-            //delete(pFiles); TODO list file already sent
+            delete(pFiles.getLeft());
             BigDecimal duration = calculateResponseTime(result.getLeft(), nUsers, think);
             solPerJob.setError(result.getRight());
             return Optional.of(duration);
@@ -129,9 +130,9 @@ public abstract class AbstractSolver implements Solver {
         return connector;
     }
 
-    protected abstract Pair<BigDecimal, Boolean> run(List<File> pFiles, String s) throws Exception;
+    protected abstract Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String s) throws Exception;
 
-    protected abstract List<File> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
+    protected abstract Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
 
     @Override
     public void initRemoteEnvironment() throws Exception {
