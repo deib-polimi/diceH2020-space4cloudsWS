@@ -49,30 +49,29 @@ public class SPNSolver extends AbstractSolver {
         return SPNSettings.class;
     }
 
-    public Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
-        List<File> aux = pFiles.getLeft();
-        if (! pFiles.getRight().isEmpty() || aux.size() != 2) {
+    @Override
+    protected Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+        List<File> files = pFiles.getLeft();
+        if (! pFiles.getRight().isEmpty() || files.size() != 2) {
             throw new IllegalArgumentException("wrong number of input files");
         }
-        Pair<File, File> inputFiles = new ImmutablePair<>(aux.get(0), aux.get(1));
-        return run(inputFiles, remoteName, 0);
-    }
 
-    private Pair<BigDecimal, Boolean> run(Pair<File, File> pFiles, String remoteName, Integer iter) throws Exception {
-        if (iter < MAX_ITERATIONS) {
-            File netFile = pFiles.getLeft();
-            File defFile = pFiles.getRight();
-            String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
+        File netFile = files.get(0);
+        File defFile = files.get(1);
+        String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
+        Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
+        if (! matcher.matches()) {
+            throw new RuntimeException(String.format("problem matching %s", netFile.getName()));
+        }
+        String prefix = matcher.group(1);
+
+        boolean stillNotOk = true;
+        for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
             logger.info(remoteName + "-> Starting Stochastic Petri Net simulation on the server");
             connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net", getClass());
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
-            if (! matcher.matches()) {
-                throw new RuntimeException(String.format("problem matching %s", netFile.getName()));
-            }
-            String prefix = matcher.group(1);
             File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
             fileUtility.writeContentToFile("end\n", statFile);
             connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat", getClass());
@@ -85,13 +84,17 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> Starting GreatSPN model...");
             List<String> remoteMsg = connector.exec(command, getClass());
             if (remoteMsg.contains("exit-status: 0")) {
+                stillNotOk = false;
                 logger.info(remoteName + "-> The remote optimization process completed correctly");
             } else {
                 logger.debug(remoteName + "-> Remote exit status: " + remoteMsg);
-                iter = iter + 1;
-                return run(pFiles, remoteName, iter);
             }
+        }
 
+        if (stillNotOk) {
+            logger.debug(remoteName + "-> Error in remote optimization");
+            throw new Exception("Error in the SPN server");
+        } else {
             File solFile = fileUtility.provideTemporaryFile(prefix, ".sta");
             connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta", getClass());
             String solFileInString = FileUtils.readFileToString(solFile);
@@ -107,9 +110,6 @@ public class SPNSolver extends AbstractSolver {
             BigDecimal result = BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN);
             // TODO: this always returns false, should check if every error just throws
             return Pair.of(result, false);
-        } else {
-            logger.debug(remoteName + "-> Error in remote optimization");
-            throw new Exception("Error in the SPN server");
         }
     }
 

@@ -149,11 +149,13 @@ public class MINLPSolver extends AbstractSolver {
 		connector.exec(command, getClass());
 	}
 
-	private Pair<BigDecimal, Boolean> run(List<File> pFiles, String remoteName, Integer iteration)
+	@Override
+	protected Pair<BigDecimal, Boolean> run(@NotNull Pair<List<File>, List<File>> pFiles, String remoteName)
 			throws JSchException, IOException {
-		if (iteration < MAX_ITERATIONS) {
-			File dataFile = pFiles.get(0);
-			File solutionFile = pFiles.get(1);
+		List<File> amplFiles = pFiles.getLeft();
+		boolean stillNotOk = true;
+		for (int iteration = 0; stillNotOk && iteration < MAX_ITERATIONS; ++iteration) {
+			File dataFile = amplFiles.get(0);
 			String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
 			connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath, getClass());
 			logger.info(remoteName + "-> AMPL .data file sent");
@@ -185,6 +187,7 @@ public class MINLPSolver extends AbstractSolver {
 					((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
 			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) {
+				stillNotOk = false;
 				logger.info(remoteName + "-> The remote optimization process completed correctly");
 			} else {
 				logger.info("Remote exit status: " + remoteMsg);
@@ -192,30 +195,24 @@ public class MINLPSolver extends AbstractSolver {
 					iteration = MAX_ITERATIONS;
 					logger.info(remoteName + "-> Wrong parameters. Aborting");
 				} else {
-					iteration = iteration + 1;
 					logger.info(remoteName + "-> Restarted. Iteration " + iteration);
 				}
-				return run(pFiles, remoteName, iteration);
 			}
+		}
 
-			fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
+		if (stillNotOk) {
+			logger.debug(remoteName + "-> Error in remote optimization");
+			throw new IOException("Error in the initial solution creation process");
+		} else {
+			File solutionFile = amplFiles.get(1);
+			String fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath, getClass());
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
 			// TODO: this always returns false, should check if every error just throws
 			return Pair.of(BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN), false);
-		} else {
-			logger.debug(remoteName + "-> Error in remote optimization");
-			throw new IOException("Error in the initial solution creation process");
 		}
-	}
-
-	@Override
-	protected Pair<BigDecimal, Boolean> run(@NotNull Pair<List<File>, List<File>> pFiles, String s)
-			throws JSchException, IOException {
-		List<File> amplFiles = pFiles.getLeft();
-		return run(amplFiles, s, 0);
 	}
 
 	@Override

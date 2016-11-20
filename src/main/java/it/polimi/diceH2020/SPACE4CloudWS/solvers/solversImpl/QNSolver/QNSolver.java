@@ -52,16 +52,17 @@ public class QNSolver extends AbstractSolver {
 		return QNSettings.class;
 	}
 
-	private Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName,
-										  Integer iteration) throws Exception {
-		if (iteration < MAX_ITERATIONS) {
-			// it is the third in the list (.jsimg)
-			File jmtFile = pFiles.getLeft().stream().filter(s -> s.getName().contains(".jsimg")).findFirst().get();
+	@Override
+	protected Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+		File jmtFile = pFiles.getLeft().stream().filter(s -> s.getName().contains(".jsimg")).findFirst().get();
 
-			String jmtFileName = jmtFile.getName();
+		String jmtFileName = jmtFile.getName();
 
-			String remotePath = connSettings.getRemoteWorkDir() + File.separator +
-					dataProcessor.getCurrentInputsSubFolderName() + File.separator + jmtFileName;
+		String remotePath = connSettings.getRemoteWorkDir() + File.separator +
+				dataProcessor.getCurrentInputsSubFolderName() + File.separator + jmtFileName;
+
+		boolean stillNotOk = true;
+		for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
 			logger.info(remoteName + "-> Starting Queuing Net resolution on the server");
 
 			sendFiles(pFiles.getLeft());
@@ -76,13 +77,17 @@ public class QNSolver extends AbstractSolver {
 			logger.debug(remoteName + "-> Starting JMT model...");
 			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) {
+				stillNotOk = false;
 				logger.info(remoteName + "-> The remote optimization process completed correctly");
 			} else {
 				logger.debug(remoteName + "-> Remote exit status: " + remoteMsg);
-				iteration = iteration + 1;
-				return run(pFiles, remoteName, iteration);
 			}
+		}
 
+		if (stillNotOk) {
+			logger.debug(remoteName + "-> Error in remote optimization");
+			throw new Exception("Error in the QN server");
+		} else {
 			File solFile = fileUtility.provideTemporaryFile(jmtFileName + "-result", ".jsim");
 			connector.receiveFile(solFile.getAbsolutePath(), remotePath + "-result" + ".jsim", getClass());
 			SolutionsWrapper resultObject = SolutionsWrapper.unMarshal(solFile);
@@ -92,15 +97,7 @@ public class QNSolver extends AbstractSolver {
 			boolean failure = resultObject.isFailed();
 
 			return Pair.of(BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN), failure);
-		} else {
-			logger.debug(remoteName + "-> Error in remote optimization");
-			throw new Exception("Error in the QN server");
 		}
-	}
-
-	@Override
-	protected Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String s) throws Exception {
-		return run(pFiles, s, 0);
 	}
 
 	private List<File> createProfileFiles(@NonNull SolutionPerJob solutionPerJob) throws IOException {
@@ -160,7 +157,7 @@ public class QNSolver extends AbstractSolver {
 			} else {
 				logger.error ("Replayer file name does not match the required regex");
 			}
-			logger.debug ("Pattern to replace in jsimg: "+ stringToBeReplaced); //TODO delete
+			logger.debug ("Pattern to replace in jsimg: "+ stringToBeReplaced);
 			//TODO + subfolder creation on Simulator
 			inputFilesSet.put(stringToBeReplaced, connSettings.getRemoteWorkDir() + File.separator +
 					dataProcessor.getCurrentInputsSubFolderName() + File.separator + file.getName());
