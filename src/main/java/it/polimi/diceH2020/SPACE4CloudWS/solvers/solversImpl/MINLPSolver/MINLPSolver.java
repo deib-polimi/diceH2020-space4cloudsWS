@@ -135,8 +135,7 @@ public class MINLPSolver extends AbstractSolver {
 		FileOutputStream out = new FileOutputStream(tempFile);
 		IOUtils.copy(in, out);
 		connector.sendFile(tempFile.getAbsolutePath(), remotePath, getClass());
-		if (fileUtility.delete(tempFile))
-			logger.debug(tempFile + " deleted");
+		if (fileUtility.delete(tempFile)) logger.debug(tempFile + " deleted");
 	}
 
 	public List<String> clearWorkingDir() throws Exception {
@@ -161,7 +160,7 @@ public class MINLPSolver extends AbstractSolver {
 			String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 			String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
 			Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.dat").matcher(dataFile.getName());
-			if (!matcher.matches()) {
+			if (! matcher.matches()) {
 				throw new RuntimeException(String.format("problem matching %s", dataFile.getName()));
 			}
 			String prefix = matcher.group(1);
@@ -222,12 +221,8 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, IllegalStateException {
-		AMPLDataFileBuilder builder;
-		if (modelType.equals(AMPLModelType.KNAPSACK))
-			builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(), matrix);
-		else
-			builder = AMPLDataFileUtils.binPackingBuilder(dataService.getData(), matrix);
-
+		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix, modelType)
+				.populateBuilder();
 		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
 		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
 		fileUtility.writeContentToFile(builder.build(), dataFile);
@@ -238,8 +233,7 @@ public class MINLPSolver extends AbstractSolver {
 		return lst;
 	}
 
-	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
-			throws IllegalStateException {
+	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution) {
 		try {
 			List<File> pFiles = createWorkingFiles(matrix, solution);
 			Pair<BigDecimal, Boolean> result = run(pFiles, modelType + " solution");
@@ -248,7 +242,7 @@ public class MINLPSolver extends AbstractSolver {
 			delete(pFiles);
 			return Optional.of(result.getLeft());
 		} catch (IOException | JSchException e) {
-			logger.debug("Evaluate Matrix-no result due to an exception", e);
+			logger.error("Evaluate Matrix-no result due to an exception", e);
 			return Optional.empty();
 		}
 	}
@@ -278,7 +272,7 @@ public class MINLPSolver extends AbstractSolver {
 		return null;
 	}
 
-	public void initializeSpj(Solution solution, Matrix matrix){
+	public void initializeSpj(Solution solution, Matrix matrix) {
 		solParser.initializeSolution(solution, matrix);
 	}
 
