@@ -17,6 +17,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
+import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -31,8 +32,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.jcraft.jsch.JSchException;
-
 import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -40,8 +39,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,10 +69,6 @@ public class MINLPSolver extends AbstractSolver {
 		return MINLPSettings.class;
 	}
 
-	public void reinitialize() {
-		modelType = AMPLModelType.KNAPSACK;
-	}
-
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
 		String objective = modelType.toString().toLowerCase() + "_obj = ";
@@ -84,13 +81,6 @@ public class MINLPSolver extends AbstractSolver {
 			logger.info(objFunctionValue);
 		}
 		return objFunctionValue;
-	}
-
-	public void test() throws IOException {
-		String path = "/AMPL/centralized.run";
-		InputStream res = getClass().getResourceAsStream(path);
-		String theString = IOUtils.toString(res, Charset.defaultCharset());
-		logger.info(theString);
 	}
 
 	@Override
@@ -170,7 +160,7 @@ public class MINLPSolver extends AbstractSolver {
 
 			String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
 			String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
-			Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.dat").matcher(dataFile.getName());
+			Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.dat").matcher(dataFile.getName());
 			if (!matcher.matches()) {
 				throw new RuntimeException(String.format("problem matching %s", dataFile.getName()));
 			}
@@ -207,19 +197,18 @@ public class MINLPSolver extends AbstractSolver {
 				}
 				return run(pFiles, remoteName, iteration);
 			}
+
 			fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath, getClass());
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
-			// TODO: this always returns false, should check if every error just
-			// throws
+			// TODO: this always returns false, should check if every error just throws
 			return Pair.of(BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN), false);
 		} else {
 			logger.debug(remoteName + "-> Error in remote optimization");
 			throw new IOException("Error in the initial solution creation process");
 		}
-
 	}
 
 	@Override
@@ -232,9 +221,8 @@ public class MINLPSolver extends AbstractSolver {
 		return null;
 	}
 
-	protected List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, IllegalStateException {
-		AMPLDataFileBuilder builder = null;
-
+	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, IllegalStateException {
+		AMPLDataFileBuilder builder;
 		if (modelType.equals(AMPLModelType.KNAPSACK))
 			builder = AMPLDataFileUtils.knapsackBuilder(dataService.getData(), matrix);
 		else
@@ -252,9 +240,8 @@ public class MINLPSolver extends AbstractSolver {
 
 	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
 			throws IllegalStateException {
-		List<File> pFiles;
 		try {
-			pFiles = createWorkingFiles(matrix, solution);
+			List<File> pFiles = createWorkingFiles(matrix, solution);
 			Pair<BigDecimal, Boolean> result = run(pFiles, modelType + " solution");
 			File resultsFile = pFiles.get(1);
 			solParser.updateResults(solution, matrix, resultsFile);
@@ -290,8 +277,8 @@ public class MINLPSolver extends AbstractSolver {
 	public Optional<BigDecimal> evaluate(Solution solution) {
 		return null;
 	}
-	
-	public void initializeSpj(Solution solution,Matrix matrix){
+
+	public void initializeSpj(Solution solution, Matrix matrix){
 		solParser.initializeSolution(solution, matrix);
 	}
 

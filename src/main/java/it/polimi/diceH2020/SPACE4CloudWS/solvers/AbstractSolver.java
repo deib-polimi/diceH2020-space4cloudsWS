@@ -35,14 +35,10 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Created by ciavotta on 12/02/16.
- */
 public abstract class AbstractSolver implements Solver {
 
     protected final Integer MAX_ITERATIONS = 3;
@@ -75,9 +71,7 @@ public abstract class AbstractSolver implements Solver {
                 getClass().getCanonicalName()));
     }
 
-    public void refresh(){
-
-    }
+    public void refresh() {}
 
     private static double calculateResponseTime(double throughput, int numUsers, double thinkTime) {
         return (double) numUsers / throughput - thinkTime;
@@ -97,16 +91,15 @@ public abstract class AbstractSolver implements Solver {
         String jobID = solPerJob.getId();
         int nUsers = solPerJob.getNumberUsers();
         double think = jobClass.getThink();
-        List<File> pFiles = new ArrayList<>();
         try {
-            pFiles = createWorkingFiles(solPerJob);
+            List<File> pFiles = createWorkingFiles(solPerJob);
             Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
             //delete(pFiles); TODO list file already sent
             BigDecimal duration = calculateResponseTime(result.getLeft(), nUsers, think);
             solPerJob.setError(result.getRight());
             return Optional.of(duration);
         } catch (Exception e) {
-            System.out.println("Exception "+e.getStackTrace());
+            logger.error("Error in SPJ evaluation", e);
             solPerJob.setError(Boolean.TRUE);
             return Optional.empty();
         }

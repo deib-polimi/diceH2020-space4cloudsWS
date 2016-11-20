@@ -65,7 +65,7 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            Matcher matcher = Pattern.compile("([\\w\\.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
+            Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
             if (! matcher.matches()) {
                 throw new RuntimeException(String.format("problem matching %s", netFile.getName()));
             }
@@ -77,8 +77,8 @@ public class SPNSolver extends AbstractSolver {
             if (fileUtility.delete(statFile))
                 logger.debug(statFile + " deleted");
 
-            String command = connSettings.getSolverPath() + " " + remotePath + " -a " + connSettings.getAccuracy()
-                    + " -c 6";
+            String command = connSettings.getSolverPath() + " " + remotePath +
+                    " -a " + connSettings.getAccuracy() + " -c 6";
             logger.debug(remoteName + "-> Starting GreatSPN model...");
             List<String> remoteMsg = connector.exec(command, getClass());
             if (remoteMsg.contains("exit-status: 0")) {
@@ -111,16 +111,6 @@ public class SPNSolver extends AbstractSolver {
     }
 
     public List<File> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
-        return createWorkingFiles(solPerJob, Optional.empty());
-    }
-
-    @Override
-    public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
-        return null;
-    }
-
-
-    private List<File> createWorkingFiles(SolutionPerJob solPerJob, Optional<Integer> iteration) throws IOException {
         int nContainers = solPerJob.getNumberContainers();
         ClassParameters jobClass = solPerJob.getJob();
         JobProfile prof = solPerJob.getProfile();
@@ -134,12 +124,7 @@ public class SPNSolver extends AbstractSolver {
         int NM = (int) prof.get("nm");
         int NR = (int) prof.get("nr");
 
-        String prefix;
-        if (iteration.isPresent()) {
-            prefix = String.format("PN-%s-class%s-iter%d-", solPerJob.getParentID(), jobID, iteration.get());
-        } else {
-            prefix = String.format("PN-%s-class%s-", solPerJob.getParentID(), jobID);
-        }
+        String prefix = String.format("PN-%s-class%s-", solPerJob.getParentID(), jobID);
 
         final SPNModel model = ((SPNSettings) connSettings).getModel();
         String netFileContent = new PNNetFileBuilder().setSPNModel(model).setCores(nContainers)
@@ -156,6 +141,11 @@ public class SPNSolver extends AbstractSolver {
         lst.add(netFile);
         lst.add(defFile);
         return lst;
+    }
+
+    @Override
+    public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
+        return null;
     }
 
     public List<String> pwd() throws Exception {
