@@ -67,12 +67,9 @@ public abstract class AbstractSolver implements Solver {
         connSettings = settingsDealer.getConnectionDefaults(getSettingsClass());
         SshConnector sshConnector = new SshConnector(connSettings);
         connector.registerConnector(sshConnector, getClass());
-        refresh();
         logger.debug(String.format("<%s> Restored default solver settings",
                 getClass().getCanonicalName()));
     }
-
-    public void refresh() {}
 
     private static double calculateResponseTime(double throughput, int numUsers, double thinkTime) {
         return (double) numUsers / throughput - thinkTime;

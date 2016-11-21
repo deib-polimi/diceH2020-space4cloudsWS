@@ -59,11 +59,6 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
-	private Models modelType = Models.KNAPSACK;
-
-	@Autowired
-	private AMPLSolFileParser solParser;
-
 	@Autowired
 	private DataService dataService;
 
@@ -74,7 +69,7 @@ public class MINLPSolver extends AbstractSolver {
 
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
-		String objective = modelType.toString().toLowerCase() + "_obj = ";
+		String objective = getModelType().toString().toLowerCase() + "_obj = ";
 		int startPos = fileToString.indexOf(objective);
 		int endPos = fileToString.indexOf('\n', startPos);
 		Double objFunctionValue = Double.parseDouble(fileToString.substring(startPos + objective.length(), endPos));
@@ -172,7 +167,7 @@ public class MINLPSolver extends AbstractSolver {
 			File runFile = fileUtility.provideTemporaryFile(prefix, ".run");
 			String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
 					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath)
-					.setModelType(modelType).build();
+					.setModelType(getModelType()).build();
 			fileUtility.writeContentToFile(runFileContent, runFile);
 
 			fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
@@ -223,7 +218,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, MatrixHugeHoleException {
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix, modelType)
+		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix, getModelType())
 				.populateBuilder();
 		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
 		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
@@ -240,13 +235,13 @@ public class MINLPSolver extends AbstractSolver {
 		try {
 			List<File> filesList = createWorkingFiles(matrix, solution);
 			Pair<List<File>, List<File>> pair = new ImmutablePair<>(filesList, new ArrayList<>());
-			Pair<BigDecimal, Boolean> result = run(pair, modelType + " solution");
+			Pair<BigDecimal, Boolean> result = run(pair, getModelType() + " solution");
 			File resultsFile = filesList.get(1);
-			solParser.updateResults(solution, matrix, resultsFile);
+			new AMPLSolFileParser().updateResults(getModelType(), solution, matrix, resultsFile);
 			delete(filesList);
 			return Optional.of(result.getLeft());
 		} catch (IOException | JSchException e) {
-			logger.error("Evaluate Matrix-no result due to an exception", e);
+			logger.error("Evaluate Matrix: no result due to an exception", e);
 			return Optional.empty();
 		}
 	}
@@ -262,13 +257,12 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	public void setModelType(Models modelType) {
-		this.modelType = modelType;
-		solParser.setModelType(modelType);
+		((MINLPSettings) connSettings).setModel(modelType);
 		logger.debug("MINLP model set to: " + modelType);
 	}
 
-	public void refresh() {
-		setModelType(Models.KNAPSACK);
+	private Models getModelType() {
+		return ((MINLPSettings) connSettings).getModel();
 	}
 
 	@Override
@@ -277,7 +271,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	public void initializeSpj(Solution solution, Matrix matrix) {
-		solParser.initializeSolution(solution, matrix);
+		AMPLSolFileParser.initializeSolution(solution, matrix);
 	}
 
 }

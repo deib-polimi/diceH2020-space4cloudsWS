@@ -20,19 +20,20 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-@Component
 class AMPLSolFileParser {
-	private Models model = Models.KNAPSACK;
+
 	private Logger logger = Logger.getLogger(getClass());
 
-	protected void parseKnapsackSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
+	private void parseKnapsackSolution(Solution solution, Matrix matrix, File resultsFile) throws IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
 			solution.getLstSolutions().clear();
 			int[] selectedCells = new int[matrix.numNotFailedRows()];
@@ -47,7 +48,6 @@ class AMPLSolFileParser {
 			if (bufferStr[2].equals("infeasible")) {
 				logger.info("The problem is infeasible");
 				initializeSolution(solution,matrix);
-
 				return;
 			}
 
@@ -70,11 +70,10 @@ class AMPLSolFileParser {
 
 			//TODO for failed rows.. add json property? (so add rows to the final solution)
 			//Currently if a class has failed a partial solution is returned.
-
 		}
 	}
 
-	protected void parseBinPackingSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
+	private void parseBinPackingSolution(Solution solution, Matrix matrix, File resultsFile) throws IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
 			solution.getLstSolutions().clear();
 			String log = matrix.getIdentifier()+" "+solution.getScenario();
@@ -158,29 +157,10 @@ class AMPLSolFileParser {
 					System.out.println(line2);
 				}
 			}
-
-
 		}
 	}
 
-	AMPLSolFileParser setModelType(Models amplModelType) {
-		model = amplModelType;
-		return this;
-	}
-
-	protected void updateResults(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException{
-		parseSolution(solution,matrix,resultsFile);
-	}
-
-	public void initializeSolution(Solution solution, Matrix matrix){
-		solution.getLstSolutions().clear();
-		for(Entry<String,SolutionPerJob[]> entry : matrix.entrySet()){
-			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()), entry.getValue()[0].getNumberUsers()));
-		}
-		solution.setFeasible(false);
-	}
-
-	private void parseSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException  {
+	void updateResults(Models model, Solution solution, Matrix matrix, File resultsFile) throws IOException {
 		switch (model) {
 			case KNAPSACK:
 				parseKnapsackSolution(solution, matrix, resultsFile);
@@ -191,6 +171,15 @@ class AMPLSolFileParser {
 			default:
 				throw new AssertionError("The required model is still not implemented");
 		}
+	}
+
+	static void initializeSolution(Solution solution, Matrix matrix) {
+		solution.getLstSolutions().clear();
+		for (Entry<String,SolutionPerJob[]> entry : matrix.entrySet()) {
+			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()),
+					entry.getValue()[0].getNumberUsers()));
+		}
+		solution.setFeasible(false);
 	}
 
 }
