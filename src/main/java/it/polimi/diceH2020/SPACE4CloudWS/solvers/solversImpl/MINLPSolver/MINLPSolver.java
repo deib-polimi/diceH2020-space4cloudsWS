@@ -18,6 +18,7 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.jcraft.jsch.JSchException;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
@@ -58,7 +59,7 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
-	private AMPLModelType modelType = AMPLModelType.KNAPSACK;
+	private Models modelType = Models.KNAPSACK;
 
 	@Autowired
 	private AMPLSolFileParser solParser;
@@ -260,14 +261,14 @@ public class MINLPSolver extends AbstractSolver {
 		return connector;
 	}
 
-	public void setModelType(AMPLModelType modelType) {
+	public void setModelType(Models modelType) {
 		this.modelType = modelType;
 		solParser.setModelType(modelType);
 		logger.debug("MINLP model set to: " + modelType);
 	}
 
 	public void refresh() {
-		setModelType(AMPLModelType.KNAPSACK);
+		setModelType(Models.KNAPSACK);
 	}
 
 	@Override

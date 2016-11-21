@@ -18,6 +18,7 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -30,10 +31,10 @@ class AMPLDataFileBuilderBuilder {
 
 	private InstanceDataMultiProvider data;
 	private Matrix fullMatrix;
-	private AMPLModelType model;
+	private Models model;
 
 	AMPLDataFileBuilderBuilder (InstanceDataMultiProvider instanceDataMultiProvider,
-								Matrix matrixWithoutHoles, AMPLModelType modelType) {
+								Matrix matrixWithoutHoles, Models modelType) {
 		data = instanceDataMultiProvider;
 		fullMatrix = matrixWithoutHoles;
 		model = modelType;
@@ -46,7 +47,7 @@ class AMPLDataFileBuilderBuilder {
 		builder.addScalarParameter("N", data.getPrivateCloudParameters().getN());
 		builder.addDoubleParameter("V", data.getPrivateCloudParameters().getV());
 		builder.addDoubleParameter("M", data.getPrivateCloudParameters().getM());
-		if (model == AMPLModelType.BIN_PACKING) {
+		if (model == Models.BIN_PACKING) {
 			builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().getE());
 		}
 
@@ -64,7 +65,7 @@ class AMPLDataFileBuilderBuilder {
 		int i = 0;
 		for (Entry<String, SolutionPerJob[]> row : matrix.entrySet()) {
 			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
-			Iterable<Double> rowCostOrPenalty = (model == AMPLModelType.KNAPSACK)
+			Iterable<Double> rowCostOrPenalty = (model == Models.KNAPSACK)
 					? matrix.getAllCost(row.getKey())
 					: matrix.getAllPenalty(row.getKey());
 			Iterable<Double> rowMTilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations());
@@ -94,7 +95,7 @@ class AMPLDataFileBuilderBuilder {
 			fullMatrix.addNotFailedRow(writtenIndex, row.getKey());
 		}
 
-		final String parameterName = (model == AMPLModelType.KNAPSACK) ? "bigC" : "bigP";
+		final String parameterName = (model == Models.KNAPSACK) ? "bigC" : "bigP";
 		builder.addIndexedArrayParameter(parameterName, costOrPenaltiesFirst, costOrPenaltiesPairs);
 		builder.addIndexedArrayParameter("Mtilde", mTildeFirst, mTilde);
 		builder.addIndexedArrayParameter("Vtilde", vTildeFirst, vTilde);

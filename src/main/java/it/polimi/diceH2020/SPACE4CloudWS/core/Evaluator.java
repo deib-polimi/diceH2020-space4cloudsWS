@@ -65,7 +65,7 @@ class Evaluator implements IEvaluator {
 		
 		if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
 			int activeNodes = 0;
-			if(dataService.getScenario().getModel().equals(Models.binPacking)){
+			if(dataService.getScenario().getModel().equals(Models.BIN_PACKING)){
 				if(solution.getActiveNodes()!=null && !solution.getActiveNodes().isEmpty()){
 					for(Boolean b : solution.getActiveNodes().values()){
 						if(b){

@@ -15,10 +15,10 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +29,7 @@ import java.util.Map.Entry;
 
 @Component
 class AMPLSolFileParser {
-	private AMPLModelType model = AMPLModelType.KNAPSACK;
+	private Models model = Models.KNAPSACK;
 	private Logger logger = Logger.getLogger(getClass());
 
 	protected void parseKnapsackSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
@@ -47,7 +47,7 @@ class AMPLSolFileParser {
 			if (bufferStr[2].equals("infeasible")) {
 				logger.info("The problem is infeasible");
 				initializeSolution(solution,matrix);
-				
+
 				return;
 			}
 
@@ -73,12 +73,12 @@ class AMPLSolFileParser {
 
 		}
 	}
-	
+
 	protected void parseBinPackingSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(resultsFile))) {
 			solution.getLstSolutions().clear();
 			String log = matrix.getIdentifier()+" "+solution.getScenario();
-			
+
 			int[] selectedCells = new int[matrix.numNotFailedRows()]; //foreach rows one and only one cell has to be selected
 
 			String line = reader.readLine().trim();
@@ -93,7 +93,7 @@ class AMPLSolFileParser {
 				initializeSolution(solution,matrix);
 				return;
 			}
-			
+
 			Map<Integer,Boolean> map = new HashMap<>();
 			while (! line.contains("y [*] ")) {
 				line = reader.readLine().trim();
@@ -123,14 +123,14 @@ class AMPLSolFileParser {
 				line = reader.readLine().trim();
 			}
 			solution.setNumVMPerNodePerClass(map2);
-			
+
 			while (! line.contains("p = ")) {
 				line = reader.readLine().trim();
 			}
 			bufferStr = line.split("\\s+");
 			String p = bufferStr[2];
 			solution.setPenalty(Double.valueOf(p));
-			
+
 			while (! line.contains("### Concurrency")) {
 				line = reader.readLine().trim();
 			}
@@ -150,20 +150,20 @@ class AMPLSolFileParser {
 
 			//TODO for failed rows.. add json property? (so add rows to the final solution)
 			//Currently if a class has failed a partial solution is returned.
-			
+
 			System.out.println("[BP-RESULTS]"+log);
 			try (BufferedReader br = new BufferedReader(new FileReader(resultsFile))) {
-			   String line2 = null;
-			   while ((line2 = br.readLine()) != null) {
-			       System.out.println(line2);
-			   }
+				String line2 = null;
+				while ((line2 = br.readLine()) != null) {
+					System.out.println(line2);
+				}
 			}
-		
+
 
 		}
 	}
 
-	AMPLSolFileParser setModelType(AMPLModelType amplModelType) {
+	AMPLSolFileParser setModelType(Models amplModelType) {
 		model = amplModelType;
 		return this;
 	}
@@ -179,7 +179,7 @@ class AMPLSolFileParser {
 		}
 		solution.setFeasible(false);
 	}
-	
+
 	private void parseSolution(Solution solution, Matrix matrix, File resultsFile) throws FileNotFoundException, IOException  {
 		switch (model) {
 			case KNAPSACK:
