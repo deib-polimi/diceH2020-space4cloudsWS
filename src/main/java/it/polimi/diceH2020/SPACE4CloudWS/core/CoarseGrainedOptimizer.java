@@ -1,5 +1,7 @@
 /*
+Copyright 2016 Michele Ciavotta
 Copyright 2016 Jacopo Rigoli
+Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,7 +57,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		AtomicLong executionTime = new AtomicLong();
-		strm.forEach(s->{
+		strm.forEach(s -> {
 			Instant first = Instant.now();
 			hillClimbing(s);
 			Instant after = Instant.now();
@@ -64,10 +66,10 @@ class CoarseGrainedOptimizer extends Optimizer {
 		solution.setEvaluated(false);
 		evaluator.evaluate(solution);
 
-		Phase ph = new Phase();
-		ph.setId(PhaseID.OPTIMIZATION);
-		ph.setDuration(executionTime.get());
-		solution.addPhase(ph);
+		Phase phase = new Phase();
+		phase.setId(PhaseID.OPTIMIZATION);
+		phase.setDuration(executionTime.get());
+		solution.addPhase(phase);
 	}
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {
@@ -77,7 +79,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 		Function<Integer, Integer> updateFunction;
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> res;
 
-		Pair<Optional<BigDecimal>,Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
+		Pair<Optional<BigDecimal>, Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
 		if (simulatorResult.getLeft().isPresent()) {
 			if (simulatorResult.getLeft().get().doubleValue() > deadline) {
 				checkFunction = this::checkConditionToFeasibility;
@@ -106,59 +108,52 @@ class CoarseGrainedOptimizer extends Optimizer {
 	}
 
 	private List<Triple<Integer, Optional<BigDecimal>, Boolean>>
-	alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>,
+	alterUntilBreakPoint(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>,
 			Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
 						 SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
-		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
-		return lst;
-	}
+		Optional<BigDecimal> previous = Optional.empty();
+		boolean shouldKeepGoing = true;
 
-	private void recursiveOptimize(Integer maxVM,
-								   FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer,
-										   Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
-								   SolutionPerJob solPerJob, double deadline,
-								   List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
-		Pair<Optional<BigDecimal>,Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
-		Integer nVM = solPerJob.getNumberVM();
-		Optional<BigDecimal> previous;
-		if (lst.size() > 0) previous = lst.get(lst.size() - 1).getMiddle();
-		else previous = Optional.empty();
+		while (shouldKeepGoing) {
+			Pair<Optional<BigDecimal>, Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
 
-		lst.add(new ImmutableTriple<>(nVM, simulatorResult.getLeft(), simulatorResult.getLeft().isPresent() &&
-				(simulatorResult.getLeft().get().doubleValue() < deadline)));
-		Boolean condition = checkFunction.apply(previous, simulatorResult.getLeft(), deadline, nVM, maxVM);
-		if (!condition) {
-			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " +
-					(simulatorResult.getLeft().isPresent() ? simulatorResult.getLeft().get() : "null ") +
-					" deadline: " + deadline);
-			solPerJob.updateNumberVM(updateFunction.apply(nVM));
-			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
+			Integer nVM = solPerJob.getNumberVM();
+			lst.add(new ImmutableTriple<>(nVM, simulatorResult.getLeft(), simulatorResult.getLeft().isPresent() &&
+					(simulatorResult.getLeft().get().doubleValue() < deadline)));
+
+			shouldKeepGoing = ! checkFunction.apply(previous, simulatorResult.getLeft(), deadline, nVM, maxVM);
+			previous = simulatorResult.getLeft();
+
+			if (shouldKeepGoing) {
+				logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " +
+						(simulatorResult.getLeft().isPresent() ? simulatorResult.getLeft().get() : "null ") +
+						" deadline: " + deadline);
+				solPerJob.updateNumberVM(updateFunction.apply(nVM));
+			}
 		}
+
+		return lst;
 	}
 
 	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration,
 												double deadline, Integer nVM, Integer maxVM) {
-		boolean returnValue = false;
-		if (duration.isPresent() && duration.get().doubleValue() <= deadline) returnValue = true;
-		//|previousDuration-duration|≤0.1 return true
-		if (previousDuration.isPresent() && duration.isPresent() &&
-				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
-		if (nVM > maxVM) returnValue = true;
-		if (!checkState()) returnValue = true;
-		return returnValue;
+		return (duration.isPresent() && duration.get().doubleValue() <= deadline) ||
+				//|previousDuration-duration|≤0.1 return true
+				(previousDuration.isPresent() && duration.isPresent() &&
+						(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) ||
+				(nVM > maxVM) ||
+				(!checkState());
 	}
 
 	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration,
 												  double deadline, Integer nVM, Integer maxVM) {
-		boolean returnValue = false;
-		if (duration.isPresent() && duration.get().doubleValue() > deadline) returnValue = true;
-		//|previousDuration-duration|≤0.1 return true
-		if (previousDuration.isPresent() && duration.isPresent() &&
-				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
-		if (nVM == 1) returnValue = true;
-		if (!checkState()) returnValue = true;
-		return returnValue;
+		return (duration.isPresent() && duration.get().doubleValue() > deadline) ||
+				//|previousDuration-duration|≤0.1 return true
+				(previousDuration.isPresent() && duration.isPresent() &&
+						(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) ||
+				(nVM == 1) ||
+				(!checkState());
 	}
 
 	private boolean checkState() {
