@@ -1,5 +1,6 @@
 /*
 Copyright 2016 Jacopo Rigoli
+Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,38 +22,28 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.SVRFeature;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class MLPredictor {
 
 	private final Logger logger = Logger.getLogger(getClass());
-	private final int defaultNVM = 1;
+	private final static int defaultNVM = 1;
 
 	@Autowired
 	private DataService dataService;
-	
+
 	@Autowired
 	private DS4CSettings settings;
 
-	private Map<String, MLPrediction> predictedSPJ = new HashMap<>();// caches
-																		// SPJ,
-																		// in
-																		// order
-																		// to
-																		// recalculate
-																		// only
-																		// xi
-																		// TODO
-																		// @Cacheable
+	// caches SPJ, in order to recalculate only xi
+	// TODO @Cacheable
+	private Map<String, MLPrediction> predictedSPJ = new HashMap<>();
 
 	/**
 	 * Precondition: DataService has M,V (received from JSON or retrieved from
@@ -62,7 +53,7 @@ public class MLPredictor {
 	 * @param spj
 	 * @return
 	 */
-	public Optional<BigDecimal> approximateWithSVR(SolutionPerJob spj) {
+	public double approximateWithSVR(SolutionPerJob spj) {
 		if (predictedSPJ.containsKey(spj.getId())) {
 			return retrievePrediction(spj);
 		} else {
@@ -70,7 +61,7 @@ public class MLPredictor {
 		}
 	}
 
-	private Optional<BigDecimal> calculatePrediction(SolutionPerJob spj) {
+	private double calculatePrediction(SolutionPerJob spj) {
 		JobMLProfile features = dataService.getMLProfile(spj.getId());
 		JobProfile profile = spj.getProfile();
 
@@ -80,18 +71,17 @@ public class MLPredictor {
 		double chi_0 = calculateChi_0(profile, features);
 		int h = spj.getNumberUsers();
 
-		double duration = deadline; 
 		double xi = calculateXi(spj);
-		int c = (int) Math.ceil((double) (chi_c / (deadline - chi_h * h - chi_0)));
+		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
 
 		spj.setXi(xi);
-		spj.setDuration(duration);
+		spj.setDuration(deadline);
 		spj.updateNumberContainers(c);
 		validate(spj);
-		
+
 		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 		predictedSPJ.put(spj.getId(), new MLPrediction(deadline, chi_c, chi_h, chi_0));
-		return Optional.of(BigDecimal.valueOf(duration));
+		return deadline;
 	}
 
 	private void validate(SolutionPerJob spj) {
@@ -103,7 +93,7 @@ public class MLPredictor {
 		}
 	}
 
-	private Optional<BigDecimal> retrievePrediction(SolutionPerJob spj) {
+	private Double retrievePrediction(SolutionPerJob spj) {
 		MLPrediction prediction = predictedSPJ.get(spj.getId());
 
 		double deadline = prediction.getDeadline();
@@ -113,16 +103,15 @@ public class MLPredictor {
 
 		int h = spj.getNumberUsers();
 
-		double duration = deadline; 
 		double xi = calculateXi(spj);
-		int c = (int) Math.ceil((double) (chi_c / (deadline - chi_h * h - chi_0)));
-		
+		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
+
 		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 		spj.setXi(xi);
-		spj.setDuration(duration);
-		spj.updateNumberContainers(c); 
+		spj.setDuration(deadline);
+		spj.updateNumberContainers(c);
 		validate(spj);
-		return Optional.of(BigDecimal.valueOf(duration));
+		return deadline;
 	}
 
 	private double calculateDefaultParametersContribution(JobMLProfile features) {
@@ -179,8 +168,8 @@ public class MLPredictor {
 
 		double defaultParametersContribution = calculateDefaultParametersContribution(features);
 		double featureContribution = 0;
-		String chi_0_optional_names = new String();
-		String chi_0_optional_values = new String();
+		String chi_0_optional_names = "";
+		String chi_0_optional_values = "";
 		try {
 			for (Map.Entry<String, SVRFeature> entry : features.getMlFeatures().entrySet()) {
 				if (entry.getKey().equals("h") || entry.getKey().equals("x"))
@@ -194,17 +183,17 @@ public class MLPredictor {
 			logger.info("[SVR] Missing a MLProfile feature parameter in Profile.");
 		}
 		logVerbose("[SVR] Chi_0_optional_parameters: "+chi_0_optional_names+"\n"+"="+chi_0_optional_values+"\n = "+featureContribution);
-		double result = defaultParametersContribution + featureContribution; 
+		double result = defaultParametersContribution + featureContribution;
 		logVerbose("[SVR] Chi_0 = Chi_0_mandatory_parameters + Chi_0_optional_parameters  = "+defaultParametersContribution+"+"+featureContribution +" = "+result);
-		
+
 		return result;
 	}
 
 	public void reinitialize() {
 		predictedSPJ = new HashMap<>();
 	}
-	
-	private void logVerbose(String message){//TODO define new custom Logger Level, or a wrapper class
+
+	private void logVerbose(String message) {//TODO define new custom Logger Level, or a wrapper class
 		if(settings.isVerbose()) logger.debug(message);
 	}
 }

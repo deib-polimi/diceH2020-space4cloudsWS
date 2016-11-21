@@ -17,7 +17,6 @@ package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -29,7 +28,6 @@ import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 
 import javax.annotation.PostConstruct;
-import java.math.BigDecimal;
 import java.util.Optional;
 
 import static reactor.bus.selector.Selectors.$;
@@ -78,18 +76,18 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>>{
 		}
 		dispatcher.notifyReadyChannel(this);
 	}
-	
-	private Pair<Boolean,Double> calculateDuration(SolutionPerJob solPerJob) {
-		Pair<Optional<BigDecimal>,Double> solverResult = solverCache.evaluate(solPerJob);
-		Optional<BigDecimal> duration = solverResult.getLeft();
+
+	private Pair<Boolean, Double> calculateDuration(SolutionPerJob solPerJob) {
+		Pair<Optional<Double>, Double> solverResult = solverCache.evaluate(solPerJob);
+		Optional<Double> duration = solverResult.getLeft();
 		double runtime = solverResult.getRight();
 		if (duration.isPresent()) {
-			solPerJob.setDuration(duration.get().doubleValue());
+			solPerJob.setDuration(duration.get());
 			evaluateFeasibility(solPerJob);
-			return new ImmutablePair<Boolean, Double>(Boolean.TRUE,runtime);
+			return new ImmutablePair<>(Boolean.TRUE, runtime);
 		}
 		solverCache.invalidate(solPerJob);
-		return new ImmutablePair<Boolean, Double>(Boolean.FALSE,runtime);
+		return new ImmutablePair<>(Boolean.FALSE, runtime);
 	}
 
 	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {

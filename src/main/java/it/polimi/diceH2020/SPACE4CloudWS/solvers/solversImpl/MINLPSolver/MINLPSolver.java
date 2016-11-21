@@ -40,8 +40,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -147,7 +145,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected Pair<BigDecimal, Boolean> run(@NotNull Pair<List<File>, List<File>> pFiles, String remoteName)
+	protected Pair<Double, Boolean> run(@NotNull Pair<List<File>, List<File>> pFiles, String remoteName)
 			throws JSchException, IOException {
 		List<File> amplFiles = pFiles.getLeft();
 		boolean stillNotOk = true;
@@ -208,7 +206,7 @@ public class MINLPSolver extends AbstractSolver {
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 
 			// TODO: this always returns false, should check if every error just throws
-			return Pair.of(BigDecimal.valueOf(objFunctionValue).setScale(8, RoundingMode.HALF_EVEN), false);
+			return Pair.of(objFunctionValue, false);
 		}
 	}
 
@@ -230,12 +228,12 @@ public class MINLPSolver extends AbstractSolver {
 		return lst;
 	}
 
-	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
+	public Optional<Double> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
 			throws MatrixHugeHoleException {
 		try {
 			List<File> filesList = createWorkingFiles(matrix, solution);
 			Pair<List<File>, List<File>> pair = new ImmutablePair<>(filesList, new ArrayList<>());
-			Pair<BigDecimal, Boolean> result = run(pair, getModelType() + " solution");
+			Pair<Double, Boolean> result = run(pair, getModelType() + " solution");
 			File resultsFile = filesList.get(1);
 			new AMPLSolFileParser().updateResults(getModelType(), solution, matrix, resultsFile);
 			delete(filesList);
@@ -266,7 +264,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	@Override
-	public Optional<BigDecimal> evaluate(Solution solution) {
+	public Optional<Double> evaluate(Solution solution) {
 		return null;
 	}
 

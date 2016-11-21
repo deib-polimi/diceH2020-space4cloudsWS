@@ -31,8 +31,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -53,7 +51,7 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+	protected Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
 		File jmtFile = pFiles.getLeft().stream().filter(s -> s.getName().contains(".jsimg")).findFirst().get();
 
 		String jmtFileName = jmtFile.getName();
@@ -96,7 +94,7 @@ public class QNSolver extends AbstractSolver {
 			Double throughput = resultObject.getMeanValue();
 			boolean failure = resultObject.isFailed();
 
-			return Pair.of(BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN), failure);
+			return Pair.of(throughput, failure);
 		}
 	}
 
@@ -105,7 +103,7 @@ public class QNSolver extends AbstractSolver {
 		String spjID = solutionPerJob.getId();
 		String provider = dataProcessor.getProviderName();
 		String typeVM = solutionPerJob.getTypeVMselected().getId();
-		return dataProcessor.getCurrentReplayersInputFiles(solutionID, spjID, provider, typeVM);
+		return dataProcessor.getCurrentReplayerInputFiles(solutionID, spjID, provider, typeVM);
 	}
 
 	private void sendFiles(List<File> lstFiles) {
@@ -191,7 +189,7 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	@Override
-	public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
+	public Optional<Double> evaluate(@NonNull Solution solution) {
 		return null;
 	}
 

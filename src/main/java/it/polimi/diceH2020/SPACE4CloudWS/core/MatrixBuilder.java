@@ -1,5 +1,6 @@
 /*
 Copyright 2016 Jacopo Rigoli
+Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -82,20 +82,10 @@ class MatrixBuilder extends Builder {
 					spj2.setParentID(dataService.getData().getId());
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
-					Optional<BigDecimal> result = approximator.approximateWithSVR(spj2);
-
+					approximator.approximateWithSVR(spj2);
 					logger.info("Preliminary evaluation for class: "+spj2.getId()+" with "+ tVM.getId());
-					double cost = Double.MAX_VALUE;
-					if (result.isPresent()) {
-						cost = evaluator.evaluate(spj2);
-						logger.debug("Class"+spj2.getId()+"-> cost:"+cost+" users:"+spj2.getNumberUsers()+" #vm"+spj2.getNumberVM());
-					} else {
-						// as in this::fallback
-						spj2.setNumberUsers(spj2.getJob().getHup());
-						spj2.setXi(1); //TODO
-						spj2.updateNumberVM(1);
-						logger.info("No result from solver for evaluating SPJ");
-					}
+					double cost = evaluator.evaluate(spj2);
+					logger.debug("Class"+spj2.getId()+"-> cost:"+cost+" users:"+spj2.getNumberUsers()+" #vm"+spj2.getNumberVM());
 					mapResults.put(spj2, cost);
 				});
 				if (checkState()) {
@@ -132,7 +122,7 @@ class MatrixBuilder extends Builder {
 	private Matrix createTmpMatrix(Solution solution){
 		Matrix matrix = new Matrix();
 
-		solution.getLstSolutions().stream().forEach(spj->{
+		solution.getLstSolutions().forEach(spj -> {
 			int Hup = spj.getJob().getHup();
 			int Hlow = spj.getJob().getHlow();
 			SolutionPerJob[] matrixLine = new SolutionPerJob[Hup-Hlow+1];
@@ -155,7 +145,6 @@ class MatrixBuilder extends Builder {
 		solPerJob.setDuration(Double.MAX_VALUE);
 		solPerJob.setJob(jobClass);
 		solPerJob.setId(classID);
-
 		return solPerJob;
 	}
 
@@ -177,7 +166,6 @@ class MatrixBuilder extends Builder {
 		job.setM(oldJob.getM());
 		job.setThink(oldJob.getThink());
 		job.setV(oldJob.getV());
-
 		return job;
 	}
 

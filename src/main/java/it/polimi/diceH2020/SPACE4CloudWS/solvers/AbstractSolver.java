@@ -33,8 +33,6 @@ import org.springframework.core.env.Environment;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -75,15 +73,10 @@ public abstract class AbstractSolver implements Solver {
         return (double) numUsers / throughput - thinkTime;
     }
 
-    private static BigDecimal calculateResponseTime(@NonNull BigDecimal throughput, int numUsers, double thinkTime) {
-        return BigDecimal.valueOf(calculateResponseTime(throughput.doubleValue(), numUsers, thinkTime))
-                .setScale(8, RoundingMode.HALF_EVEN);
-    }
-
     @Override
-    public Optional<BigDecimal> evaluate(@NonNull SolutionPerJob solPerJob) {
+    public Optional<Double> evaluate(@NonNull SolutionPerJob solPerJob) {
         if (!solPerJob.getChanged()) {
-            return Optional.of(BigDecimal.valueOf(solPerJob.getDuration()));
+            return Optional.of(solPerJob.getDuration());
         }
         ClassParameters jobClass = solPerJob.getJob();
         String jobID = solPerJob.getId();
@@ -91,9 +84,9 @@ public abstract class AbstractSolver implements Solver {
         double think = jobClass.getThink();
         try {
             Pair<List<File>, List<File>> pFiles = createWorkingFiles(solPerJob);
-            Pair<BigDecimal, Boolean> result = run(pFiles, "class" + jobID);
+            Pair<Double, Boolean> result = run(pFiles, "class" + jobID);
             delete(pFiles.getLeft());
-            BigDecimal duration = calculateResponseTime(result.getLeft(), nUsers, think);
+            double duration = calculateResponseTime(result.getLeft(), nUsers, think);
             solPerJob.setError(result.getRight());
             return Optional.of(duration);
         } catch (Exception e) {
@@ -127,7 +120,7 @@ public abstract class AbstractSolver implements Solver {
         return connector;
     }
 
-    protected abstract Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String s) throws Exception;
+    protected abstract Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String s) throws Exception;
 
     protected abstract Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
 
@@ -152,5 +145,5 @@ public abstract class AbstractSolver implements Solver {
         return connSettings.getRemoteWorkDir();
     }
 
-    public abstract Optional<BigDecimal> evaluate(Solution solution);
+    public abstract Optional<Double> evaluate(Solution solution);
 }

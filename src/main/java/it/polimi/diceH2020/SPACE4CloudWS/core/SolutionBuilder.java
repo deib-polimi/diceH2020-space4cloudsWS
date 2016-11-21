@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -62,17 +61,9 @@ class SolutionBuilder extends Builder {
 							jobClass.getKey(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getValue(), tVM, jobClass.getKey());
 					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
-					Optional<BigDecimal> result = approximator.approximateWithSVR(solutionPerJob);
-					// TODO: this avoids NullPointerExceptions, but MINLPSolver::evaluate should be less blind
-					double cost = Double.MAX_VALUE;
-					if (result.isPresent()) {
-						cost = evaluator.evaluate(solutionPerJob);
-						logger.debug("Class"+solutionPerJob.getId()+"-> cost:"+cost+" users:"+solutionPerJob.getNumberUsers()+" #vm"+solutionPerJob.getNumberVM());
-					} else {
-						// as in this::fallback
-						solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
-						solutionPerJob.updateNumberVM(1);
-					}
+					approximator.approximateWithSVR(solutionPerJob);
+					double cost = evaluator.evaluate(solutionPerJob);
+					logger.debug("Class"+solutionPerJob.getId()+"-> cost:"+cost+" users:"+solutionPerJob.getNumberUsers()+" #vm"+solutionPerJob.getNumberVM());
 					mapResults.put(solutionPerJob, cost);
 				}
 			});
@@ -87,7 +78,7 @@ class SolutionBuilder extends Builder {
 					startingSol.setSolutionPerJob(s);
 				});
 			}
-		};
+		}
 
 		if (checkState() && !error) {
 			evaluator.evaluate(startingSol);

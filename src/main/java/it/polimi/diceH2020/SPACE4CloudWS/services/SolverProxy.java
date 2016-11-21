@@ -23,7 +23,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
 import lombok.NonNull;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -33,17 +32,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
-/**
- * Created by ciavotta on 15/02/16.
- */
 @Service
 public class SolverProxy {
-	
+
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
@@ -76,19 +71,22 @@ public class SolverProxy {
 		solver = solverFactory.create();
 		solver.restoreDefaults();
 	}
-	
-	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME, keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
-	public Pair<Optional<BigDecimal>,Double> evaluate(@NonNull SolutionPerJob solPerJob) {
+
+	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME,
+			keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
+	public Pair<Optional<Double>, Double> evaluate(@NonNull SolutionPerJob solPerJob) {
 		Instant first = Instant.now();
 		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
-		Optional<BigDecimal> duration = solver.evaluate(solPerJob);
+		Optional<Double> duration = solver.evaluate(solPerJob);
 		Instant after = Instant.now();
-		return new ImmutablePair<Optional<BigDecimal>, Double>(duration,(double)Duration.between(first, after).toMillis());
+		return new ImmutablePair<>(duration, (double) Duration.between(first, after).toMillis());
 	}
 
-	@CacheEvict(cacheNames = "cachedEval")
+	@CacheEvict(cacheNames = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME)
 	public void invalidate(@NonNull SolutionPerJob solutionPerJob) {
-		logger.info("Evicting stale cache data.");
+		String message = String.format("Evicting stale cache data about %s/%s",
+				solutionPerJob.getParentID(), solutionPerJob.getId());
+		logger.info(message);
 	}
 
 }

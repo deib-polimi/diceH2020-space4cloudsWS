@@ -30,8 +30,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -50,7 +48,7 @@ public class SPNSolver extends AbstractSolver {
     }
 
     @Override
-    protected Pair<BigDecimal, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+    protected Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
         List<File> files = pFiles.getLeft();
         if (! pFiles.getRight().isEmpty() || files.size() != 2) {
             throw new IllegalArgumentException("wrong number of input files");
@@ -107,9 +105,8 @@ public class SPNSolver extends AbstractSolver {
             double throughput = Double
                     .parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
             logger.debug(remoteName + "-> GreatSPN model run.");
-            BigDecimal result = BigDecimal.valueOf(throughput).setScale(8, RoundingMode.HALF_EVEN);
             // TODO: this always returns false, should check if every error just throws
-            return Pair.of(result, false);
+            return Pair.of(throughput, false);
         }
     }
 
@@ -147,7 +144,7 @@ public class SPNSolver extends AbstractSolver {
     }
 
     @Override
-    public Optional<BigDecimal> evaluate(@NonNull Solution solution) {
+    public Optional<Double> evaluate(@NonNull Solution solution) {
         return null;
     }
 
