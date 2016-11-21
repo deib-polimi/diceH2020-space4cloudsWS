@@ -16,7 +16,7 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.OptimizerFineGrained;
+import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -36,13 +36,13 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private WrapperDispatcher dispatcher;
 
 	@Autowired
-	private OptimizerFineGrained optimizer;
+	private FineGrainedOptimizer optimizer;
 
 	private SolutionPerJob initialSpjWithGivenH;
 
-	private TreeMap<Integer,SolutionPerJob> nVMxSPJ;
+	private TreeMap<Integer, SolutionPerJob> nVMxSPJ;
 	private long executionTime;
-	
+
 	private int predictedNVM_SVR = 0;
 	private int predictedNVM_Hyperbola = 0;
 
@@ -54,7 +54,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private boolean finished = false;
 
 	public ContainerLogicForOptimization(SolutionPerJob spj, int minVM, int maxVM){
-		nVMxSPJ = new TreeMap<Integer,SolutionPerJob>(); //from each spj I essentially need (nVM, feasibility) and (nVM, duration) 
+		nVMxSPJ = new TreeMap<>(); //from each spj I essentially need (nVM, feasibility) and (nVM, duration)
 		this.initialSpjWithGivenH = spj;
 		this.minVM = minVM;
 		this.maxVM = maxVM;
@@ -63,7 +63,6 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		 * To send |n| parallel executions of the same SolutionPerJob with a fixed H but variable number of VM, just add |n| function to batchFunctionList
 		 * the initial N (for the first iteration) is obtained by the Initialization Phase, or can be obtained by a ML SVR model.
 		 */
-
 	}
 
 	public void start(){
@@ -91,7 +90,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		this.executionTime += executionTime;
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
-				try{ 
+				try{
 					if(!sendNextEvent()){ //encode Next spj
 						logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
 						finished(-1); //not enough VM
@@ -121,7 +120,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	}
 
 	private void printStatus(){
-		String printText = new String();
+		String printText = "";
 		printText += "\nJ"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
 		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
 		printText += "Calculated nVM: "+nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
@@ -196,7 +195,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			return nVM;
 		}
 	}
-	
+
 	/**
 	 * Preconditions:
 	 * <ul>
@@ -208,9 +207,9 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	 */
 	private synchronized int getNextN(){
 		int nextN = -1;
-		
+
 		if(nVMxSPJ.size() == 1){
-			nextN = updateN(Math.max(1,nVMxSPJ.firstEntry().getKey())); 
+			nextN = updateN(Math.max(1,nVMxSPJ.firstEntry().getKey()));
 			nextN = checkNVMAgainstRange(nextN);
 		}else{ //size≥2
 			nextN = hyperbolicAssestment(nVMxSPJ.firstEntry().getValue(),nVMxSPJ.lastEntry().getValue());
@@ -218,29 +217,29 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			predictedNVM_Hyperbola = nextN;
 			nextN = updateN(nextN);
 		}
-		
+
 		if(nextN>maxVM || nextN<minVM || nVMxSPJ.containsKey(nextN)){
 			System.out.println(" max:"+maxVM+" min:"+minVM+" next:"+nextN+" contain:"+nVMxSPJ.containsKey(nextN));
 			logger.info("Error with preconditions!");
 			return -1;
 		}
-		
+
 		return nextN;
 	}
-	
+
 	private int checkNVMAgainstRange(int nVM){
 		nVM = Math.max(nVM, minVM);
 		nVM = Math.min(nVM, maxVM);
 		return nVM;
 	}
-	
+
 	private int hyperbolicAssestment(SolutionPerJob spj1, SolutionPerJob spj2){
 		int nVM = (int) Math.ceil(getPointCoordinateOnHyperbola(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
 		nVM = checkNVMAgainstRange(nVM);
 		System.out.println("NVM with Hyperbola:"+ nVM);
 		return nVM;
 	}
-	
+
 	/**
 	 * From a hyperbola given two points coordinates and a third point y coordinate
 	 * retrieves this third point x coordinate.
@@ -326,12 +325,12 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 
 		return false;
 	}
-	
+
 	private boolean solutionPresent(){
 		if(nVMxSPJ.size()<2) return false;
 		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(!sol.isPresent()) return false;
-		
+
 		if(nVMxSPJ.containsKey(sol.get().getNumberVM()-1)){
 			if(!nVMxSPJ.get(sol.get().getNumberVM()-1).getFeasible()) return true;
 		}

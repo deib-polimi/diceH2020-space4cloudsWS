@@ -22,16 +22,12 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForOptimization;
-
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OptimizerFineGrained extends Optimizer{
-
-	private static Logger logger = Logger.getLogger(OptimizerCourseGrained.class.getName());
+public class FineGrainedOptimizer extends Optimizer {
 
 	@Autowired
 	private ApplicationContext context;
@@ -39,37 +35,36 @@ public class OptimizerFineGrained extends Optimizer{
 	@Autowired
 	private EngineProxy engineProxy;
 
-	boolean finished = false;
-
 	private Matrix matrix;
 
 	private int registeredSolutionsPerJob;
-	
-	private long executionTime;
-	
 
-	public void hillClimbing(Matrix matrix) {
+	private long executionTime;
+
+	void hillClimbing(Matrix matrix) {
 		this.matrix = matrix;
 		this.registeredSolutionsPerJob = 0;
 		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", engineProxy.getEngine().getSolution().getId()));
 		start();
 	}
 
-	private void start(){
+	private void start() {
 		executionTime = 0L;
-		for(SolutionPerJob spj: matrix.getAllSolutions() ){
+		for (SolutionPerJob spj: matrix.getAllSolutions()) {
 			PrivateCloudParameters p = dataService.getData().getPrivateCloudParameters();
 			double m_tilde = dataService.getMemory(spj.getTypeVMselected().getId());
 			double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
-			int maxNumVM = (int)(Math.floor(Math.min(Math.ceil(p.getM()/m_tilde), Math.ceil(p.getV()/v_tilde)))*p.getN());
+			int maxNumVM = (int) Math.floor(Math.min(Math.ceil(p.getM() / m_tilde),
+					Math.ceil(p.getV() / v_tilde))) * p.getN();
 			System.out.println("MAX NUMVM:"+maxNumVM);
-			ContainerLogicForOptimization spjOptimizer =  (ContainerLogicForOptimization) context.getBean("containerLogicForOptimization",spj,1,maxNumVM);
+			ContainerLogicForOptimization spjOptimizer =
+					(ContainerLogicForOptimization) context.getBean("containerLogicForOptimization", spj, 1, maxNumVM);
 			spjOptimizer.start();
 		}
 	}
 
-	private void aggregateAndFinish(){
-		for(SolutionPerJob spj : matrix.getAllSolutions()){
+	private void aggregateAndFinish() {
+		for (SolutionPerJob spj : matrix.getAllSolutions()) {
 			evaluator.evaluate(spj);
 		}
 		Phase ph = new Phase();
@@ -79,24 +74,24 @@ public class OptimizerFineGrained extends Optimizer{
 		engineProxy.getEngine().reduceMatrix(); //TODO modify automata in order to avoid this backward call
 	}
 
-	public void finish(){
+	public void finish() {
 		engineProxy.getEngine().getSolution().setEvaluated(false);
 		evaluator.evaluate(engineProxy.getEngine().getSolution());
 	}
 
-	public synchronized void registerSPJGivenHOptimalNVM(SolutionPerJob spj,long executionTime){
-		finished = true;
+	public synchronized void registerSPJGivenHOptimalNVM(SolutionPerJob spj, long executionTime) {
+		boolean finished = true;
 		this.executionTime += executionTime;
 		//optimalNVMGivenH[spj.getJob().getId()-1][h-1] = nVM;
 		matrix.get(spj.getId())[spj.getNumberUsers()-matrix.getHlow(spj.getId())] = spj;
 
 		registeredSolutionsPerJob++;
-		if(registeredSolutionsPerJob != matrix.getNumCells() ) finished = false;
+		if (registeredSolutionsPerJob != matrix.getNumCells()) finished = false;
 
-		if(finished){
+		if (finished) {
 			System.out.println(matrix.asString());
 			aggregateAndFinish();
 		}
 	}
-	
+
 }

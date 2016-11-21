@@ -20,10 +20,13 @@ import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.ml.MLPredictor;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 
-public abstract class Builder {
+abstract class Builder {
+	protected final Logger logger = Logger.getLogger(getClass());
+
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
@@ -33,14 +36,14 @@ public abstract class Builder {
 	@Autowired
 	protected MLPredictor approximator;
 
-	protected void fallBack(Solution sol) {
+	void fallBack(Solution sol) {
 		sol.getLstSolutions().forEach(s -> {
 			s.updateNumberVM(1);
 			s.setNumberUsers(s.getJob().getHup());
 		});
 	}
 
-	protected boolean checkState() {
+	boolean checkState() {
 		return !stateHandler.getState().getId().equals(States.IDLE);
 	}
 }

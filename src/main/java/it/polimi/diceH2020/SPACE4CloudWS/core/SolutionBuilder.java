@@ -21,7 +21,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParame
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,20 +29,20 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class BuilderSolution extends Builder{
-	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
+class SolutionBuilder extends Builder {
+
 	@Autowired
 	private DataService dataService;
 	@Autowired
 	private IEvaluator evaluator;
 	private boolean error;
 
-	public Solution getInitialSolution() throws Exception {
+	Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
 		approximator.reinitialize();
 		error = false;

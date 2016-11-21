@@ -40,22 +40,22 @@ public class EngineService implements Engine{
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private OptimizerCourseGrained optimizer;
+	private CoarseGrainedOptimizer optimizer;
 
 	@Autowired
-	private BuilderSolution solBuilder;
+	private SolutionBuilder solBuilder;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
-	
+
 	@Autowired
 	private DataProcessor dataProcessor;
-	
+
 	@Autowired
 	private Evaluator evaluator;
 
 	private Solution solution;
-	
+
 	private Matrix matrix;
 
 	@Async("workExecutor")
@@ -98,7 +98,7 @@ public class EngineService implements Engine{
 	public void evaluatingInitSolution() {
 		evaluator.calculateDuration(solution);
 	}
-	
+
 	public void evaluated(){
 		evaluator.evaluate(solution);
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
@@ -109,7 +109,7 @@ public class EngineService implements Engine{
 	public Future<String> reduceMatrix() {
 		return null;
 	}
-	
+
 	public Matrix getMatrix() {
 		return matrix;
 	}
@@ -117,7 +117,7 @@ public class EngineService implements Engine{
 	public void setMatrix(Matrix matrix) {
 		this.matrix = matrix;
 	}
-	
+
 	//Used only for Tests
 	public Optional<Solution> generateInitialSolution() {
 		try {
@@ -130,7 +130,7 @@ public class EngineService implements Engine{
 		logger.info(stateHandler.getState().getId());
 		return Optional.empty();
 	}
-		
+
 	public Solution getSolution() {
 		return solution;
 	}
@@ -142,5 +142,5 @@ public class EngineService implements Engine{
 	public void error() {
 		stateHandler.sendEvent(Events.STOP);
 	}
-	
+
 }

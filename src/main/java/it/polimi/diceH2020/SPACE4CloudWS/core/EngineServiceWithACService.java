@@ -40,18 +40,18 @@ public class EngineServiceWithACService implements Engine{
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private BuilderMatrix matrixBuilder;
+	private MatrixBuilder matrixBuilder;
 
 	@Autowired
 	@Lazy
-	private OptimizerFineGrained optimizer;
-	
+	private FineGrainedOptimizer optimizer;
+
 	@Autowired
 	private Evaluator evaluator;
-	
+
 	@Autowired
 	private DataProcessor dataProcessor;
-	
+
 	@Autowired
 	private Selector selector;
 
@@ -60,7 +60,7 @@ public class EngineServiceWithACService implements Engine{
 
 	private Solution solution;
 
-	private Matrix matrix; //with admission control till now used only in private 
+	private Matrix matrix; //with admission control till now used only in private
 
 	public Solution getSolution() {
 		return solution;
@@ -69,7 +69,7 @@ public class EngineServiceWithACService implements Engine{
 	public void setSolution(Solution sol) {
 		this.solution = sol;
 	}
-	
+
 	public Matrix getMatrix() {
 		return matrix;
 	}
@@ -133,15 +133,15 @@ public class EngineServiceWithACService implements Engine{
 	public void evaluatingInitSolution() {
 		evaluator.calculateDuration(matrix,solution);
 	}
-	
+
 	public void evaluated(){
 		if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
 		logger.info(stateHandler.getState().getId());
 	}
-	
+
 	public void error(){
 		logger.error("Error while performing evaluation!\n Are the simulators working?");
 		stateHandler.sendEvent(Events.STOP);
 	}
-	
+
 }

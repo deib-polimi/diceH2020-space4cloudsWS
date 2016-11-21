@@ -16,11 +16,9 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +29,11 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class BuilderMatrix extends Builder{
-	private static Logger logger = Logger.getLogger(BuilderSolution.class.getName());
+class MatrixBuilder extends Builder {
+
 	@Autowired
 	private DataService dataService;
 	@Autowired
@@ -48,7 +45,7 @@ public class BuilderMatrix extends Builder{
 	 * @return Initialized Solution with its initialized SolutionPerJob
 	 * @throws Exception
 	 */
-	public Solution getInitialSolution() throws Exception {
+	Solution getInitialSolution() throws Exception {
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
@@ -59,7 +56,7 @@ public class BuilderMatrix extends Builder{
 				"---------- Starting optimization for instance %s ----------", instanceId));
 		for(Entry<String, ClassParameters> jobClass : dataService.getMapJobClass().entrySet()){
 			SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getKey(),jobClass.getValue());
-			
+
 			startingSol.setSolutionPerJob(solutionPerJob);
 		}
 		return startingSol;
@@ -69,7 +66,7 @@ public class BuilderMatrix extends Builder{
 	 * for each SPJ in Solution for each concurrency level create a new SPJ and put into a matrix cell
 	 * for each cell calculate its duration
 	 */
-	public Matrix getInitialMatrix(Solution solution){
+	Matrix getInitialMatrix(Solution solution){
 		Instant first = Instant.now();
 		approximator.reinitialize();
 		Matrix tmpMatrix = createTmpMatrix(solution);
@@ -86,7 +83,7 @@ public class BuilderMatrix extends Builder{
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
 					Optional<BigDecimal> result = approximator.approximateWithSVR(spj2);
-					
+
 					logger.info("Preliminary evaluation for class: "+spj2.getId()+" with "+ tVM.getId());
 					double cost = Double.MAX_VALUE;
 					if (result.isPresent()) {
@@ -132,7 +129,6 @@ public class BuilderMatrix extends Builder{
 		return matrix;
 	}
 
-
 	private Matrix createTmpMatrix(Solution solution){
 		Matrix matrix = new Matrix();
 
@@ -170,41 +166,6 @@ public class BuilderMatrix extends Builder{
 		solPerJob.setRhoBar(dataService.getRhoBar(typeVM.getId()));
 		solPerJob.setSigmaBar(dataService.getSigmaBar(typeVM.getId()));
 		solPerJob.setProfile(dataService.getProfile(solPerJob.getId(), solPerJob.getTypeVMselected().getId()));
-	}
-
-
-	public SolutionPerJob cloneSpj(SolutionPerJob oldSpj){
-		SolutionPerJob newSpj = new SolutionPerJob();
-
-		newSpj.setChanged(oldSpj.getChanged());
-		newSpj.setId(oldSpj.getId());
-		newSpj.setCost(oldSpj.getCost());
-		newSpj.setDeltaBar(oldSpj.getDeltaBar());
-		newSpj.setDuration(oldSpj.getDuration());
-		newSpj.setError(oldSpj.getError());
-		newSpj.setFeasible(oldSpj.getFeasible());
-		newSpj.setNumberContainers(oldSpj.getNumberContainers());
-		newSpj.setNumberUsers(oldSpj.getNumberUsers());
-		//newSpj.setNumberVM(oldSpj.getNumberVM());
-		newSpj.setNumCores(oldSpj.getNumCores());
-		//newSpj.setNumOnDemandVM(oldSpj.getNumOnDemandVM());
-		//newSpj.setNumReservedVM(oldSpj.getNumReservedVM());
-		//newSpj.setNumSpotVM(oldSpj.getNumSpotVM());
-		newSpj.setParentID(oldSpj.getParentID());
-		newSpj.setRhoBar(oldSpj.getRhoBar());
-		newSpj.setSigmaBar(oldSpj.getSigmaBar());
-		newSpj.setXi(oldSpj.getXi());
-
-		newSpj.setJob(cloneJob(oldSpj.getJob()));
-		//newSpj.setTypeVMselected(cloneVM(oldSpj.getTypeVMselected()));
-		newSpj.setProfile(cloneProfile(oldSpj.getProfile()));
-		
-		return newSpj;
-	}
-
-	private JobProfile cloneProfile(JobProfile oldProfile){
-		TreeMap<String,Double> map = new TreeMap<>(oldProfile.getProfileMap());
-		return new JobProfile(map);
 	}
 
 	private ClassParameters cloneJob(ClassParameters oldJob){

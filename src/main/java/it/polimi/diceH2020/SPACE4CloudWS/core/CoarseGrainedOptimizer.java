@@ -26,7 +26,6 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
@@ -40,13 +39,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
-public class OptimizerCourseGrained extends Optimizer {
-
-	private final Logger logger = Logger.getLogger(getClass());
+class CoarseGrainedOptimizer extends Optimizer {
 
 	@Autowired
 	private DS4CSettings settings;
@@ -54,15 +50,7 @@ public class OptimizerCourseGrained extends Optimizer {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	public void parallelLocalSearch(Solution solution) throws Exception {
-
-		List<Optional<Double>> objectives = solution.getLstSolutions().parallelStream().map(this::executeMock).collect(Collectors.toList());
-
-		objectives.clear();
-	}
-
-	public void hillClimbing(Solution solution) {
-		
+	void hillClimbing(Solution solution) {
 		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
@@ -72,10 +60,10 @@ public class OptimizerCourseGrained extends Optimizer {
 			hillClimbing(s);
 			Instant after = Instant.now();
 			executionTime.addAndGet(Duration.between(first, after).toMillis());
-			});
+		});
 		solution.setEvaluated(false);
 		evaluator.evaluate(solution);
-		
+
 		Phase ph = new Phase();
 		ph.setId(PhaseID.OPTIMIZATION);
 		ph.setDuration(executionTime.get());
@@ -99,14 +87,17 @@ public class OptimizerCourseGrained extends Optimizer {
 				updateFunction = n -> n - 1;
 			}
 			res = alterUntilBreakPoint(dataService.getGamma(), checkFunction, updateFunction, solPerJob, deadline);
-			Stream<Triple<Integer, Optional<BigDecimal>, Boolean>> filteredStream = res.parallelStream().filter(t -> t.getRight() && t.getMiddle().isPresent());
-			Optional<Triple<Integer, Optional<BigDecimal>, Boolean>> result = filteredStream.min(Comparator.comparing(t -> t.getMiddle().get()));
+			Stream<Triple<Integer, Optional<BigDecimal>, Boolean>> filteredStream = res.parallelStream().filter(t ->
+					t.getRight() && t.getMiddle().isPresent());
+			Optional<Triple<Integer, Optional<BigDecimal>, Boolean>> result =
+					filteredStream.min(Comparator.comparing(t -> t.getMiddle().get()));
 			if (result.isPresent()) {
 				BigDecimal dur = result.get().getMiddle().get();
 				int nVM = result.get().getLeft();
 				solPerJob.setDuration(dur.doubleValue());
 				solPerJob.updateNumberVM(nVM);
-				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %s obtained with: %d vms", solPerJob.getId(), dur.toString(), nVM));
+				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %s obtained with: %d vms",
+						solPerJob.getId(), dur.toString(), nVM));
 				return true;
 			}
 		}
@@ -114,45 +105,57 @@ public class OptimizerCourseGrained extends Optimizer {
 		return false;
 	}
 
-	private List<Triple<Integer, Optional<BigDecimal>, Boolean>> alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction,
-																					  Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+	private List<Triple<Integer, Optional<BigDecimal>, Boolean>>
+	alterUntilBreakPoint(Integer MaxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>,
+			Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
+						 SolutionPerJob solPerJob, double deadline) {
 		List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst = new ArrayList<>();
 		recursiveOptimize(MaxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		return lst;
 	}
 
-	private void recursiveOptimize(Integer maxVM, FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer, Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
-								   SolutionPerJob solPerJob, double deadline, List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
+	private void recursiveOptimize(Integer maxVM,
+								   FiveParametersFunction<Optional<BigDecimal>, Optional<BigDecimal>, Double, Integer,
+										   Integer, Boolean> checkFunction, Function<Integer, Integer> updateFunction,
+								   SolutionPerJob solPerJob, double deadline,
+								   List<Triple<Integer, Optional<BigDecimal>, Boolean>> lst) {
 		Pair<Optional<BigDecimal>,Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
 		Integer nVM = solPerJob.getNumberVM();
 		Optional<BigDecimal> previous;
 		if (lst.size() > 0) previous = lst.get(lst.size() - 1).getMiddle();
 		else previous = Optional.empty();
 
-		lst.add(new ImmutableTriple<>(nVM, simulatorResult.getLeft(), simulatorResult.getLeft().isPresent() && (simulatorResult.getLeft().get().doubleValue() < deadline)));
+		lst.add(new ImmutableTriple<>(nVM, simulatorResult.getLeft(), simulatorResult.getLeft().isPresent() &&
+				(simulatorResult.getLeft().get().doubleValue() < deadline)));
 		Boolean condition = checkFunction.apply(previous, simulatorResult.getLeft(), deadline, nVM, maxVM);
 		if (!condition) {
-			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " + (simulatorResult.getLeft().isPresent() ? simulatorResult.getLeft().get() : "null ") + " deadline: " + deadline);
+			logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " +
+					(simulatorResult.getLeft().isPresent() ? simulatorResult.getLeft().get() : "null ") +
+					" deadline: " + deadline);
 			solPerJob.updateNumberVM(updateFunction.apply(nVM));
 			recursiveOptimize(maxVM, checkFunction, updateFunction, solPerJob, deadline, lst);
 		}
 	}
 
-	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
+	private boolean checkConditionToFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration,
+												double deadline, Integer nVM, Integer maxVM) {
 		boolean returnValue = false;
 		if (duration.isPresent() && duration.get().doubleValue() <= deadline) returnValue = true;
 		//|previousDuration-duration|≤0.1 return true
-		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
+		if (previousDuration.isPresent() && duration.isPresent() &&
+				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
 		if (nVM > maxVM) returnValue = true;
 		if (!checkState()) returnValue = true;
 		return returnValue;
 	}
 
-	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration, double deadline, Integer nVM, Integer maxVM) {
+	private boolean checkConditionFromFeasibility(Optional<BigDecimal> previousDuration, Optional<BigDecimal> duration,
+												  double deadline, Integer nVM, Integer maxVM) {
 		boolean returnValue = false;
 		if (duration.isPresent() && duration.get().doubleValue() > deadline) returnValue = true;
 		//|previousDuration-duration|≤0.1 return true
-		if (previousDuration.isPresent() && duration.isPresent() && (previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
+		if (previousDuration.isPresent() && duration.isPresent() &&
+				(previousDuration.get().subtract(duration.get()).abs().compareTo(new BigDecimal("0.1")) != 1)) returnValue = true;
 		if (nVM == 1) returnValue = true;
 		if (!checkState()) returnValue = true;
 		return returnValue;
@@ -160,17 +163,6 @@ public class OptimizerCourseGrained extends Optimizer {
 
 	private boolean checkState() {
 		return stateHandler.getState().getId().equals(States.RUNNING_LS);
-	}
-
-	private Optional<Double> executeMock(SolutionPerJob solPerJob) {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// pass
-		}
-		Optional<Double> res = Optional.of(10.0);
-		logger.info("Local search finished");
-		return res;
 	}
 
 }

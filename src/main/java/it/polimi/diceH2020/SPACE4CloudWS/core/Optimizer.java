@@ -19,9 +19,12 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.IEvaluator;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class Optimizer {
+abstract class Optimizer {
+
+	protected final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
 	protected DataService dataService;
@@ -29,7 +32,7 @@ public abstract class Optimizer {
 	@Autowired
 	protected IEvaluator evaluator;
 
-	@Autowired 
+	@Autowired
 	protected DataProcessor dataProcessor;
 
 }
