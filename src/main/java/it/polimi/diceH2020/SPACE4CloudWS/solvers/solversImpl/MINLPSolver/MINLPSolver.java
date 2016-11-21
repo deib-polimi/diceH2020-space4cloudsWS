@@ -19,6 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
@@ -220,7 +221,7 @@ public class MINLPSolver extends AbstractSolver {
 		return null;
 	}
 
-	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, IllegalStateException {
+	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, MatrixHugeHoleException {
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix, modelType)
 				.populateBuilder();
 		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
@@ -233,7 +234,8 @@ public class MINLPSolver extends AbstractSolver {
 		return lst;
 	}
 
-	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution) {
+	public Optional<BigDecimal> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
+			throws MatrixHugeHoleException {
 		try {
 			List<File> filesList = createWorkingFiles(matrix, solution);
 			Pair<List<File>, List<File>> pair = new ImmutablePair<>(filesList, new ArrayList<>());

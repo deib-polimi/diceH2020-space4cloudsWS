@@ -1,32 +1,43 @@
+/*
+Copyright 2016 Jacopo Rigoli
+Copyright 2016 Eugenio Gianniti
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import java.time.Duration;
-import java.time.Instant;
-
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.AMPLModelType;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
-public class Selector {
-	
+class Selector {
+
 	@Autowired
 	private MINLPSolver minlpSolver;
-	
+
 	@Autowired
 	private DataService dataService; //TODO dataProcessor
-	
+
 	private final Logger logger = Logger.getLogger(getClass());
-	
+
 	/**
 	 * Perform the selection of matrix cells to retrieve the best combination.
 	 * One and only one cell per row (one H for each Job).
@@ -34,36 +45,31 @@ public class Selector {
 	 * for each class only one cell is selected, 
 	 * one H for each job is chosen in order to maximize the cost. 
 	 */
-	public void selectMatrixCells(Matrix matrix, Solution solution){
+	void selectMatrixCells(Matrix matrix, Solution solution) {
 		Instant first = Instant.now();
-		Phase ph = new Phase();
-		try{
-			if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControl)){
-				cellsSelectionWithKnapsack(matrix, solution);
-				ph.setId(PhaseID.SELECTION_KN);
-			}else if(dataService.getScenario().equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
-				cellsSelectionWithBinPacking(matrix, solution);
-				ph.setId(PhaseID.SELECTION_BP);
+		Phase phase = new Phase();
+		try {
+			switch (dataService.getScenario()) {
+				case PrivateAdmissionControl:
+					phase.setId(PhaseID.SELECTION_KN);
+					minlpSolver.setModelType(AMPLModelType.KNAPSACK);
+					break;
+				case PrivateAdmissionControlWithPhysicalAssignment:
+					phase.setId(PhaseID.SELECTION_BP);
+					minlpSolver.setModelType(AMPLModelType.BIN_PACKING);
+					break;
+				default:
+					throw new AssertionError("The required scenario does not require optimization");
 			}
-		}catch(IllegalStateException e){
-			logger.info(e.getMessage());
+			minlpSolver.evaluate(matrix, solution);
+		} catch (MatrixHugeHoleException e) {
+			logger.error("The matrix has too few feasible alternatives", e);
 			solution.setFeasible(false);
 			minlpSolver.initializeSpj(solution, matrix);
 			return;
 		}
 		Instant after = Instant.now();
-		ph.setDuration(Duration.between(first, after).toMillis());
-		solution.addPhase(ph);
+		phase.setDuration(Duration.between(first, after).toMillis());
+		solution.addPhase(phase);
 	}
-	
-	public void cellsSelectionWithKnapsack(Matrix matrix, Solution solution) throws IllegalStateException{
-		minlpSolver.setModelType(AMPLModelType.KNAPSACK);
-		minlpSolver.evaluate(matrix,solution);
-	}
-
-	public void cellsSelectionWithBinPacking(Matrix matrix, Solution solution) throws IllegalStateException{
-		minlpSolver.setModelType(AMPLModelType.BIN_PACKING);
-		minlpSolver.evaluate(matrix,solution);
-	}
-
 }

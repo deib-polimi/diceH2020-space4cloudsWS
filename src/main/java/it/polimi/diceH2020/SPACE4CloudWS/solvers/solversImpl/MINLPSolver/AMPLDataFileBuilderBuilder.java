@@ -19,6 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,7 +39,7 @@ class AMPLDataFileBuilderBuilder {
 		model = modelType;
 	}
 
-	AMPLDataFileBuilder populateBuilder() throws IllegalStateException {
+	AMPLDataFileBuilder populateBuilder() throws MatrixHugeHoleException {
 		Matrix matrix = fullMatrix.removeFailedSimulations();
 		AMPLDataFileBuilder builder = new AMPLDataFileBuilder(matrix.getNumRows());
 
