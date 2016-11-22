@@ -1,6 +1,6 @@
 # vim: set filetype=ampl : #
 
-# Copyright 2014-2015 Eugenio Gianniti
+# Copyright 2014-2016 Eugenio Gianniti
 # Copyright 2015 Liliane Tueguem
 # Copyright 2016 Jacopo Rigoli
 #
@@ -55,6 +55,7 @@ s.t. node_on {k in P}: sum {i in AM, j in H[i]} n[i, j, k] <= mu * y[k];
 s.t. required_VMs {i in AM, j in H[i]}: sum {k in P} n[i, j, k] = nu[i, j] * x[i, j];
 s.t. physical_RAM {k in P}: sum {i in AM, j in H[i]} (Mtilde[i, j] * n[i, j, k]) <= M;
 s.t. physical_CPU {k in P}: sum {i in AM, j in H[i]} (Vtilde[i, j] * n[i, j, k]) <= V;
+s.t. ordered_nodes {k in P: k > 1}: y[k] <= y[k - 1];
 
 ### Objectives
 minimize knapsack_obj: sum {i in AM, j in H[i]} (bigC[i, j] * x[i, j]);

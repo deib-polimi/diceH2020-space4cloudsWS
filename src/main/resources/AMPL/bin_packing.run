@@ -31,6 +31,7 @@ problem bin_packing_prob:
   {i in AM, j in H[i]} required_VMs[i, j],
   {k in P} physical_RAM[k],
   {k in P} physical_CPU[k],
+  {k in P: k > 1} ordered_nodes[k],
 
   ### Objective
   bin_packing_obj;
