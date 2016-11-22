@@ -196,7 +196,7 @@ public class MINLPSolver extends AbstractSolver {
 		}
 
 		if (stillNotOk) {
-			logger.debug(remoteName + "-> Error in remote optimization");
+			logger.info(remoteName + "-> Error in remote optimization");
 			throw new IOException("Error in the initial solution creation process");
 		} else {
 			File solutionFile = amplFiles.get(1);
@@ -204,7 +204,6 @@ public class MINLPSolver extends AbstractSolver {
 			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath, getClass());
 			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
-
 			// TODO: this always returns false, should check if every error just throws
 			return Pair.of(objFunctionValue, false);
 		}
@@ -261,11 +260,6 @@ public class MINLPSolver extends AbstractSolver {
 
 	private Models getModelType() {
 		return ((MINLPSettings) connSettings).getModel();
-	}
-
-	@Override
-	public Optional<Double> evaluate(Solution solution) {
-		return null;
 	}
 
 	public void initializeSpj(Solution solution, Matrix matrix) {

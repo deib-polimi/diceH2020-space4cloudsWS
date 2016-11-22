@@ -82,7 +82,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		dispatcher.enqueueJob(spjWrapper);
 	}
 
-	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, double executionTime){
+	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, long executionTime){
 		nVMxSPJ.put(spj.getNumberVM(), spj);
 		printStatus();
 		if (finished) return;
@@ -110,7 +110,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		}
 	}
 
-	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj, double executionTime){
+	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj, long executionTime){
 		nVMxSPJ.put(spj.getNumberVM(), spj);
 		printStatus();
 		if (finished) return;

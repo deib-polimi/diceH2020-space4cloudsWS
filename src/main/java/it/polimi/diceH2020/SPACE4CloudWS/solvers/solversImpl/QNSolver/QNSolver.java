@@ -18,7 +18,6 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
 import com.jcraft.jsch.JSchException;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
@@ -31,7 +30,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,7 +85,7 @@ public class QNSolver extends AbstractSolver {
 		}
 
 		if (stillNotOk) {
-			logger.debug(remoteName + "-> Error in remote optimization");
+			logger.info(remoteName + "-> Error in remote optimization");
 			throw new Exception("Error in the QN server");
 		} else {
 			File solFile = fileUtility.provideTemporaryFile(jmtFileName + "-result", ".jsim");
@@ -186,11 +188,6 @@ public class QNSolver extends AbstractSolver {
 		List<File> jmtModel = new ArrayList<>();
 		jmtModel.add(jsimgTempFile);
 		return new ImmutablePair<>(jmtModel, lst);
-	}
-
-	@Override
-	public Optional<Double> evaluate(@NonNull Solution solution) {
-		return null;
 	}
 
 	public List<String> pwd() throws Exception {

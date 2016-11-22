@@ -74,12 +74,12 @@ public class SolverProxy {
 
 	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME,
 			keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
-	public Pair<Optional<Double>, Double> evaluate(@NonNull SolutionPerJob solPerJob) {
+	public Pair<Optional<Double>, Long> evaluate(@NonNull SolutionPerJob solPerJob) {
 		Instant first = Instant.now();
 		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
-		Optional<Double> duration = solver.evaluate(solPerJob);
+		Optional<Double> throughput = solver.evaluate(solPerJob);
 		Instant after = Instant.now();
-		return new ImmutablePair<>(duration, (double) Duration.between(first, after).toMillis());
+		return new ImmutablePair<>(throughput, Duration.between(first, after).toMillis());
 	}
 
 	@CacheEvict(cacheNames = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME)

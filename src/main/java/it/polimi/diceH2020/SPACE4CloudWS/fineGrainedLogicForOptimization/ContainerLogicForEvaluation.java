@@ -31,12 +31,12 @@ public class ContainerLogicForEvaluation implements ContainerLogicGivenH{
 	private WrapperDispatcher dispatcher;
 
 	private SolutionPerJob initialSpjWithGivenH;
-	
+
 	@Autowired
 	private IEvaluator evaluator;
 
 	private long executionTime;
-	
+
 	public ContainerLogicForEvaluation(SolutionPerJob spj){
 		this.initialSpjWithGivenH = spj;
 		this.executionTime = 0L;
@@ -53,22 +53,21 @@ public class ContainerLogicForEvaluation implements ContainerLogicGivenH{
 		dispatcher.enqueueJob(spjWrapper);
 	}
 
-	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, double executionTime){
+	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, long executionTime){
 		this.executionTime += executionTime;
 		finished(spj.getNumberVM());
 	}
 
-	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj, double executionTime){
+	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj, long executionTime){
 		this.executionTime += executionTime;
 		logger.info("class" + initialSpjWithGivenH.getId() +"."+	initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - duration not received");
 		finished(-1);
 	}
-	
+
 	private void finished(int nVM){
 		initialSpjWithGivenH.updateNumberVM(nVM);
 		evaluator.register(initialSpjWithGivenH,executionTime);
 		dispatcher.dequeue(this);
-		
 	}
 
 }

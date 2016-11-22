@@ -38,7 +38,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Component
@@ -71,84 +74,85 @@ class CoarseGrainedOptimizer extends Optimizer {
 	}
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {
-		Pair<Optional<Double>, Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
-		if (simulatorResult.getLeft().isPresent()) {
-			double deadline = solPerJob.getJob().getD();
-			FiveParametersFunction<Optional<Double>, Optional<Double>, Double, Integer, Integer, Boolean> checkFunction;
+		boolean success = false;
+		Pair<Optional<Double>, Long> simulatorResult = dataProcessor.calculateThroughput(solPerJob);
+		Optional<Double> maybeThroughput = simulatorResult.getLeft();
+		if (maybeThroughput.isPresent()) {
+			Function<Double, Double> fromThroughput = X -> LittleLaw.computeResponseTime(X, solPerJob);
+			Predicate<Double> feasibilityCheck = R -> R <= solPerJob.getJob().getD();
+			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs(prev - curr) <= 0.1;
+			Consumer<Double> metricUpdater = solPerJob::setDuration;
+
 			Function<Integer, Integer> updateFunction;
-			if (simulatorResult.getLeft().get() > deadline) {
-				checkFunction = this::checkConditionToFeasibility;
-				updateFunction = n -> n + 1;
-			} else {
-				checkFunction = this::checkConditionFromFeasibility;
+			Predicate<Double> stoppingCondition;
+			Predicate<Integer> vmCheck;
+
+			double responseTime = fromThroughput.apply(maybeThroughput.get());
+			if (feasibilityCheck.test(responseTime)) {
 				updateFunction = n -> n - 1;
+				stoppingCondition = feasibilityCheck.negate();
+				vmCheck = n -> n == 1;
+			} else {
+				updateFunction = n -> n + 1;
+				stoppingCondition = feasibilityCheck;
+				vmCheck = n -> n > dataService.getGamma();
 			}
-			List<Triple<Integer, Optional<Double>, Boolean>> res = alterUntilBreakPoint(dataService.getGamma(),
-					checkFunction, updateFunction, solPerJob, deadline);
-			Stream<Triple<Integer, Optional<Double>, Boolean>> filteredStream = res.parallelStream().filter(t ->
-					t.getRight() && t.getMiddle().isPresent());
-			Optional<Triple<Integer, Optional<Double>, Boolean>> result =
-					filteredStream.min(Comparator.comparing(t -> t.getMiddle().get()));
-			if (result.isPresent()) {
-				double duration = result.get().getMiddle().get();
-				int nVM = result.get().getLeft();
-				solPerJob.setDuration(duration);
+
+			List<Triple<Integer, Optional<Double>, Boolean>> resultsList = alterUntilBreakPoint(solPerJob,
+					updateFunction, fromThroughput, feasibilityCheck, stoppingCondition, incrementCheck, vmCheck);
+			Optional<Triple<Integer, Optional<Double>, Boolean>> result = resultsList.parallelStream().filter(t ->
+					t.getRight() && t.getMiddle().isPresent()).min(Comparator.comparing(t -> t.getMiddle().get()));
+			success = result.map(triple -> {
+				double throughput = triple.getMiddle().get();
+				int nVM = triple.getLeft();
+				solPerJob.setThroughput(throughput);
 				solPerJob.updateNumberVM(nVM);
-				logger.info(String.format("class%s-> MakeFeasible ended, the duration is: %f obtained with: %d vms",
-						solPerJob.getId(), duration, nVM));
+				double metric = fromThroughput.apply(throughput);
+				metricUpdater.accept(metric);
+				logger.info(String.format("class%s-> MakeFeasible ended, X = %f, other metric = %f, obtained with: %d vms",
+						solPerJob.getId(), throughput, metric, nVM));
 				return true;
-			}
-		}
-		logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
-		return false;
+			}).orElse(false);
+		} else logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
+		return success;
 	}
 
 	private List<Triple<Integer, Optional<Double>, Boolean>>
-	alterUntilBreakPoint(Integer maxVM,
-						 FiveParametersFunction<Optional<Double>, Optional<Double>, Double, Integer,
-								 Integer, Boolean> checkFunction,
-						 Function<Integer, Integer> updateFunction, SolutionPerJob solPerJob, double deadline) {
+	alterUntilBreakPoint(SolutionPerJob solPerJob, Function<Integer, Integer> updateFunction,
+						 Function<Double, Double> fromThroughput, Predicate<Double> feasibilityCheck,
+						 Predicate<Double> stoppingCondition, BiPredicate<Double, Double> incrementCheck,
+						 Predicate<Integer> vmCheck) {
 		List<Triple<Integer, Optional<Double>, Boolean>> lst = new ArrayList<>();
 		Optional<Double> previous = Optional.empty();
 		boolean shouldKeepGoing = true;
 
 		while (shouldKeepGoing) {
-			Pair<Optional<Double>, Double> simulatorResult = dataProcessor.calculateDuration(solPerJob);
+			Pair<Optional<Double>, Long> simulatorResult = dataProcessor.calculateThroughput(solPerJob);
+			Optional<Double> maybeThroughput = simulatorResult.getLeft();
+			Optional<Double> interestingMetric = maybeThroughput.map(fromThroughput);
 
 			Integer nVM = solPerJob.getNumberVM();
-			lst.add(new ImmutableTriple<>(nVM, simulatorResult.getLeft(), simulatorResult.getLeft().isPresent() &&
-					(simulatorResult.getLeft().get() < deadline)));
+			lst.add(new ImmutableTriple<>(nVM, maybeThroughput,
+					interestingMetric.filter(feasibilityCheck).map(v -> true).orElse(false)));
 
-			shouldKeepGoing = ! checkFunction.apply(previous, simulatorResult.getLeft(), deadline, nVM, maxVM);
-			previous = simulatorResult.getLeft();
+			boolean terminationCriterion = ! checkState() || vmCheck.test(nVM) ||
+					interestingMetric.filter(stoppingCondition).map(v -> true).orElse(false);
+			if (previous.isPresent() && interestingMetric.isPresent()) {
+				terminationCriterion |= incrementCheck.test(previous.get(), interestingMetric.get());
+			}
+			shouldKeepGoing = ! terminationCriterion;
+			previous = interestingMetric;
 
 			if (shouldKeepGoing) {
-				logger.info("class" + solPerJob.getId() + "-> num VM: " + nVM + " duration: " +
-						(simulatorResult.getLeft().isPresent() ? simulatorResult.getLeft().get() : "null ") +
-						" deadline: " + deadline);
+				String message = String.format("class %s -> num VM: %d, throughput: %f, metric: %f",
+						solPerJob.getId(), nVM, maybeThroughput.orElse(Double.NaN),
+						interestingMetric.orElse(Double.NaN));
+				logger.info(message);
 				solPerJob.updateNumberVM(updateFunction.apply(nVM));
 			}
 		}
 
 		return lst;
-	}
-
-	private boolean checkConditionToFeasibility(Optional<Double> previousDuration, Optional<Double> duration,
-												double deadline, Integer nVM, Integer maxVM) {
-		return (duration.isPresent() && duration.get() <= deadline) ||
-				//|previousDuration-duration|≤0.1 return true
-				(previousDuration.isPresent() && duration.isPresent() &&
-						Math.abs(previousDuration.get() - duration.get()) <= 0.1) ||
-				nVM > maxVM || ! checkState();
-	}
-
-	private boolean checkConditionFromFeasibility(Optional<Double> previousDuration, Optional<Double> duration,
-												  double deadline, Integer nVM, Integer maxVM) {
-		return (duration.isPresent() && duration.get() > deadline) ||
-				//|previousDuration-duration|≤0.1 return true
-				(previousDuration.isPresent() && duration.isPresent() &&
-						Math.abs(previousDuration.get() -  duration.get()) <= 0.1) ||
-				nVM == 1 || ! checkState();
 	}
 
 	private boolean checkState() {

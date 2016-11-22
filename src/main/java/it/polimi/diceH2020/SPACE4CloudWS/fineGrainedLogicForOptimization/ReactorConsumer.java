@@ -34,9 +34,9 @@ import static reactor.bus.selector.Selectors.$;
 
 @Component
 @Scope("prototype")
-public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>>{
+public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>> {
 
-	private final Logger logger = Logger.getLogger(ReactorConsumer.class.getName());
+	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
 	private EventBus eventBus;
@@ -66,28 +66,27 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>>{
 		SolutionPerJob spj = ev.getData().getSpj();
 		ContainerLogicGivenH containerLogic = ev.getData().getHandler();
 		logger.info("|Q-STATUS| received spjWrapper"+spj.getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
-		Pair<Boolean,Double> solverResult = calculateDuration(spj);
-		if(solverResult.getLeft()){
-			double exeTime = solverResult.getRight();
+		Pair<Boolean, Long> solverResult = calculateDuration(spj);
+		long exeTime = solverResult.getRight();
+		if (solverResult.getLeft()) {
 			containerLogic.registerCorrectSolutionPerJob(spj, exeTime);
-		}else{
-			double exeTime = solverResult.getRight();
+		} else {
 			containerLogic.registerFailedSolutionPerJob(spj, exeTime);
 		}
 		dispatcher.notifyReadyChannel(this);
 	}
 
-	private Pair<Boolean, Double> calculateDuration(SolutionPerJob solPerJob) {
-		Pair<Optional<Double>, Double> solverResult = solverCache.evaluate(solPerJob);
+	private Pair<Boolean, Long> calculateDuration(SolutionPerJob solPerJob) {
+		Pair<Optional<Double>, Long> solverResult = solverCache.evaluate(solPerJob);
 		Optional<Double> duration = solverResult.getLeft();
-		double runtime = solverResult.getRight();
+		long runtime = solverResult.getRight();
 		if (duration.isPresent()) {
 			solPerJob.setDuration(duration.get());
 			evaluateFeasibility(solPerJob);
-			return new ImmutablePair<>(Boolean.TRUE, runtime);
+			return new ImmutablePair<>(true, runtime);
 		}
 		solverCache.invalidate(solPerJob);
-		return new ImmutablePair<>(Boolean.FALSE, runtime);
+		return new ImmutablePair<>(false, runtime);
 	}
 
 	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {

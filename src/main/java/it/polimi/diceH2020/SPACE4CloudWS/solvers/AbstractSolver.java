@@ -16,8 +16,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -69,26 +67,18 @@ public abstract class AbstractSolver implements Solver {
                 getClass().getCanonicalName()));
     }
 
-    private static double calculateResponseTime(double throughput, int numUsers, double thinkTime) {
-        return (double) numUsers / throughput - thinkTime;
-    }
-
     @Override
     public Optional<Double> evaluate(@NonNull SolutionPerJob solPerJob) {
-        if (!solPerJob.getChanged()) {
-            return Optional.of(solPerJob.getDuration());
+        if (! solPerJob.getChanged()) {
+            return Optional.of(solPerJob.getThroughput());
         }
-        ClassParameters jobClass = solPerJob.getJob();
-        String jobID = solPerJob.getId();
-        int nUsers = solPerJob.getNumberUsers();
-        double think = jobClass.getThink();
         try {
             Pair<List<File>, List<File>> pFiles = createWorkingFiles(solPerJob);
+            String jobID = solPerJob.getId();
             Pair<Double, Boolean> result = run(pFiles, "class" + jobID);
             delete(pFiles.getLeft());
-            double duration = calculateResponseTime(result.getLeft(), nUsers, think);
             solPerJob.setError(result.getRight());
-            return Optional.of(duration);
+            return Optional.of(result.getLeft());
         } catch (Exception e) {
             logger.error("Error in SPJ evaluation", e);
             solPerJob.setError(Boolean.TRUE);
@@ -145,5 +135,4 @@ public abstract class AbstractSolver implements Solver {
         return connSettings.getRemoteWorkDir();
     }
 
-    public abstract Optional<Double> evaluate(Solution solution);
 }

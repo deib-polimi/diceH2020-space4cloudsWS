@@ -68,38 +68,48 @@ public class DataProcessor {
 	}
 
 	void calculateDuration(@NonNull Matrix matrix) {
-		calculateDuration2(matrix.getAllSolutions());
+		calculateDurationFineGrained(matrix.getAllSolutions());
 	}
 
 	//TODO collapse also calculateDuration in this method, by implementing fineGrained Matrix also in the public case
-	private void calculateDuration2(@NonNull List<SolutionPerJob> spjList) {
+	private void calculateDurationFineGrained(@NonNull List<SolutionPerJob> spjList) {
 		spjList.forEach(s -> {
-			ContainerLogicForEvaluation container =  (ContainerLogicForEvaluation) context.getBean("containerLogicForEvaluation",s);
+			ContainerLogicForEvaluation container =
+					(ContainerLogicForEvaluation) context.getBean("containerLogicForEvaluation", s);
 			container.start();
 		});
 	}
 
 	private long calculateDuration(@NonNull List<SolutionPerJob> spjList) {
-		AtomicLong executionTime = new AtomicLong(); //to support also parallel stream.
+		//to support also parallel stream.
+		AtomicLong executionTime = new AtomicLong();
 
-		spjList.forEach(s -> {
-			Pair<Optional<Double>, Double> duration = calculateDuration(s);
-			executionTime.addAndGet(duration.getRight().longValue());
-
-			if (duration.getLeft().isPresent()) s.setDuration(duration.getLeft().get());
-			else {
-				s.setDuration(Double.MAX_VALUE);
-				s.setError(Boolean.TRUE);
+		spjList.forEach(spj -> {
+			Pair<Optional<Double>, Long> result = calculateThroughput(spj);
+			executionTime.addAndGet(result.getRight());
+			Optional<Double> maybeThroughput = result.getLeft();
+			if (maybeThroughput.isPresent()) {
+				spj.setThroughput(maybeThroughput.get());
+				spj.setDuration(LittleLaw.computeResponseTime(maybeThroughput.get(), spj));
+			} else {
+				spj.setThroughput(Double.MAX_VALUE);
+				spj.setDuration(Double.MAX_VALUE);
+				spj.setError(Boolean.TRUE);
 			}
 		});
 
 		return executionTime.get();
 	}
 
-	Pair<Optional<Double>, Double> calculateDuration(@NonNull SolutionPerJob solPerJob) {
-		Pair<Optional<Double>, Double> result = solverCache.evaluate(solPerJob);
-		if (! result.getLeft().isPresent()) solverCache.invalidate(solPerJob);
-		else logger.info(solPerJob.getId()+"->"+" Duration with "+solPerJob.getNumberVM()+"VM and h="+solPerJob.getNumberUsers()+"has been calculated" +result.getLeft().get());
+	Pair<Optional<Double>, Long> calculateThroughput(@NonNull SolutionPerJob solPerJob) {
+		Pair<Optional<Double>, Long> result = solverCache.evaluate(solPerJob);
+		Optional<Double> maybeThroughput = result.getLeft();
+		if (! maybeThroughput.isPresent()) solverCache.invalidate(solPerJob);
+		else {
+			String message = String.format("%s-> Throughput with %d VMs and h = %d has been calculated: %f",
+					solPerJob.getId(), solPerJob.getNumberVM(), solPerJob.getNumberUsers(), maybeThroughput.get());
+			logger.info(message);
+		}
 		return result;
 	}
 
