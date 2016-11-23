@@ -75,8 +75,8 @@ public class SPNSolver extends AbstractSolver {
             if (fileUtility.delete(statFile))
                 logger.debug(statFile + " deleted");
 
-            String command = connSettings.getSolverPath() + " " + remotePath +
-                    " -a " + connSettings.getAccuracy() + " -c 6";
+            String command = String.format("%s %s -a %f -c %d", connSettings.getSolverPath(), remotePath,
+                    connSettings.getAccuracy(), ((SPNSettings) connSettings).getConfidence().getFlag());
             logger.debug(remoteName + "-> Starting GreatSPN model...");
             List<String> remoteMsg = connector.exec(command, getClass());
             if (remoteMsg.contains("exit-status: 0")) {

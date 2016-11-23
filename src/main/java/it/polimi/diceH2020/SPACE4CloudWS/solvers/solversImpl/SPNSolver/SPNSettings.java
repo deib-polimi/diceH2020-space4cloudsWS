@@ -33,10 +33,12 @@ import org.springframework.stereotype.Component;
 final class SPNSettings extends AbstractConnectionSettings {
 
     private SPNModel model = SPNModel.MAPREDUCE;
+    private SPNConfidence confidence;
 
     private SPNSettings(SPNSettings that) {
         super(that);
-        model = that.getModel();
+        model = that.model;
+        confidence = that.confidence;
     }
 
     // Used by Spring Boot
