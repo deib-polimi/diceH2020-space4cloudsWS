@@ -19,6 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
@@ -97,6 +98,12 @@ public class EngineService implements Engine{
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
 		evaluator.calculateDuration(solution);
+		if (solution.getLstSolutions().stream().map(SolutionPerJob::getError)
+				.reduce(false, Boolean::logicalOr)) {
+			stateHandler.sendEvent(Events.STOP);
+		} else if (stateHandler.getState().getId() != States.IDLE) {
+			stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
+		}
 	}
 
 	public void evaluated(){

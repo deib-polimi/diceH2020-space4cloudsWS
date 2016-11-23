@@ -58,12 +58,16 @@ class CoarseGrainedOptimizer extends Optimizer {
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		AtomicLong executionTime = new AtomicLong();
-		strm.forEach(s -> {
+		boolean overallSuccess = strm.map(s -> {
 			Instant first = Instant.now();
-			hillClimbing(s);
+			boolean success = hillClimbing(s);
 			Instant after = Instant.now();
 			executionTime.addAndGet(Duration.between(first, after).toMillis());
-		});
+			return success;
+		}).reduce(true, Boolean::logicalAnd);
+
+		if (! overallSuccess) stateHandler.sendEvent(Events.STOP);
+
 		solution.setEvaluated(false);
 		evaluator.evaluate(solution);
 
@@ -75,7 +79,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 
 	private boolean hillClimbing(SolutionPerJob solPerJob) {
 		boolean success = false;
-		Pair<Optional<Double>, Long> simulatorResult = dataProcessor.calculateThroughput(solPerJob);
+		Pair<Optional<Double>, Long> simulatorResult = dataProcessor.simulateClass(solPerJob);
 		Optional<Double> maybeThroughput = simulatorResult.getLeft();
 		if (maybeThroughput.isPresent()) {
 			Function<Double, Double> fromThroughput = X -> LittleLaw.computeResponseTime(X, solPerJob);
@@ -127,7 +131,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 		boolean shouldKeepGoing = true;
 
 		while (shouldKeepGoing) {
-			Pair<Optional<Double>, Long> simulatorResult = dataProcessor.calculateThroughput(solPerJob);
+			Pair<Optional<Double>, Long> simulatorResult = dataProcessor.simulateClass(solPerJob);
 			Optional<Double> maybeThroughput = simulatorResult.getLeft();
 			Optional<Double> interestingMetric = maybeThroughput.map(fromThroughput);
 

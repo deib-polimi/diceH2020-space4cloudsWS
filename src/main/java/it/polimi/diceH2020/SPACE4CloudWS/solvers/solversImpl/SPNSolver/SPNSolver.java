@@ -26,8 +26,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -90,14 +92,22 @@ public class SPNSolver extends AbstractSolver {
             logger.info(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
         } else {
+            List<String> remoteOutput = connector
+                    .exec(String.format("ls %s", connSettings.getRemoteWorkDir()), getClass());
+            String remoteResultFile = connSettings.getRemoteWorkDir() + File.separator;
+            try (BufferedReader reader = new BufferedReader(new StringReader(remoteOutput.get(0)))) {
+                remoteResultFile += reader.lines().filter(line -> line.contains("simres"))
+                        .findAny().orElse(remoteName + ".simres");
+            }
             File solFile = fileUtility.provideTemporaryFile(prefix, ".simres");
-            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".simres*", getClass());
+            connector.receiveFile(solFile.getAbsolutePath(), remoteResultFile, getClass());
             Map<String, Double> results = new PNSimResFileParser(solFile).parse();
             if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
-            double throughput = results.get("end");
+            String label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
+            double result = results.get(label);
             logger.info(remoteName + "-> GreatSPN model run.");
             // TODO: this always returns false, should check if every error just throws
-            return Pair.of(throughput, false);
+            return Pair.of(result, false);
         }
     }
 

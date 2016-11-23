@@ -100,7 +100,16 @@ class Evaluator implements IEvaluator {
 	}
 
 	void calculateDuration(@NonNull Solution sol) {
-		long exeTime = dataProcessor.calculateDuration(sol);
+		long exeTime = dataProcessor.calculateMetric(sol,
+				(SolutionPerJob spj, Double value) -> {
+					spj.setThroughput(value);
+					spj.setDuration(LittleLaw.computeResponseTime(value, spj));
+				},
+				(SolutionPerJob spj) -> {
+					spj.setThroughput(Double.MAX_VALUE);
+					spj.setDuration(Double.MAX_VALUE);
+					spj.setError(Boolean.TRUE);
+				});
 		Phase phase = new Phase(PhaseID.EVALUATION, exeTime);
 		sol.addPhase(phase);
 	}

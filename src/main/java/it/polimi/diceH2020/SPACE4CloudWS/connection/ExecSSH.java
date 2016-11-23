@@ -20,8 +20,9 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,39 +49,25 @@ class ExecSSH {
 			// sending command which runs bash-script in
 			// Configuration.RUN_WORKING_DIRECTORY directory
 			channel.setCommand(command);
-			// taking input stream
-			channel.setInputStream(null);
-			channel.setErrStream(System.err);
-			InputStream in = channel.getInputStream();
-			InputStream err = channel.getErrStream();
+			// taking streams
+			OutputStream out = new ByteArrayOutputStream();
+			OutputStream err = new ByteArrayOutputStream();
+			channel.setOutputStream(out);
+			channel.setErrStream(err);
 			// connecting channel
 			channel.connect();
-
-			// read buffer
-			byte[] tmp = new byte[1024];
-			StringBuilder builder = new StringBuilder();
 
 			// reading channel while server responds something or until it
 			// closes connection
 			while (! channel.isClosed()) {
-				// Maybe in this way we get mangled up stdout and stderr
-				while (err.available() > 0) {
-					int i = err.read(tmp, 0, 1024);
-					if (i < 0) break;
-					builder.append(new String(tmp, 0, i));
-				}
-				while (in.available() > 0) {
-					int i = in.read(tmp, 0, 1024);
-					if (i < 0) break;
-					builder.append(new String(tmp, 0, i));
-				}
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// no op
 				}
 			}
-			res.add(builder.toString());
+			res.add(out.toString());
+			res.add(err.toString());
 			res.add("exit-status: " + channel.getExitStatus());
 		} finally {
 			// closing connection

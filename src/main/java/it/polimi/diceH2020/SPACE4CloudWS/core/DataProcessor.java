@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -63,8 +65,9 @@ public class DataProcessor {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	long calculateDuration(@NonNull Solution sol) {
-		return calculateDuration(sol.getLstSolutions());
+	long calculateMetric(@NonNull Solution sol, BiConsumer<SolutionPerJob, Double> resultSaver,
+						 Consumer<SolutionPerJob> ifEmpty) {
+		return calculateMetric(sol.getLstSolutions(), resultSaver, ifEmpty);
 	}
 
 	void calculateDuration(@NonNull Matrix matrix) {
@@ -80,36 +83,30 @@ public class DataProcessor {
 		});
 	}
 
-	private long calculateDuration(@NonNull List<SolutionPerJob> spjList) {
+	private long calculateMetric(@NonNull List<SolutionPerJob> spjList, BiConsumer<SolutionPerJob, Double> resultSaver,
+								 Consumer<SolutionPerJob> ifEmpty) {
 		//to support also parallel stream.
 		AtomicLong executionTime = new AtomicLong();
 
 		spjList.forEach(spj -> {
-			Pair<Optional<Double>, Long> result = calculateThroughput(spj);
+			Pair<Optional<Double>, Long> result = simulateClass(spj);
 			executionTime.addAndGet(result.getRight());
-			Optional<Double> maybeThroughput = result.getLeft();
-			if (maybeThroughput.isPresent()) {
-				spj.setThroughput(maybeThroughput.get());
-				spj.setDuration(LittleLaw.computeResponseTime(maybeThroughput.get(), spj));
-			} else {
-				spj.setThroughput(Double.MAX_VALUE);
-				spj.setDuration(Double.MAX_VALUE);
-				spj.setError(Boolean.TRUE);
-			}
+			Optional<Double> optionalValue = result.getLeft();
+			if (optionalValue.isPresent()) resultSaver.accept(spj, optionalValue.get());
+			else ifEmpty.accept(spj);
 		});
 
 		return executionTime.get();
 	}
 
-	Pair<Optional<Double>, Long> calculateThroughput(@NonNull SolutionPerJob solPerJob) {
+	Pair<Optional<Double>, Long> simulateClass(@NonNull SolutionPerJob solPerJob) {
 		Pair<Optional<Double>, Long> result = solverCache.evaluate(solPerJob);
-		Optional<Double> maybeThroughput = result.getLeft();
-		if (! maybeThroughput.isPresent()) solverCache.invalidate(solPerJob);
-		else {
-			String message = String.format("%s-> Throughput with %d VMs and h = %d has been calculated: %f",
-					solPerJob.getId(), solPerJob.getNumberVM(), solPerJob.getNumberUsers(), maybeThroughput.get());
+		Optional<Double> optionalValue = result.getLeft();
+		if (optionalValue.isPresent()) {
+			String message = String.format("%s-> A metric with %d VMs and h = %d has been simulated: %f",
+					solPerJob.getId(), solPerJob.getNumberVM(), solPerJob.getNumberUsers(), optionalValue.get());
 			logger.info(message);
-		}
+		} else solverCache.invalidate(solPerJob);
 		return result;
 	}
 
