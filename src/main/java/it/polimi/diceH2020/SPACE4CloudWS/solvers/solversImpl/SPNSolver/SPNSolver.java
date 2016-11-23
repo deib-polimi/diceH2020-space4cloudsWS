@@ -22,7 +22,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
@@ -31,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,8 +72,7 @@ public class SPNSolver extends AbstractSolver {
             fileUtility.writeContentToFile("end\n", statFile);
             connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat", getClass());
             logger.debug(remoteName + "-> GreatSPN .stat file sent");
-            if (fileUtility.delete(statFile))
-                logger.debug(statFile + " deleted");
+            if (fileUtility.delete(statFile)) logger.debug(statFile + " deleted");
 
             String command = String.format("%s %s -a %f -c %d", connSettings.getSolverPath(), remotePath,
                     connSettings.getAccuracy(), ((SPNSettings) connSettings).getConfidence().getFlag());
@@ -91,17 +90,11 @@ public class SPNSolver extends AbstractSolver {
             logger.info(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
         } else {
-            File solFile = fileUtility.provideTemporaryFile(prefix, ".sta");
-            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".sta", getClass());
-            String solFileInString = FileUtils.readFileToString(solFile);
-            if (fileUtility.delete(solFile))
-                logger.debug(solFile + " deleted");
-
-            String throughputStr = "Thru_end = ";
-            int startPos = solFileInString.indexOf(throughputStr);
-            int endPos = solFileInString.indexOf('\n', startPos);
-            double throughput = Double
-                    .parseDouble(solFileInString.substring(startPos + throughputStr.length(), endPos));
+            File solFile = fileUtility.provideTemporaryFile(prefix, ".simres");
+            connector.receiveFile(solFile.getAbsolutePath(), remotePath + ".simres*", getClass());
+            Map<String, Double> results = new PNSimResFileParser(solFile).parse();
+            if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
+            double throughput = results.get("end");
             logger.info(remoteName + "-> GreatSPN model run.");
             // TODO: this always returns false, should check if every error just throws
             return Pair.of(throughput, false);
