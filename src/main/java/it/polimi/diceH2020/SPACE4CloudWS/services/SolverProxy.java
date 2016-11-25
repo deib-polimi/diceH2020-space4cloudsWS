@@ -21,6 +21,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
 import lombok.NonNull;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -60,6 +61,9 @@ public class SolverProxy {
 		refreshSolver();
 		if(settings.getAccuracy() != null) solver.setAccuracy(settings.getAccuracy());
 		if(settings.getSimDuration() != null) solver.setMaxDuration(settings.getSimDuration());
+		if (solverFactory.getType() == SolverType.SPNSolver && settings.getTechnology() != null) {
+			((SPNSolver) solver).setTechnology(settings.getTechnology());
+		}
 	}
 
 	public void restoreDefaults() {

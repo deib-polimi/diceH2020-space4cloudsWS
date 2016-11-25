@@ -16,6 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.AbstractConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Getter;

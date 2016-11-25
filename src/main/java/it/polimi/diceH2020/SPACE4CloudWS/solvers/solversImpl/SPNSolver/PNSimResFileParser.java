@@ -38,7 +38,7 @@ class PNSimResFileParser {
             Pattern throughputRe = Pattern
                     .compile("Throughput of (?<name>\\w+) \\([\\d\\se.+-]+\\): [\\de.+-]+ <= X <= [\\de.+-]+");
             Pattern tokensRe = Pattern
-                    .compile("Mean n\\.of tokens in (?<name>\\w+) \\([\\d\\se.+-]+\\): [\\de.+-]+ <= mu <= [\\de.+-]+");
+                    .compile("Mean n\\.of tokens in (?<name>\\w+) : [\\de.+-]+ <= mu <= [\\de.+-]+");
             Pattern valuesRe = Pattern
                     .compile("Value (?<value>[\\de.+-]+) Mean Value (?<mean>[\\de.+-]+) Accuracy (?<accuracy>[\\de.+-]+)");
             Iterator<String> iterator = lines.iterator();

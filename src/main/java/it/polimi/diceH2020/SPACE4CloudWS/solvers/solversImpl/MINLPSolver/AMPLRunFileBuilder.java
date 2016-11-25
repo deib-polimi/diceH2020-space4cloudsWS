@@ -15,7 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +28,7 @@ class AMPLRunFileBuilder {
     private String dataFile;
     private String solutionFile;
     private String solverPath;
-    private Models model = Models.KNAPSACK;
+    private AMPLModel model = AMPLModel.KNAPSACK;
 
     AMPLRunFileBuilder setDataFile(String dataFile) {
         this.dataFile = dataFile;
@@ -45,7 +45,7 @@ class AMPLRunFileBuilder {
         return this;
     }
 
-    AMPLRunFileBuilder setModelType(Models amplModelType) {
+    AMPLRunFileBuilder setModelType(AMPLModel amplModelType) {
         model = amplModelType;
         return this;
     }

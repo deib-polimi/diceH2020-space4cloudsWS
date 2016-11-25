@@ -97,7 +97,7 @@ public class EngineService implements Engine{
 	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
-		evaluator.calculateDuration(solution);
+		evaluator.initialSimulation(solution);
 		if (solution.getLstSolutions().stream().map(SolutionPerJob::getError)
 				.reduce(false, Boolean::logicalOr)) {
 			stateHandler.sendEvent(Events.STOP);

@@ -15,7 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -160,7 +160,7 @@ class AMPLSolFileParser {
 		}
 	}
 
-	void updateResults(Models model, Solution solution, Matrix matrix, File resultsFile) throws IOException {
+	void updateResults(AMPLModel model, Solution solution, Matrix matrix, File resultsFile) throws IOException {
 		switch (model) {
 			case KNAPSACK:
 				parseKnapsackSolution(solution, matrix, resultsFile);

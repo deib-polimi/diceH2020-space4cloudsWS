@@ -18,6 +18,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
@@ -33,6 +34,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,12 +58,17 @@ public class SPNSolver extends AbstractSolver {
 
         File netFile = files.get(0);
         File defFile = files.get(1);
-        String remotePath = connSettings.getRemoteWorkDir() + "/" + remoteName;
         Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net").matcher(netFile.getName());
         if (! matcher.matches()) {
             throw new RuntimeException(String.format("problem matching %s", netFile.getName()));
         }
         String prefix = matcher.group(1);
+
+        String remoteDir = connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID();
+        connector.exec(String.format("mkdir -p %s", remoteDir), getClass());
+
+        String remotePath = remoteDir + File.separator + remoteName;
+        String label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
 
         boolean stillNotOk = true;
         for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
@@ -71,7 +78,7 @@ public class SPNSolver extends AbstractSolver {
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
             File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
-            fileUtility.writeContentToFile("end\n", statFile);
+            fileUtility.writeContentToFile(label, statFile);
             connector.sendFile(statFile.getAbsolutePath(), remotePath + ".stat", getClass());
             logger.debug(remoteName + "-> GreatSPN .stat file sent");
             if (fileUtility.delete(statFile)) logger.debug(statFile + " deleted");
@@ -92,9 +99,8 @@ public class SPNSolver extends AbstractSolver {
             logger.info(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
         } else {
-            List<String> remoteOutput = connector
-                    .exec(String.format("ls %s", connSettings.getRemoteWorkDir()), getClass());
-            String remoteResultFile = connSettings.getRemoteWorkDir() + File.separator;
+            List<String> remoteOutput = connector.exec(String.format("ls %s", remoteDir), getClass());
+            String remoteResultFile = remoteDir + File.separator;
             try (BufferedReader reader = new BufferedReader(new StringReader(remoteOutput.get(0)))) {
                 remoteResultFile += reader.lines().filter(line -> line.contains("simres"))
                         .findAny().orElse(remoteName + ".simres");
@@ -103,9 +109,9 @@ public class SPNSolver extends AbstractSolver {
             connector.receiveFile(solFile.getAbsolutePath(), remoteResultFile, getClass());
             Map<String, Double> results = new PNSimResFileParser(solFile).parse();
             if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
-            String label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
             double result = results.get(label);
             logger.info(remoteName + "-> GreatSPN model run.");
+            connector.exec(String.format("rm -rf %s", remoteDir), getClass());
             // TODO: this always returns false, should check if every error just throws
             return Pair.of(result, false);
         }
@@ -146,5 +152,9 @@ public class SPNSolver extends AbstractSolver {
 
     public List<String> pwd() throws Exception {
         return connector.pwd(getClass());
+    }
+
+    public void setTechnology (SPNModel technology) {
+        ((SPNSettings) connSettings).setModel(technology);
     }
 }

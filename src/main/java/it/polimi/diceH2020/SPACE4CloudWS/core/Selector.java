@@ -16,7 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
@@ -52,11 +52,11 @@ class Selector {
 			switch (dataService.getScenario()) {
 				case PrivateAdmissionControl:
 					phase.setId(PhaseID.SELECTION_KN);
-					minlpSolver.setModelType(Models.KNAPSACK);
+					minlpSolver.setModelType(AMPLModel.KNAPSACK);
 					break;
 				case PrivateAdmissionControlWithPhysicalAssignment:
 					phase.setId(PhaseID.SELECTION_BP);
-					minlpSolver.setModelType(Models.BIN_PACKING);
+					minlpSolver.setModelType(AMPLModel.BIN_PACKING);
 					break;
 				default:
 					throw new AssertionError("The required scenario does not require optimization");

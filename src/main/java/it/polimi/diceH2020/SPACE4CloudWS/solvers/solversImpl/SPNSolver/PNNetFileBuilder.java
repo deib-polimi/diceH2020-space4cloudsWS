@@ -15,6 +15,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,6 +74,6 @@ class PNNetFileBuilder {
                     .replace("@@THINK_RATE@@", thinkRate.toString());
             lines.add(outputLine);
         }
-        return String.join("\n", lines);
+        return String.format("%s\n", String.join("\n", lines));
     }
 }

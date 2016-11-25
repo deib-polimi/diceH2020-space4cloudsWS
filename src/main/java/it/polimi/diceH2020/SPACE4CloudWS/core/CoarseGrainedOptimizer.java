@@ -17,11 +17,14 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -47,6 +50,8 @@ import java.util.stream.Stream;
 @Component
 class CoarseGrainedOptimizer extends Optimizer {
 
+	private static final double Ubar = 0.7;
+
 	@Autowired
 	private DS4CSettings settings;
 
@@ -55,43 +60,53 @@ class CoarseGrainedOptimizer extends Optimizer {
 
 	void hillClimbing(Solution solution) {
 		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
+		SPNModel model = StormChecker.enforceSolverSettings(dataProcessor, solution);
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		AtomicLong executionTime = new AtomicLong();
 		boolean overallSuccess = strm.map(s -> {
 			Instant first = Instant.now();
-			boolean success = hillClimbing(s);
+			boolean success = hillClimbing(s, model);
 			Instant after = Instant.now();
 			executionTime.addAndGet(Duration.between(first, after).toMillis());
 			return success;
 		}).reduce(true, Boolean::logicalAnd);
 
 		if (! overallSuccess) stateHandler.sendEvent(Events.STOP);
+		else {
+			solution.setEvaluated(false);
+			evaluator.evaluate(solution);
 
-		solution.setEvaluated(false);
-		evaluator.evaluate(solution);
-
-		Phase phase = new Phase();
-		phase.setId(PhaseID.OPTIMIZATION);
-		phase.setDuration(executionTime.get());
-		solution.addPhase(phase);
+			Phase phase = new Phase();
+			phase.setId(PhaseID.OPTIMIZATION);
+			phase.setDuration(executionTime.get());
+			solution.addPhase(phase);
+		}
 	}
 
-	private boolean hillClimbing(SolutionPerJob solPerJob) {
+	private boolean hillClimbing(SolutionPerJob solPerJob, SPNModel technology) {
 		boolean success = false;
 		Pair<Optional<Double>, Long> simulatorResult = dataProcessor.simulateClass(solPerJob);
-		Optional<Double> maybeThroughput = simulatorResult.getLeft();
-		if (maybeThroughput.isPresent()) {
-			Function<Double, Double> fromThroughput = X -> LittleLaw.computeResponseTime(X, solPerJob);
-			Predicate<Double> feasibilityCheck = R -> R <= solPerJob.getJob().getD();
-			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs(prev - curr) <= 0.1;
-			Consumer<Double> metricUpdater = solPerJob::setDuration;
+		Optional<Double> maybeResult = simulatorResult.getLeft();
+		if (maybeResult.isPresent()) {
+			success = true;
+
+			Function<Double, Double> fromResult = technology == SPNModel.MAPREDUCE
+					? X -> LittleLaw.computeResponseTime(X, solPerJob)
+					: Nk -> Utilization.computeServerUtilization(Nk, solPerJob);
+			Predicate<Double> feasibilityCheck = technology == SPNModel.MAPREDUCE
+					? R -> R <= solPerJob.getJob().getD()
+					: Uk -> Uk <= Ubar;
+			Consumer<Double> metricUpdater = technology == SPNModel.MAPREDUCE
+					? solPerJob::setDuration : solPerJob::setUtilization;
+
+			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs((prev - curr) / prev) <= 1e-2;
 
 			Function<Integer, Integer> updateFunction;
 			Predicate<Double> stoppingCondition;
 			Predicate<Integer> vmCheck;
 
-			double responseTime = fromThroughput.apply(maybeThroughput.get());
+			double responseTime = fromResult.apply(maybeResult.get());
 			if (feasibilityCheck.test(responseTime)) {
 				updateFunction = n -> n - 1;
 				stoppingCondition = feasibilityCheck.negate();
@@ -99,31 +114,31 @@ class CoarseGrainedOptimizer extends Optimizer {
 			} else {
 				updateFunction = n -> n + 1;
 				stoppingCondition = feasibilityCheck;
-				vmCheck = n -> n > dataService.getGamma();
+				vmCheck = n -> false;
 			}
 
 			List<Triple<Integer, Optional<Double>, Boolean>> resultsList = alterUntilBreakPoint(solPerJob,
-					updateFunction, fromThroughput, feasibilityCheck, stoppingCondition, incrementCheck, vmCheck);
+					updateFunction, fromResult, feasibilityCheck, stoppingCondition, incrementCheck, vmCheck);
 			Optional<Triple<Integer, Optional<Double>, Boolean>> result = resultsList.parallelStream().filter(t ->
 					t.getRight() && t.getMiddle().isPresent()).min(Comparator.comparing(t -> t.getMiddle().get()));
-			success = result.map(triple -> {
-				double throughput = triple.getMiddle().get();
+			result.ifPresent(triple -> {
+				double output = triple.getMiddle().get();
 				int nVM = triple.getLeft();
-				solPerJob.setThroughput(throughput);
+				if (technology == SPNModel.MAPREDUCE) solPerJob.setThroughput(output);
 				solPerJob.updateNumberVM(nVM);
-				double metric = fromThroughput.apply(throughput);
+				double metric = fromResult.apply(output);
 				metricUpdater.accept(metric);
-				logger.info(String.format("class%s-> MakeFeasible ended, X = %f, other metric = %f, obtained with: %d vms",
-						solPerJob.getId(), throughput, metric, nVM));
-				return true;
-			}).orElse(false);
+				logger.info(String
+						.format("class%s-> MakeFeasible ended, result = %f, other metric = %f, obtained with: %d VMs",
+								solPerJob.getId(), output, metric, nVM));
+			});
 		} else logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
 		return success;
 	}
 
 	private List<Triple<Integer, Optional<Double>, Boolean>>
 	alterUntilBreakPoint(SolutionPerJob solPerJob, Function<Integer, Integer> updateFunction,
-						 Function<Double, Double> fromThroughput, Predicate<Double> feasibilityCheck,
+						 Function<Double, Double> fromResult, Predicate<Double> feasibilityCheck,
 						 Predicate<Double> stoppingCondition, BiPredicate<Double, Double> incrementCheck,
 						 Predicate<Integer> vmCheck) {
 		List<Triple<Integer, Optional<Double>, Boolean>> lst = new ArrayList<>();
@@ -132,11 +147,11 @@ class CoarseGrainedOptimizer extends Optimizer {
 
 		while (shouldKeepGoing) {
 			Pair<Optional<Double>, Long> simulatorResult = dataProcessor.simulateClass(solPerJob);
-			Optional<Double> maybeThroughput = simulatorResult.getLeft();
-			Optional<Double> interestingMetric = maybeThroughput.map(fromThroughput);
+			Optional<Double> maybeResult = simulatorResult.getLeft();
+			Optional<Double> interestingMetric = maybeResult.map(fromResult);
 
 			Integer nVM = solPerJob.getNumberVM();
-			lst.add(new ImmutableTriple<>(nVM, maybeThroughput,
+			lst.add(new ImmutableTriple<>(nVM, maybeResult,
 					interestingMetric.filter(feasibilityCheck).map(v -> true).orElse(false)));
 
 			boolean terminationCriterion = ! checkState() || vmCheck.test(nVM) ||
@@ -148,8 +163,8 @@ class CoarseGrainedOptimizer extends Optimizer {
 			previous = interestingMetric;
 
 			if (shouldKeepGoing) {
-				String message = String.format("class %s -> num VM: %d, throughput: %f, metric: %f",
-						solPerJob.getId(), nVM, maybeThroughput.orElse(Double.NaN),
+				String message = String.format("class %s -> num VM: %d, simulator result: %f, metric: %f",
+						solPerJob.getId(), nVM, maybeResult.orElse(Double.NaN),
 						interestingMetric.orElse(Double.NaN));
 				logger.info(message);
 				solPerJob.updateNumberVM(updateFunction.apply(nVM));

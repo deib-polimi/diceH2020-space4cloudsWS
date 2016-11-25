@@ -13,17 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package it.polimi.diceH2020.SPACE4CloudWS.core;
+package it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
-class LittleLaw {
+public class LittleLaw {
 
     private static double apply(int users, double throughput, double thinkTime) {
         return users / throughput - thinkTime;
     }
 
-    static double computeResponseTime(double throughput, SolutionPerJob solutionPerJob) {
+    public static double computeResponseTime(double throughput, SolutionPerJob solutionPerJob) {
         int numUsers = solutionPerJob.getNumberUsers();
         double thinkTime = solutionPerJob.getJob().getThink();
         return apply(numUsers, throughput, thinkTime);

@@ -16,14 +16,20 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Models;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @Component
 class Evaluator implements IEvaluator {
@@ -53,7 +59,7 @@ class Evaluator implements IEvaluator {
 
 		if (dataService.getScenario() == Scenarios.PrivateAdmissionControlWithPhysicalAssignment) {
 			int activeNodes = 0;
-			if(dataService.getScenario().getModel().equals(Models.BIN_PACKING)){
+			if(dataService.getScenario().getModel().equals(AMPLModel.BIN_PACKING)){
 				if(solution.getActiveNodes()!=null && !solution.getActiveNodes().isEmpty()){
 					for(Boolean b : solution.getActiveNodes().values()){
 						if(b){
@@ -99,17 +105,25 @@ class Evaluator implements IEvaluator {
 		return false;
 	}
 
-	void calculateDuration(@NonNull Solution sol) {
-		long exeTime = dataProcessor.calculateMetric(sol,
-				(SolutionPerJob spj, Double value) -> {
-					spj.setThroughput(value);
-					spj.setDuration(LittleLaw.computeResponseTime(value, spj));
-				},
-				(SolutionPerJob spj) -> {
-					spj.setThroughput(Double.MAX_VALUE);
-					spj.setDuration(Double.MAX_VALUE);
-					spj.setError(Boolean.TRUE);
-				});
+	void initialSimulation(@NonNull Solution sol) {
+		SPNModel technology = StormChecker.enforceSolverSettings(dataProcessor, sol);
+		BiConsumer<SolutionPerJob, Double> resultSaver = technology == SPNModel.MAPREDUCE
+				? (SolutionPerJob spj, Double value) -> {
+			spj.setThroughput(value);
+			spj.setDuration(LittleLaw.computeResponseTime(value, spj));
+		} : (SolutionPerJob spj, Double value) -> {
+			spj.setUtilization(Utilization.computeServerUtilization(value, spj));
+		};
+		Consumer<SolutionPerJob> errorSetter = technology == SPNModel.MAPREDUCE
+				? (SolutionPerJob spj) -> {
+			spj.setThroughput(Double.MAX_VALUE);
+			spj.setDuration(Double.MAX_VALUE);
+			spj.setError(Boolean.TRUE);
+		} : (SolutionPerJob spj) -> {
+			spj.setUtilization(Double.MAX_VALUE);
+			spj.setError(Boolean.TRUE);
+		};
+		long exeTime = dataProcessor.calculateMetric(sol, resultSaver, errorSetter);
 		Phase phase = new Phase(PhaseID.EVALUATION, exeTime);
 		sol.addPhase(phase);
 	}
