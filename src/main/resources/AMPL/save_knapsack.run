@@ -33,6 +33,18 @@ display knapsack_obj >> (solfile);
 printf "### Variables\n" >> (solfile);
 display x >> (solfile);
 
+printf "### Rejections\n" >> (solfile);
+var rej = sum{i in AM} (max{j in H[i]} j - sum {j in H[i]} (j * x[i, j]));
+printf "var: rej:= %d\n\n",rej  >> (solfile);
+
+printf "### cores\n" >> (solfile);
+var cores = sum{i in AM, j in H[i]} nu[i,j]*x[i,j]*Vtilde[i,j];
+printf "var: cores:= %.5f\n\n",cores >> (solfile);
+
+printf "### vms\n" >> (solfile);
+var vms = sum{i in AM, j in H[i]} nu[i,j]*x[i,j];
+printf "var: vms:= %d\n\n",vms >> (solfile);
+
 printf "### Concurrency\n" >> (solfile);
 printf "param: h :=\n" >> (solfile);
 for {i in AM}

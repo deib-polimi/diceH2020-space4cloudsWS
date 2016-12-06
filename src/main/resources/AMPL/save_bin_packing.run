@@ -42,6 +42,14 @@ display n >> (solfile);
 option omit_zero_rows 0;
 display p >> (solfile);
 
+printf "### Rejections\n" >> (solfile);
+var rej = sum{i in AM} (max{j in H[i]} j - sum {j in H[i]} (j * x[i, j]));
+printf "var: rej:= %d\n\n",rej  >> (solfile);
+
+printf "### Servers\n" >> (solfile);
+var s = sum{i in P} y[i];
+printf "var: s:= %d\n\n", s >> (solfile);
+
 
 printf "### Concurrency\n" >> (solfile);
 printf "param: h :=\n" >> (solfile);
