@@ -90,7 +90,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		this.executionTime += executionTime;
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
-				try{
+				try{ 
 					if(!sendNextEvent()){ //encode Next spj
 						logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
 						finished(-1); //not enough VM
@@ -185,17 +185,20 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	}
 
 	/**
-	 * Precondition: I've not a final solution yet, so i'm guaranteed that there are some holes in the ThreeMap 
+	 * Precondition: I've not a final solution yet, so i'm guaranteed that there are some holes in the ThreeMap
+	 * 				 I'm guaranteed that the nVM received is contained in range [max(minVM,getMaxVM_Infeas), min(maxVM,getMinVM_Feas)]  
 	 */
-	private int updateN(int nVM){
+	private int recursiveBisection(int nVM){
 		if(nVMxSPJ.containsKey(nVM)){
-			if(!nVMxSPJ.get(nVM).getFeasible()) return updateN(nVM+1);
-			else return updateN(nVM-1);
+			return (int)Math.ceil((Math.min(maxVM, getMinVM_Feas()) + Math.max(minVM, getMaxVM_Infeas()))/2);
+		
+//			if(!nVMxSPJ.get(nVM).getFeasible()) return updateN(nVM+1);
+//			else return updateN(nVM-1);
 		}else{
 			return nVM;
 		}
 	}
-
+	
 	/**
 	 * Preconditions:
 	 * <ul>
@@ -207,57 +210,80 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	 */
 	private synchronized int getNextN(){
 		int nextN = -1;
-
+		
 		if(nVMxSPJ.size() == 1){
-			nextN = updateN(Math.max(1,nVMxSPJ.firstEntry().getKey()));
+			SolutionPerJob lonelyEntry =nVMxSPJ.firstEntry().getValue();
+			if(lonelyEntry.getFeasible()){
+				nextN = lonelyEntry.getNumberVM()-1;
+			}else{
+				nextN = lonelyEntry.getNumberVM()+1;
+			}
 			nextN = checkNVMAgainstRange(nextN);
+			nextN = recursiveBisection(nextN);
 		}else{ //size≥2
-			nextN = hyperbolicAssestment(nVMxSPJ.firstEntry().getValue(),nVMxSPJ.lastEntry().getValue());
+			if(nVMxSPJ.get(getMaxVM_Infeas()) == null){
+				SolutionPerJob s = nVMxSPJ.get(getMinVM_Feas());
+				nextN = hyperbolicAssestment(s,nVMxSPJ.get(nVMxSPJ.ceilingKey(s.getNumberVM()+1)));
+			}else if(nVMxSPJ.get(getMinVM_Feas()) == null){
+				SolutionPerJob s = nVMxSPJ.get(getMaxVM_Infeas());
+				nextN = hyperbolicAssestment(nVMxSPJ.get(nVMxSPJ.floorKey(s.getNumberVM()-1)),s);
+			}else{
+				nextN = hyperbolicAssestment(nVMxSPJ.get(getMaxVM_Infeas()),nVMxSPJ.get(getMinVM_Feas()));
+			}
+			nextN = checkNVMAgainstRange(nextN);
+			System.out.println("NVM with Hyperbola:"+ nextN);
 			System.out.println("[J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"]Hyperbolic prevision: "+nextN);
+			nextN = recursiveBisection(nextN);
 			predictedNVM_Hyperbola = nextN;
-			nextN = updateN(nextN);
 		}
-
+			
+		
 		if(nextN>maxVM || nextN<minVM || nVMxSPJ.containsKey(nextN)){
 			System.out.println(" max:"+maxVM+" min:"+minVM+" next:"+nextN+" contain:"+nVMxSPJ.containsKey(nextN));
 			logger.info("Error with preconditions!");
 			return -1;
 		}
-
+		
 		return nextN;
 	}
-
+	
 	private int checkNVMAgainstRange(int nVM){
-		nVM = Math.max(nVM, minVM);
-		nVM = Math.min(nVM, maxVM);
+		nVM = Math.min(nVM, getMinVM_Feas());
+		nVM = Math.max(nVM, getMaxVM_Infeas());
 		return nVM;
 	}
-
+	
+	private int getMinVM_Feas(){
+		int n = maxVM;
+		Optional<SolutionPerJob> nvm = nVMxSPJ.values().stream().filter(SolutionPerJob::getFeasible).filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
+		if(nvm.isPresent()) n = nvm.get().getNumberVM();
+		return n;
+	}
+	
+	private int getMaxVM_Infeas(){
+		int n = minVM;
+		Optional<SolutionPerJob> nvm = nVMxSPJ.values().stream().filter(s->!s.getFeasible()).filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).max(Comparator.comparingInt(SolutionPerJob::getNumberVM));
+		if(nvm.isPresent()) n = nvm.get().getNumberVM();
+		return n;
+	}
+	
 	private int hyperbolicAssestment(SolutionPerJob spj1, SolutionPerJob spj2){
 		int nVM = (int) Math.ceil(getPointCoordinateOnHyperbola(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
-		nVM = checkNVMAgainstRange(nVM);
-		System.out.println("NVM with Hyperbola:"+ nVM);
 		return nVM;
 	}
-
+	
 	/**
 	 * From a hyperbola given two points coordinates and a third point y coordinate
 	 * retrieves this third point x coordinate.
 	 */
 	private double getPointCoordinateOnHyperbola(int x1, double y1, int x2, double y2, double y){
-		double x = 0.0;
 		double a =  x1*x2*(y1-y2)/(double)(x2-x1);
 		double b = (x2*y2-x1*y1)/(double)(x2-x1);
-		x = a / (y - b);
-		System.out.println("Hyperbola: x="+x+"="+"a/(y-n)"+a+"/("+y+"-"+b+")");
+		double x = a / (y - b);
+		System.out.println("Hyperbola: x="+x+"="+"a/(y-b)="+a+"/("+y+"-"+b+")");
 		return x;
 	}
 
-	/**
-	 *
-	 *  @return -1: optimal spj isn't already present (but has already been sent) <br>
-	 * 				otherwise return the number of VM that optimize the initial spj
-	 */
 	private int getOptimalVMNum(){
 
 		if(!verifyFinalAssumption()){ logger.info("Error2 with precondition!");return -1;} //redundant always true if here
@@ -325,17 +351,18 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 
 		return false;
 	}
-
+	
 	private boolean solutionPresent(){
 		if(nVMxSPJ.size()<2) return false;
 		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(!sol.isPresent()) return false;
-
+		
 		if(nVMxSPJ.containsKey(sol.get().getNumberVM()-1)){
 			if(!nVMxSPJ.get(sol.get().getNumberVM()-1).getFeasible()) return true;
 		}
 		return false;
 	}
+	
 
 	public boolean isFinished() {
 		return finished;
