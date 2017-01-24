@@ -120,7 +120,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 			List<Triple<Integer, Optional<Double>, Boolean>> resultsList = alterUntilBreakPoint(solPerJob,
 					updateFunction, fromResult, feasibilityCheck, stoppingCondition, incrementCheck, vmCheck);
 			Optional<Triple<Integer, Optional<Double>, Boolean>> result = resultsList.parallelStream().filter(t ->
-					t.getRight() && t.getMiddle().isPresent()).min(Comparator.comparing(t -> t.getMiddle().get()));
+					t.getRight() && t.getMiddle().isPresent()).min(Comparator.comparing(Triple::getLeft));
 			result.ifPresent(triple -> {
 				double output = triple.getMiddle().get();
 				int nVM = triple.getLeft();
