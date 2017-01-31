@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.DagSimSolver.DagSimSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver.QNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 import lombok.Getter;
@@ -52,6 +53,8 @@ public class SolverFactory {
                 return ctx.getBean(SPNSolver.class);
             case QNSolver:
                 return ctx.getBean(QNSolver.class);
+            case DagSimSolver:
+                return ctx.getBean(DagSimSolver.class);
             default:
                 throw new RuntimeException("Unrecognized solver type");
         }

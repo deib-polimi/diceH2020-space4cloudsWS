@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public abstract class AbstractSolver implements Solver {
     protected SshConnectorProxy connector;
 
     @Autowired
-    protected SettingsDealer settingsDealer;
+    private SettingsDealer settingsDealer;
 
     protected ConnectionSettings connSettings;
 
@@ -110,8 +110,23 @@ public abstract class AbstractSolver implements Solver {
         return connector;
     }
 
-    protected abstract Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String s) throws Exception;
+    /**
+     * Execute the model on the remote server.
+     * @param pFiles the first List contains the main model files, the second one allows for providing
+     *               also replayer files.
+     * @param remoteName is the human readable name presented in the logs.
+     * @return a Pair containing the value obtained via the solver and a Boolean that is set to true
+     *         in case of success.
+     * @throws Exception
+     */
+    protected abstract Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception;
 
+    /**
+     * Prepare the working files needed for a subsequent call to {@link #run(Pair, String) run}.
+     * @param solPerJob partial solution for the class of interest.
+     * @return a Pair suitable for {@link #run(Pair, String) run}.
+     * @throws IOException if creating or writing these files fails.
+     */
     protected abstract Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
 
     @Override
