@@ -121,6 +121,6 @@ public class DagSimSolver extends AbstractSolver {
             }
         }
 
-        return Pair.of(result, success);
+        return Pair.of(result, ! success);
     }
 }

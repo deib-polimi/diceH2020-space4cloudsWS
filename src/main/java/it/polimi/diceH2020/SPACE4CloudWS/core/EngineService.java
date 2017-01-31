@@ -93,13 +93,14 @@ public class EngineService implements Engine{
 	}
 
 	/**
-	 *  Evaluate the Solution/matrix with the specified solver (QN, SPN)
+	 *  Evaluate the Solution/matrix with the specified solver
 	 */
 	@Async("workExecutor")
 	public void evaluatingInitSolution() {
 		evaluator.initialSimulation(solution);
 		if (solution.getLstSolutions().stream().map(SolutionPerJob::getError)
 				.reduce(false, Boolean::logicalOr)) {
+			logger.info("The simulator failed while evaluating the initial solution");
 			stateHandler.sendEvent(Events.STOP);
 		} else if (stateHandler.getState().getId() != States.IDLE) {
 			stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);

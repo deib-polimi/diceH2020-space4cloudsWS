@@ -116,7 +116,7 @@ public abstract class AbstractSolver implements Solver {
      *               also replayer files.
      * @param remoteName is the human readable name presented in the logs.
      * @return a Pair containing the value obtained via the solver and a Boolean that is set to true
-     *         in case of success.
+     *         in case of failure.
      * @throws Exception
      */
     protected abstract Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception;

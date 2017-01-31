@@ -107,13 +107,17 @@ class Evaluator implements IEvaluator {
 
 	void initialSimulation(@NonNull Solution sol) {
 		SPNModel technology = StormChecker.enforceSolverSettings(dataProcessor, sol);
+
 		BiConsumer<SolutionPerJob, Double> resultSaver = technology == SPNModel.MAPREDUCE
 				? (SolutionPerJob spj, Double value) -> {
 			spj.setThroughput(value);
 			spj.setDuration(LittleLaw.computeResponseTime(value, spj));
+			spj.setError(false);
 		} : (SolutionPerJob spj, Double value) -> {
 			spj.setUtilization(Utilization.computeServerUtilization(value, spj));
+			spj.setError(false);
 		};
+
 		Consumer<SolutionPerJob> errorSetter = technology == SPNModel.MAPREDUCE
 				? (SolutionPerJob spj) -> {
 			spj.setThroughput(Double.MAX_VALUE);
@@ -123,6 +127,7 @@ class Evaluator implements IEvaluator {
 			spj.setUtilization(Double.MAX_VALUE);
 			spj.setError(Boolean.TRUE);
 		};
+
 		long exeTime = dataProcessor.calculateMetric(sol, resultSaver, errorSetter);
 		Phase phase = new Phase(PhaseID.EVALUATION, exeTime);
 		sol.addPhase(phase);
