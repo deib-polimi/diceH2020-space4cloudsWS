@@ -1,6 +1,7 @@
 /.apt_generated/
 /target/
 /.idea/
+/D-SPACE4Cloud.iml
 /SPACE4CloudWS.iml
 /TempWorkingDir/
 /log.txt*
