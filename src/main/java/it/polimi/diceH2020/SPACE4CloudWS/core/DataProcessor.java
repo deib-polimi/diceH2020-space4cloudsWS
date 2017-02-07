@@ -65,6 +65,9 @@ public class DataProcessor {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
+	@Autowired
+	private FileUtility fileUtility;
+
 	long calculateMetric(@NonNull Solution sol, BiConsumer<SolutionPerJob, Double> resultSaver,
 						 Consumer<SolutionPerJob> ifEmpty) {
 		return calculateMetric(sol.getLstSolutions(), resultSaver, ifEmpty);
@@ -134,7 +137,7 @@ public class DataProcessor {
 
 	private List<File> getCurrentReplayerInputFiles() throws IOException {
 		List<File> txtList = new ArrayList<>();
-		for(String fileName: FileUtility.listFile(getCurrentInputsSubFolderPath(),  ".txt")){
+		for (String fileName: fileUtility.listFile(getCurrentInputsSubFolderPath(),  ".txt")) {
 			File file = new File(getCurrentInputsSubFolderPath()+File.separator+fileName);
 			txtList.add(file);
 		}
