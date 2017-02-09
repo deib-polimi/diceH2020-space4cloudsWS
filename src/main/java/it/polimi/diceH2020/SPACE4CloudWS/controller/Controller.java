@@ -1,7 +1,7 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
 Copyright 2016 Jacopo Rigoli
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.controller;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheStats;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
@@ -31,11 +33,6 @@ import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
-
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.util.Optional;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -44,18 +41,21 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheStats;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.util.Optional;
 
 @RestController
 class Controller {
+
+	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
 	private DS4CSettings settings;
 
 	@Autowired
 	private EngineProxy engineProxy;
-	
+
 	@Autowired
 	private DataProcessor dataProcessor;
 
@@ -65,17 +65,14 @@ class Controller {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	private final Logger logger = Logger.getLogger(getClass());
-
 	@Autowired
 	private Engine engineService;
 
 	@Autowired
 	private CacheManager cacheManager;
-	
-	
+
 	@Autowired
-	FileUtility fileUtility;
+	private FileUtility fileUtility;
 
 	private CacheStats cacheStats;
 
@@ -139,12 +136,14 @@ class Controller {
 	@RequestMapping(method = RequestMethod.GET, value = "/solution")
 	@ResponseStatus(value = HttpStatus.OK)
 	public Solution endpointSolution() throws Exception {
-
 		String state = stateHandler.getState().getId().toString();
 		if (state.equals("CHARGED_INITSOLUTION") || state.equals("EVALUATED_INITSOLUTION") || state.equals("FINISH")) {
-			if (state.equals("FINISH")){
+			if (state.equals("FINISH")) {
 				logCacheStats();
-				fileUtility.destroyDir(dataProcessor.getCurrentInputsSubFolderPath());
+				String folderName = dataProcessor.getCurrentInputsSubFolderName ();
+				if (fileUtility.destroyDir(dataProcessor.getCurrentInputsSubFolder ())) {
+					logger.info (String.format ("Deleted input folder '%s'", folderName));
+				}
 			}
 			return engineService.getSolution();
 		}
@@ -174,8 +173,6 @@ class Controller {
 		} else {
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);
 		}
-		
-		
 	}
 
 	private void cacheInitialization() {
@@ -202,26 +199,30 @@ class Controller {
 					cacheStats.hitRate(), cacheStats.loadCount(), cacheStats.missCount()));
 		}
 	}
-	
+
 	@RequestMapping(value="/upload", method=RequestMethod.POST)
-    public @ResponseBody String handleFileUpload(@RequestParam("name") String name,
-            @RequestParam("file") MultipartFile file){
+	public @ResponseBody String handleFileUpload(@RequestParam("name") String name,
+												 @RequestParam("file") MultipartFile file) {
 		if (getWebServiceState().equals("CHARGED_INPUTDATA")) {
-	        if (!file.isEmpty()) {
-	            try {
-	                byte[] bytes = file.getBytes();
-	                BufferedOutputStream stream =
-	                        new BufferedOutputStream(new FileOutputStream(fileUtility.provideFile(dataProcessor.getCurrentInputsSubFolderName(),name)));
-	                stream.write(bytes);
-	                stream.close();
-	                return "You successfully uploaded " + name + "!";
-	            } catch (Exception e) {
-	                return "You failed to upload " + name + " => " + e.getMessage();
-	            }
-	        } else {
-	            return "You failed to upload " + name + " because the file was empty.";
-	        }
-		}return "WS cannot receive " + name + " in the current state.";
-    }
+			if (! file.isEmpty()) {
+				try (BufferedOutputStream stream =
+							 new BufferedOutputStream(new FileOutputStream(
+									 fileUtility.provideFile(dataProcessor.getCurrentInputsSubFolderName(), name)))) {
+					stream.write (file.getBytes());
+					logger.info (String.format ("'%s' successfully uploaded", name));
+					return "You successfully uploaded " + name + "!";
+				} catch (Exception e) {
+					logger.error (String.format ("'%s' failed to upload", name));
+					return "You failed to upload " + name + " => " + e.getMessage();
+				}
+			} else {
+				logger.error (String.format ("'%s' failed to upload because it is empty", name));
+				return "You failed to upload " + name + " because the file was empty.";
+			}
+		} else {
+			logger.error (String.format ("cannot receive '%s' in '%s' state", name, getWebServiceState ()));
+			return "WS cannot receive " + name + " in the current state.";
+		}
+	}
 
 }

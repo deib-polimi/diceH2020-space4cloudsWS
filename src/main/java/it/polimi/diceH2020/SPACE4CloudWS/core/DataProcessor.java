@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +53,7 @@ public class DataProcessor {
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	protected SolverProxy solverCache;
+	private SolverProxy solverCache;
 
 	@Autowired
 	private ApplicationContext context;
@@ -121,24 +120,25 @@ public class DataProcessor {
 		solverCache.changeSettings(settings);
 	}
 
-	public String getCurrentInputsSubFolderPath() {
+	public File getCurrentInputsSubFolder () {
 		String currentInputSubFolder = dataService.getSimFoldersName();
-		File f = new File(currentInputSubFolder);
-		if(!f.exists()){
-			logger.error("Error with Current Input Folder! It doesn't exist!");
+		File file = new File(currentInputSubFolder);
+		if (! file.exists()) {
+			logger.error(String.format ("Error with Current Input Folder '%s'! It doesn't exist!",
+					currentInputSubFolder));
 			stateHandler.sendEvent(Events.STOP);
 		}
-		return currentInputSubFolder;
+		return file;
 	}
 
 	public String getCurrentInputsSubFolderName() {
-		return Paths.get(getCurrentInputsSubFolderPath()).getFileName().toString();
+		return getCurrentInputsSubFolder ().getName ();
 	}
 
 	private List<File> getCurrentReplayerInputFiles() throws IOException {
 		List<File> txtList = new ArrayList<>();
-		for (String fileName: fileUtility.listFile(getCurrentInputsSubFolderPath(),  ".txt")) {
-			File file = new File(getCurrentInputsSubFolderPath()+File.separator+fileName);
+		for (String fileName: fileUtility.listFile(getCurrentInputsSubFolder (),  ".txt")) {
+			File file = new File(getCurrentInputsSubFolder ()+File.separator+fileName);
 			txtList.add(file);
 		}
 		return txtList;

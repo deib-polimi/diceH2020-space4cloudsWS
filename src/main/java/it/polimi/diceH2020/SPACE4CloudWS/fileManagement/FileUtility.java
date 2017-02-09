@@ -17,14 +17,18 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.fileManagement;
 
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.policy.DeletionPolicy;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,8 +37,6 @@ import java.util.Random;
 
 @Component
 public class FileUtility {
-
-    private Logger logger = Logger.getLogger(getClass());
 
     @Autowired
     private DeletionPolicy policy;
@@ -64,35 +66,41 @@ public class FileUtility {
     }
 
     public void writeContentToFile(@NotNull String content, @NotNull File file) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-        writer.write(content);
-        writer.close();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(content);
+        }
     }
 
     public void createWorkingDir() throws IOException {
         Path folder = settings.getWorkingDirectory().toPath();
         Files.createDirectories(folder);
-        logger.info(settings.getWorkingDirectory() + " created.");
     }
 
-    public void destroyDir(@NotNull String path) throws IOException {
-        Path directory = Paths.get(path);
+    public boolean destroyDir(@NotNull File path) throws IOException {
+        Path directory = path.toPath ();
+
+        @Getter
+        @Setter
+        class BooleanWrapper {
+            boolean deleted;
+        }
+        BooleanWrapper status = new BooleanWrapper ();
 
         Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
+                status.setDeleted (policy.delete (file.toFile ()));
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
             public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
+                status.setDeleted (policy.delete (dir.toFile ()));
                 return FileVisitResult.CONTINUE;
             }
         });
 
-        logger.info("Deleted Input SubFolder: "+path);
+        return status.isDeleted ();
     }
 
     public boolean delete(@NotNull List<File> pFiles) {
@@ -112,10 +120,9 @@ public class FileUtility {
         return ft.format(dNow)+random.nextInt(99999);
     }
 
-    public String[] listFile(@NotNull String folder, @NotNull String ext) {
+    public String[] listFile(@NotNull File folder, @NotNull String ext) {
         GenericExtFilter filter = new GenericExtFilter(ext);
-        File dirInput = new File(folder);
-        return dirInput.list(filter);
+        return folder.list(filter);
     }
 
     private static class GenericExtFilter implements FilenameFilter {
