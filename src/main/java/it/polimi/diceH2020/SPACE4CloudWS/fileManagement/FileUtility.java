@@ -107,10 +107,12 @@ public class FileUtility {
         return ! pFiles.isEmpty() && pFiles.stream().map(this::delete).allMatch(r -> r);
     }
 
-    public String createInputSubFolder(@NotNull String folder) throws IOException {
-        File file = new File(settings.getInputDirectory(), folder);
-        file.mkdirs();
-        return file.getCanonicalPath();
+    public String createInputSubFolder(@NotNull String folderName) throws IOException {
+        File folder = new File(settings.getInputDirectory(), folderName);
+        if (folder.mkdirs()) {
+            policy.markForDeletion (folder);
+        }
+        return folder.getCanonicalPath();
     }
 
     public String generateUniqueString() {
