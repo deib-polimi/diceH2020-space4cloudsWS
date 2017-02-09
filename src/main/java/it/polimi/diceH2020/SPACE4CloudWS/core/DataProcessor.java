@@ -135,23 +135,32 @@ public class DataProcessor {
 		return getCurrentInputsSubFolder ().getName ();
 	}
 
-	private List<File> getCurrentReplayerInputFiles() throws IOException {
-		List<File> txtList = new ArrayList<>();
-		for (String fileName: fileUtility.listFile(getCurrentInputsSubFolder (),  ".txt")) {
-			File file = new File(getCurrentInputsSubFolder ()+File.separator+fileName);
-			txtList.add(file);
+	private List<File> getCurrentInputFiles (String extension) throws IOException {
+		List<File> fileList = new ArrayList<>();
+		for (String fileName: fileUtility.listFile(getCurrentInputsSubFolder (), extension)) {
+			File file = new File(getCurrentInputsSubFolder (), fileName);
+			fileList.add(file);
 		}
-		return txtList;
+		return fileList;
 	}
 
 	public String getProviderName() {
 		return dataService.getProviderName();
 	}
 
-	public List<File> getCurrentReplayerInputFiles(String solutionID, String spjID, String provider, String typeVM)
-			throws IOException {
-		return getCurrentReplayerInputFiles().stream().filter(s->s.getName().contains(spjID+provider+typeVM))
-				.filter(s->s.getName().contains(solutionID)).collect(Collectors.toList());
+	private List<File> filterFiles (List<File> files, String solutionID, String spjID,
+									String provider, String typeVM) {
+		return files.stream().filter(s -> s.getName().contains(spjID + provider + typeVM))
+				.filter(s -> s.getName().contains(solutionID)).collect(Collectors.toList());
 	}
 
+	public List<File> getCurrentReplayerInputFiles(String solutionID, String spjID,
+												   String provider, String typeVM) throws IOException {
+		return filterFiles (getCurrentInputFiles (".txt"), solutionID, spjID, provider, typeVM);
+	}
+
+	public List<File> getSPNFiles(String extension, String solutionID, String spjID,
+								  String provider, String typeVM) throws IOException {
+		return filterFiles (getCurrentInputFiles (extension), solutionID, spjID, provider, typeVM);
+	}
 }

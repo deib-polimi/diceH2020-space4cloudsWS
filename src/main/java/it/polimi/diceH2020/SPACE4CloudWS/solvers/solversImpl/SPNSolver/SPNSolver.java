@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,21 +20,19 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParame
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
-import lombok.NonNull;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import javax.validation.constraints.NotNull;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +41,9 @@ import java.util.regex.Pattern;
  */
 @Component
 public class SPNSolver extends AbstractSolver {
+
+    @Autowired
+    private DataProcessor dataProcessor;
 
     @Override
     protected Class<? extends ConnectionSettings> getSettingsClass() {
@@ -117,11 +118,64 @@ public class SPNSolver extends AbstractSolver {
         }
     }
 
-    public Pair<List<File>, List<File>> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
+    @Override
+    protected Pair<List<File>, List<File>> createWorkingFiles(@NotNull SolutionPerJob solutionPerJob)
+            throws IOException {
+        Pair<List<File>, List<File>> returnValue;
+
+        List<File> netFileList = dataProcessor.getSPNFiles (".net", solutionPerJob.getParentID(),
+                solutionPerJob.getId(), dataProcessor.getProviderName(), solutionPerJob.getTypeVMselected().getId());
+        List<File> defFileList = dataProcessor.getSPNFiles (".def", solutionPerJob.getParentID(),
+                solutionPerJob.getId(), dataProcessor.getProviderName(), solutionPerJob.getTypeVMselected().getId());
+
+        final String experiment = String.format ("%s, class %s, provider %s, VM %s",
+                solutionPerJob.getParentID (), solutionPerJob.getId (), dataProcessor.getProviderName (),
+                solutionPerJob.getTypeVMselected ().getId ());
+
+        if (netFileList.isEmpty () || defFileList.isEmpty ()) {
+            logger.debug (String.format ("Generating SPN model for %s", experiment));
+            returnValue = generateSPNModel (solutionPerJob);
+        } else {
+            logger.debug (String.format ("Using input SPN model for %s", experiment));
+            // TODO now it just takes the first file, I would expect a single file per list
+            File inputNetFile = netFileList.get (0);
+            File inputDefFile = defFileList.get (0);
+
+            String prefix = filePrefix (solutionPerJob);
+            File defFile = fileUtility.provideTemporaryFile (prefix, ".def");
+            Files.copy (inputDefFile.toPath (), defFile.toPath (), StandardCopyOption.REPLACE_EXISTING);
+
+            List<String> lines = new LinkedList<> ();
+            try (BufferedReader reader = new BufferedReader (new FileReader (inputNetFile))) {
+                String cores = solutionPerJob.getNumCores ().toString ();
+                String inputLine;
+                while ((inputLine = reader.readLine()) != null) {
+                    String outputLine = inputLine.replace("@@CORES@@", cores);
+                    lines.add(outputLine);
+                }
+            }
+
+            File netFile = fileUtility.provideTemporaryFile (prefix, ".net");
+            try (BufferedWriter writer = new BufferedWriter (new FileWriter (netFile))) {
+                for (String line: lines) {
+                    writer.write (line);
+                    writer.newLine ();
+                }
+            }
+
+            List<File> model = new ArrayList<> ();
+            model.add (netFile);
+            model.add (defFile);
+            returnValue = new ImmutablePair<> (model, new ArrayList<> ());
+        }
+
+        return returnValue;
+    }
+
+    private Pair<List<File>, List<File>> generateSPNModel(@NotNull SolutionPerJob solPerJob) throws IOException {
         int nContainers = solPerJob.getNumberContainers();
         ClassParameters jobClass = solPerJob.getJob();
         JobProfile prof = solPerJob.getProfile();
-        String jobID = solPerJob.getId();
         double mAvg = prof.get("mavg");
         double rAvg = prof.get("ravg");
         double shTypAvg = prof.get("shtypavg");
@@ -131,7 +185,7 @@ public class SPNSolver extends AbstractSolver {
         int NM = (int) prof.get("nm");
         int NR = (int) prof.get("nr");
 
-        String prefix = String.format("PN-%s-class%s-", solPerJob.getParentID(), jobID);
+        String prefix = filePrefix (solPerJob);
 
         final SPNModel model = ((SPNSettings) connSettings).getModel();
         String netFileContent = new PNNetFileBuilder().setSPNModel(model).setCores(nContainers)
@@ -156,5 +210,9 @@ public class SPNSolver extends AbstractSolver {
 
     public void setTechnology (SPNModel technology) {
         ((SPNSettings) connSettings).setModel(technology);
+    }
+
+    private String filePrefix(@NotNull SolutionPerJob solutionPerJob) {
+        return String.format ("PN-%s-class%s-", solutionPerJob.getParentID (), solutionPerJob.getId ());
     }
 }
