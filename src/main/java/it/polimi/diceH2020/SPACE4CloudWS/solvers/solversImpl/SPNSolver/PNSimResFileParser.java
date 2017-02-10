@@ -1,5 +1,5 @@
 /*
-Copyright 2016 Eugenio Gianniti
+Copyright 2016-2017 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,6 +26,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 class PNSimResFileParser {
+    private static final Pattern throughputRe = Pattern
+            .compile("Throughput of (?<name>[-\\w]+) \\([\\d\\se.+-]+\\): [\\de.+-]+ <= X <= [\\de.+-]+");
+    private static final Pattern tokensRe = Pattern
+            .compile("Mean n\\.of tokens in (?<name>[-\\w]+) : [\\de.+-]+ <= mu <= [\\de.+-]+");
+    private static final Pattern valuesRe = Pattern
+            .compile("Value (?<value>[\\de.+-]+) Mean Value (?<mean>[\\de.+-]+) Accuracy (?<accuracy>[\\de.+-]+)");
+
     private File simResFile;
 
     PNSimResFileParser(File file) {
@@ -35,12 +42,6 @@ class PNSimResFileParser {
     Map<String, Double> parse () throws IOException {
         Map<String, Double> result = new HashMap<>();
         try (Stream<String> lines = Files.lines(simResFile.toPath())) {
-            Pattern throughputRe = Pattern
-                    .compile("Throughput of (?<name>\\w+) \\([\\d\\se.+-]+\\): [\\de.+-]+ <= X <= [\\de.+-]+");
-            Pattern tokensRe = Pattern
-                    .compile("Mean n\\.of tokens in (?<name>\\w+) : [\\de.+-]+ <= mu <= [\\de.+-]+");
-            Pattern valuesRe = Pattern
-                    .compile("Value (?<value>[\\de.+-]+) Mean Value (?<mean>[\\de.+-]+) Accuracy (?<accuracy>[\\de.+-]+)");
             Iterator<String> iterator = lines.iterator();
             while (iterator.hasNext()) {
                 String line = iterator.next();
