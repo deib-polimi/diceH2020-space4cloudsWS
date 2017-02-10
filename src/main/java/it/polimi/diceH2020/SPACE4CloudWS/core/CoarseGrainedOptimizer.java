@@ -1,7 +1,7 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
 Copyright 2016 Jacopo Rigoli
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -50,8 +50,6 @@ import java.util.stream.Stream;
 @Component
 class CoarseGrainedOptimizer extends Optimizer {
 
-	private static final double Ubar = 0.7;
-
 	@Autowired
 	private DS4CSettings settings;
 
@@ -96,7 +94,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 					: Nk -> Utilization.computeServerUtilization(Nk, solPerJob);
 			Predicate<Double> feasibilityCheck = technology == SPNModel.MAPREDUCE
 					? R -> R <= solPerJob.getJob().getD()
-					: Uk -> Uk <= Ubar;
+					: Uk -> Uk <= solPerJob.getJob ().getU ();
 			Consumer<Double> metricUpdater = technology == SPNModel.MAPREDUCE
 					? solPerJob::setDuration : solPerJob::setUtilization;
 
