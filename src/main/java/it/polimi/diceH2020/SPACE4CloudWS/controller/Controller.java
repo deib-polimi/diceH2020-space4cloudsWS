@@ -31,7 +31,9 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.main.CacheSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.ProviderRepository;
+import it.polimi.diceH2020.SPACE4CloudWS.repositories.TypeVMRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
@@ -64,6 +66,9 @@ class Controller {
 
 	@Autowired
 	private ProviderRepository providerRepository;
+
+	@Autowired
+	private TypeVMRepository typeVMRepository;
 
 	@Autowired
 	private Validator validator;
@@ -184,7 +189,7 @@ class Controller {
 	private void cacheInitialization() {
 		CacheSettings cache = settings.getCache();
 		logger.info(
-				String.format("Cache has been initializied (maxSize:%d, max days before expiry:%d, register stats:%b).",
+				String.format("Cache has been initialized (maxSize:%d, max days before expiry:%d, register stats:%b).",
 						cache.getSize(), cache.getDaysBeforeExpire(), cache.isRecordStats()));
 		logCacheStats();
 	}
@@ -232,8 +237,13 @@ class Controller {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "/providers")
-	public @ResponseBody List<EntityProvider> getProvider(){
+	public @ResponseBody List<EntityProvider> getProvider() {
 		return providerRepository.findAll();
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/vm-types")
+	public @ResponseBody List<EntityTypeVM> getTypeVM() {
+		return typeVMRepository.findAll();
 	}
 
 }

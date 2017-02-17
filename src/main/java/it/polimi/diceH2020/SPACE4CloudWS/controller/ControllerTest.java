@@ -24,7 +24,6 @@ import it.polimi.diceH2020.SPACE4CloudWS.model.EntityKey;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
 import it.polimi.diceH2020.SPACE4CloudWS.model.EntityTypeVM;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.JobRepository;
-import it.polimi.diceH2020.SPACE4CloudWS.repositories.ProviderRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.repositories.TypeVMRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
@@ -35,33 +34,32 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 
 @RestController
 @Profile("test")
-public class ControllerTest {
+class ControllerTest {
 
 	@Autowired
-	DataService dataService;
+	private DataService dataService;
 
 	@Autowired
-	EngineService engineService;
+	private EngineService engineService;
 
 	@Autowired
 	FileUtility fileUtility;
 
 	@Autowired
-	Validator validator;
+	private Validator validator;
 
 	// I could use the daoService, but this class is only for testing purposes
 	@Autowired
-	JobRepository jobRepository;
+	private JobRepository jobRepository;
+
 	@Autowired
-	TypeVMRepository typeVMRepository;
-	@Autowired
-	ProviderRepository providerRepository;
+	private TypeVMRepository typeVMRepository;
+
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
@@ -90,13 +88,6 @@ public class ControllerTest {
 		return tVM;
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "typeVM")
-	@Profile("test")
-	public @ResponseBody List<EntityTypeVM> getTypeVM(){
-		return typeVMRepository.findAll();
-	}
-
-
 	@RequestMapping(method = RequestMethod.POST, value = "debug/event")
 	@Profile("test")
 	public String debug() throws Exception {
@@ -109,7 +100,6 @@ public class ControllerTest {
 	public Solution getSolutionDebug() {
 		InstanceDataMultiProvider inputData = new InstanceDataMultiProvider();
 		validator.setInstanceData(inputData);
-		//stateHandler.sendEvent(Events.MIGRATE);
 		Optional<Solution> sol = engineService.generateInitialSolution();
 		return sol.isPresent()? sol.get(): null;
 	}
