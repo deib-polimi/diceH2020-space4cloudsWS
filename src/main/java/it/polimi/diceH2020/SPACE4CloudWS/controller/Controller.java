@@ -30,6 +30,8 @@ import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineTypes;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.main.CacheSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.model.EntityProvider;
+import it.polimi.diceH2020.SPACE4CloudWS.repositories.ProviderRepository;
 import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
@@ -43,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -58,6 +61,9 @@ class Controller {
 
 	@Autowired
 	private DataProcessor dataProcessor;
+
+	@Autowired
+	private ProviderRepository providerRepository;
 
 	@Autowired
 	private Validator validator;
@@ -223,6 +229,11 @@ class Controller {
 			logger.error (String.format ("cannot receive '%s' in '%s' state", name, getWebServiceState ()));
 			return "WS cannot receive " + name + " in the current state.";
 		}
+	}
+
+	@RequestMapping(method = RequestMethod.GET, value = "/providers")
+	public @ResponseBody List<EntityProvider> getProvider(){
+		return providerRepository.findAll();
 	}
 
 }

@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -44,13 +45,13 @@ public class ControllerTest {
 
 	@Autowired
 	DataService dataService;
-	
+
 	@Autowired
 	EngineService engineService;
-	
+
 	@Autowired
 	FileUtility fileUtility;
-	
+
 	@Autowired
 	Validator validator;
 
@@ -69,7 +70,7 @@ public class ControllerTest {
 	public @ResponseBody InstanceDataMultiProvider applData(){
 		return dataService.getData();
 	}
-	
+
 	@RequestMapping(method = RequestMethod.POST, value = "job")
 	@Profile("test")
 	public @ResponseBody EntityJobClass postJob(@RequestBody EntityJobClass jb){
@@ -77,6 +78,7 @@ public class ControllerTest {
 		EntityJobClass job = jobRepository.findOne(jb.getIdJob());
 		return job;
 	}
+
 	@RequestMapping(method = RequestMethod.POST, value = "typeVM")
 	@Profile("test")
 	public @ResponseBody EntityTypeVM postTypeVM(@RequestBody EntityTypeVM typeVM){
@@ -87,32 +89,28 @@ public class ControllerTest {
 		EntityTypeVM tVM = typeVMRepository.findOne(key);
 		return tVM;
 	}
-	@RequestMapping(method = RequestMethod.GET, value = "providers")
-	@Profile("test")
-	public @ResponseBody List<EntityProvider> getProvider(){
-		return providerRepository.findAll();
-	}
+
 	@RequestMapping(method = RequestMethod.GET, value = "typeVM")
 	@Profile("test")
 	public @ResponseBody List<EntityTypeVM> getTypeVM(){
 		return typeVMRepository.findAll();
 	}
-	
-	
+
+
 	@RequestMapping(method = RequestMethod.POST, value = "debug/event")
 	@Profile("test")
 	public String debug() throws Exception {
 		engineService.generateInitialSolution();
 		return stateHandler.getState().getId().toString();
 	}
-	
+
 	@RequestMapping(method = RequestMethod.GET, value = "debug/solution")
 	@Profile("test")
 	public Solution getSolutionDebug() {
 		InstanceDataMultiProvider inputData = new InstanceDataMultiProvider();
 		validator.setInstanceData(inputData);
 		//stateHandler.sendEvent(Events.MIGRATE);
-		Optional<Solution> sol = engineService.generateInitialSolution(); 
+		Optional<Solution> sol = engineService.generateInitialSolution();
 		return sol.isPresent()? sol.get(): null;
 	}
 }
