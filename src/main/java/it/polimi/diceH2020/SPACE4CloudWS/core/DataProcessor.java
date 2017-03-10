@@ -27,6 +27,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,6 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -52,19 +52,19 @@ public class DataProcessor {
 
 	private final Logger logger = Logger.getLogger(getClass());
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private SolverProxy solverCache;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private ApplicationContext context;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private StateMachine<States, Events> stateHandler;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private FileUtility fileUtility;
 
 	long calculateMetric(@NonNull Solution sol, BiConsumer<SolutionPerJob, Double> resultSaver,
@@ -135,7 +135,7 @@ public class DataProcessor {
 		return getCurrentInputsSubFolder ().getName ();
 	}
 
-	private List<File> getCurrentInputFiles (String extension) throws IOException {
+	private List<File> getCurrentInputFiles (String extension) {
 		List<File> fileList = new ArrayList<>();
 		for (String fileName: fileUtility.listFile(getCurrentInputsSubFolder (), extension)) {
 			File file = new File(getCurrentInputsSubFolder (), fileName);
@@ -155,12 +155,12 @@ public class DataProcessor {
 	}
 
 	public List<File> getCurrentReplayerInputFiles(String solutionID, String spjID,
-												   String provider, String typeVM) throws IOException {
+												   String provider, String typeVM) {
 		return filterFiles (getCurrentInputFiles (".txt"), solutionID, spjID, provider, typeVM);
 	}
 
 	public List<File> getSPNFiles(String extension, String solutionID, String spjID,
-								  String provider, String typeVM) throws IOException {
+								  String provider, String typeVM) {
 		return filterFiles (getCurrentInputFiles (extension), solutionID, spjID, provider, typeVM);
 	}
 }
