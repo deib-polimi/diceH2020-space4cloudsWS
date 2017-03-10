@@ -23,6 +23,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,6 @@ import org.springframework.stereotype.Component;
 import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,7 +45,7 @@ public class SPNSolver extends AbstractSolver {
     private final static Pattern prefixRegex = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net");
     private final static Pattern coresRegex = Pattern.compile ("(?<name>[-\\w]+)\\s+@@CORES@@");
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     private DataProcessor dataProcessor;
 
     private boolean embeddedModel;
@@ -154,37 +154,28 @@ public class SPNSolver extends AbstractSolver {
             File inputDefFile = defFileList.get (0);
 
             String prefix = filePrefix (solutionPerJob);
-            File defFile = fileUtility.provideTemporaryFile (prefix, ".def");
-            Files.copy (inputDefFile.toPath (), defFile.toPath (), StandardCopyOption.REPLACE_EXISTING);
 
-            String label = null;
-            List<String> lines = new LinkedList<> ();
-            try (BufferedReader reader = new BufferedReader (new FileReader (inputNetFile))) {
-                String cores = Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ());
-                String inputLine;
-                while ((inputLine = reader.readLine()) != null) {
-                    Matcher match = coresRegex.matcher (inputLine);
-                    if (match.find ()) {
-                        label = match.group ("name");
-                    }
-                    String outputLine = inputLine.replace("@@CORES@@", cores);
-                    lines.add(outputLine);
-                }
-            }
+            Map<String, String> defFilePlaceholders = new TreeMap<>();
+            defFilePlaceholders.put ("@@CONCURRENCY@@",
+                    Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
+            Pair<List<String>, Optional<String>> outcomes =
+                    processPlaceholders (inputDefFile, defFilePlaceholders, false);
+
+            File defFile = fileUtility.provideTemporaryFile (prefix, ".def");
+            writeLinesToFile (outcomes.getLeft (), defFile);
+
+            Map<String, String> netFilePlaceholders = new TreeMap<>();
+            netFilePlaceholders.put ("@@CORES@@", Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ()));
+            outcomes = processPlaceholders (inputNetFile, netFilePlaceholders, true);
 
             File netFile = fileUtility.provideTemporaryFile (prefix, ".net");
-            try (BufferedWriter writer = new BufferedWriter (new FileWriter (netFile))) {
-                for (String line: lines) {
-                    writer.write (line);
-                    writer.newLine ();
-                }
-            }
+            writeLinesToFile (outcomes.getLeft(), netFile);
 
-            if (label == null) {
+            if (! outcomes.getRight ().isPresent ()) {
                 throw new RuntimeException (String.format ("@@CORES@@ placeholder not found in '%s' file",
                         netFile.getName ()));
             }
-            File statFile = writeStatFile (solutionPerJob, label);
+            File statFile = writeStatFile (solutionPerJob, outcomes.getRight().get());
 
             List<File> model = new ArrayList<> ();
             model.add (netFile);
@@ -194,6 +185,34 @@ public class SPNSolver extends AbstractSolver {
         }
 
         return returnValue;
+    }
+
+    private @NotNull Pair<List<String>, Optional<String>> processPlaceholders(@NotNull File templateFile,
+                                                                              @NotNull Map<String, String> nameValueMap,
+                                                                              boolean lookForLabel) throws IOException {
+        List<String> lines = new LinkedList<>();
+        Optional<String> maybeLabel = Optional.empty();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(templateFile))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (lookForLabel) {
+                    Matcher match = coresRegex.matcher(line);
+                    if (match.find()) {
+                        maybeLabel = Optional.of(match.group("name"));
+                    }
+                }
+
+                for (Map.Entry<String, String> entry: nameValueMap.entrySet()) {
+                    line = line.replace(entry.getKey(), entry.getValue());
+                }
+
+                lines.add(line);
+            }
+        }
+
+        return Pair.of(lines, maybeLabel);
     }
 
     private Pair<List<File>, List<File>> generateSPNModel(@NotNull SolutionPerJob solPerJob) throws IOException {
@@ -249,5 +268,14 @@ public class SPNSolver extends AbstractSolver {
         File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
         fileUtility.writeContentToFile(String.format ("%s\n", label), statFile);
         return statFile;
+    }
+
+    private void writeLinesToFile(@NotNull List<String> lines, @NotNull File outputFile) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter (new FileWriter (outputFile))) {
+            for (String line: lines) {
+                writer.write (line);
+                writer.newLine ();
+            }
+        }
     }
 }
