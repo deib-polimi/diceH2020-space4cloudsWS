@@ -27,6 +27,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -50,15 +51,16 @@ import java.util.stream.Stream;
 @Component
 class CoarseGrainedOptimizer extends Optimizer {
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DS4CSettings settings;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private StateMachine<States, Events> stateHandler;
 
 	void hillClimbing(Solution solution) {
 		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
-		SPNModel model = StormChecker.enforceSolverSettings(dataProcessor, solution);
+		SPNModel model = SolverChecker.enforceSolverSettings(dataProcessor, solution);
+
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		AtomicLong executionTime = new AtomicLong();

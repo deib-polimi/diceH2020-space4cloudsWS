@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.NonNull;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +35,10 @@ import java.util.function.Consumer;
 @Component
 class Evaluator implements IEvaluator {
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataProcessor dataProcessor;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
 	private Matrix matrix;
@@ -48,7 +49,7 @@ class Evaluator implements IEvaluator {
 
 	private long executionTime;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private EngineProxy engineProxy;
 
 	@Override
@@ -106,7 +107,7 @@ class Evaluator implements IEvaluator {
 	}
 
 	void initialSimulation(@NonNull Solution sol) {
-		SPNModel technology = StormChecker.enforceSolverSettings(dataProcessor, sol);
+		SPNModel technology = SolverChecker.enforceSolverSettings(dataProcessor, sol);
 
 		BiConsumer<SolutionPerJob, Double> resultSaver = technology == SPNModel.MAPREDUCE
 				? (SolutionPerJob spj, Double value) -> {
@@ -145,12 +146,10 @@ class Evaluator implements IEvaluator {
 		boolean finished = true;
 		boolean error = false;
 		this.executionTime += executionTime;
-		//optimalNVMGivenH[spj.getJob().getId()-1][h-1] = nVM;
+
 		matrix.get(spj.getId())[spj.getNumberUsers()-matrix.getHlow(spj.getId())] = spj;
 
-		registeredSolutionsPerJob++;
-
-		System.out.println("evaluated solution: "+ registeredSolutionsPerJob+" of "+matrix.getNumCells());//TODOd elete
+		++registeredSolutionsPerJob;
 
 		if(registeredSolutionsPerJob != matrix.getNumCells() ) finished = false;
 
