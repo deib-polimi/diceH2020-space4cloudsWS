@@ -53,7 +53,7 @@ class DagSimFileBuilder {
             while ((line = reader.readLine()) != null) {
                 String output = line
                         .replace("@@STAGES@@", stagesString)
-                        .replace("@@CONTAINERS@@", containers.toString())
+                        .replace("@@CORES@@", containers.toString())
                         .replace("@@USERS@@", users.toString())
                         .replace("@@THINK_PDF@@", thinkTime.toString())
                         .replace("@@MAXJOBS@@", maxJobs.toString())
