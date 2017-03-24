@@ -15,10 +15,17 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.DagSimSolver;
 
-class Replayer extends FileBasedDistribution {
+import lombok.AccessLevel;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+@Accessors(chain = true)
+@Setter(AccessLevel.PACKAGE)
+abstract class FileBasedDistribution extends Distribution {
+    private String fileName;
 
     @Override
-    protected String formatType() {
-        return "replay";
+    protected String formatParameters() {
+        return String.format("{ samples = solver.fileToArray(\"%s\") }", fileName);
     }
 }

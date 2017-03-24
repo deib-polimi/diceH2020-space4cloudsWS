@@ -15,10 +15,10 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.DagSimSolver;
 
-class Replayer extends FileBasedDistribution {
+class Empirical extends FileBasedDistribution {
 
     @Override
     protected String formatType() {
-        return "replay";
+        return "empirical";
     }
 }
