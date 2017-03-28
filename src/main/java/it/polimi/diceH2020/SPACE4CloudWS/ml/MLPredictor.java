@@ -22,6 +22,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.SVRFeature;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,10 +36,10 @@ public class MLPredictor {
 	private final Logger logger = Logger.getLogger(getClass());
 	private final static int defaultNVM = 1;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DS4CSettings settings;
 
 	// caches SPJ, in order to recalculate only xi
@@ -49,19 +50,16 @@ public class MLPredictor {
 	 * Precondition: DataService has M,V (received from JSON or retrieved from
 	 * DB) SolutionPerJob has h,m,v,D and all the required parameters in
 	 * JobMLProfile
-	 *
-	 * @param spj
-	 * @return
 	 */
-	public double approximateWithSVR(SolutionPerJob spj) {
+	public void approximateWithSVR(SolutionPerJob spj) {
 		if (predictedSPJ.containsKey(spj.getId())) {
-			return retrievePrediction(spj);
+			retrievePrediction(spj);
 		} else {
-			return calculatePrediction(spj);
+			calculatePrediction(spj);
 		}
 	}
 
-	private double calculatePrediction(SolutionPerJob spj) {
+	private void calculatePrediction(SolutionPerJob spj) {
 		JobMLProfile features = dataService.getMLProfile(spj.getId());
 		JobProfile profile = spj.getProfile();
 
@@ -81,7 +79,6 @@ public class MLPredictor {
 
 		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 		predictedSPJ.put(spj.getId(), new MLPrediction(deadline, chi_c, chi_h, chi_0));
-		return deadline;
 	}
 
 	private void validate(SolutionPerJob spj) {
@@ -93,7 +90,7 @@ public class MLPredictor {
 		}
 	}
 
-	private Double retrievePrediction(SolutionPerJob spj) {
+	private void retrievePrediction(SolutionPerJob spj) {
 		MLPrediction prediction = predictedSPJ.get(spj.getId());
 
 		double deadline = prediction.getDeadline();
@@ -111,7 +108,6 @@ public class MLPredictor {
 		spj.setDuration(deadline);
 		spj.updateNumberContainers(c);
 		validate(spj);
-		return deadline;
 	}
 
 	private double calculateDefaultParametersContribution(JobMLProfile features) {
@@ -165,23 +161,30 @@ public class MLPredictor {
 	}
 
 	private double calculateChi_0(JobProfile profile, JobMLProfile features) {
-
 		double defaultParametersContribution = calculateDefaultParametersContribution(features);
 		double featureContribution = 0;
 		String chi_0_optional_names = "";
 		String chi_0_optional_values = "";
-		try {
-			for (Map.Entry<String, SVRFeature> entry : features.getMlFeatures().entrySet()) {
-				if (entry.getKey().equals("h") || entry.getKey().equals("x"))
-					continue;
+
+		for (Map.Entry<String, SVRFeature> entry : features.getMlFeatures().entrySet()) {
+			if (entry.getKey().equals("h") || entry.getKey().equals("x"))
+				continue;
+
+			try {
 				double valueOfEntry = profile.get(entry.getKey());
-				chi_0_optional_names += "+ (sigma_t/sigma_"+entry.getKey()+")*w_"+entry.getKey()+"*("+entry.getKey()+"-"+"mu_"+entry.getKey()+")";
-				chi_0_optional_values += "+("+features.getSigma_t()+" / "+entry.getValue().getSigma()+") * "+entry.getValue().getW()+"*("+valueOfEntry+ "-"+ entry.getValue().getMu()+")";
-				featureContribution += (features.getSigma_t() / entry.getValue().getSigma()) * entry.getValue().getW()*(valueOfEntry - entry.getValue().getMu());
+
+				chi_0_optional_names += "+ (sigma_t/sigma_" + entry.getKey () + ")*w_" + entry.getKey () + "*(" + entry.getKey () + "-" + "mu_" + entry.getKey () + ")";
+				chi_0_optional_values += "+(" + features.getSigma_t () + " / " + entry.getValue ().getSigma () + ") * " + entry.getValue ().getW () + "*(" + valueOfEntry + "-" + entry.getValue ().getMu () + ")";
+
+				featureContribution += (features.getSigma_t () / entry.getValue ().getSigma ()) * entry.getValue ().getW () * (valueOfEntry - entry.getValue ().getMu ());
+			} catch (IllegalArgumentException e) {
+				String message = String.format (
+						"[SVR] Missing a JobMLProfile feature parameter in JobProfile: '%s'.", entry.getKey ());
+				logger.error (message, e);
+				throw new IllegalArgumentException (message, e);
 			}
-		} catch (IllegalArgumentException e) {
-			logger.info("[SVR] Missing a MLProfile feature parameter in Profile.");
 		}
+
 		logVerbose("[SVR] Chi_0_optional_parameters: "+chi_0_optional_names+"\n"+"="+chi_0_optional_values+"\n = "+featureContribution);
 		double result = defaultParametersContribution + featureContribution;
 		logVerbose("[SVR] Chi_0 = Chi_0_mandatory_parameters + Chi_0_optional_parameters  = "+defaultParametersContribution+"+"+featureContribution +" = "+result);
