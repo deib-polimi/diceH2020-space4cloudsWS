@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -72,18 +72,18 @@ public class MLPredictor {
 		double xi = calculateXi(spj);
 		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
 
+		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
+
 		spj.setXi(xi);
 		spj.setDuration(deadline);
 		spj.updateNumberContainers(c);
 		validate(spj);
-
-		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 		predictedSPJ.put(spj.getId(), new MLPrediction(deadline, chi_c, chi_h, chi_0));
 	}
 
 	private void validate(SolutionPerJob spj) {
 		if(spj.getNumberVM()<1){
-			spj.setNumberVM(defaultNVM);
+			spj.updateNumberVM (defaultNVM);
 			logger.info("[SVR] the #vm predicted is invalid. SolutionPerJob #VM has been updated to "+defaultNVM+".");
 		}else{
 			logger.info("[SVR] SolutionPerJob #VM has been updated to "+spj.getNumberVM()+".");
@@ -104,6 +104,7 @@ public class MLPredictor {
 		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
 
 		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
+
 		spj.setXi(xi);
 		spj.setDuration(deadline);
 		spj.updateNumberContainers(c);
