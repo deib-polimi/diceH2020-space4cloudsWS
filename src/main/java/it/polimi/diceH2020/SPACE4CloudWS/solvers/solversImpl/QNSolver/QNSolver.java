@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,15 +17,12 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
-import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -40,12 +37,10 @@ import java.util.regex.Pattern;
 
 @Component
 public class QNSolver extends AbstractSolver {
-	@Autowired
-	private DataProcessor dataProcessor;
 
-	private Pattern patternMap = Pattern.compile("(.*)(Map[0-9]*)(J)(.*)");
-	private Pattern patternRS = Pattern.compile("(.*)(RS[0-9]*)(J)(.*)");
-	private Pattern patternNMR = Pattern.compile("((nm[0-9]*)|(nr[0-9]*))");
+	private static final Pattern patternMap = Pattern.compile("(.*)(Map[0-9]*)(J)(.*)");
+	private static final Pattern patternRS = Pattern.compile("(.*)(RS[0-9]*)(J)(.*)");
+	private static final Pattern patternNMR = Pattern.compile("((nm[0-9]*)|(nr[0-9]*))");
 
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
@@ -100,35 +95,8 @@ public class QNSolver extends AbstractSolver {
 		}
 	}
 
-	private List<File> createProfileFiles(@NonNull SolutionPerJob solutionPerJob) throws IOException {
-		String solutionID = solutionPerJob.getParentID();
-		String spjID = solutionPerJob.getId();
-		String provider = dataProcessor.getProviderName();
-		String typeVM = solutionPerJob.getTypeVMselected().getId();
-		return dataProcessor.getCurrentReplayerInputFiles(solutionID, spjID, provider, typeVM);
-	}
-
-	private void sendFiles(List<File> lstFiles) {
-		try {
-			connector.exec("mkdir -p " + connSettings.getRemoteWorkDir() + File.separator +
-					dataProcessor.getCurrentInputsSubFolderName(), getClass());
-		} catch (JSchException | IOException e1) {
-			logger.error("Cannot create new Simulation Folder!", e1);
-		}
-
-		lstFiles.forEach((File file) -> {
-			try {
-				connector.sendFile(file.getAbsolutePath(), connSettings.getRemoteWorkDir() + File.separator +
-								dataProcessor.getCurrentInputsSubFolderName() + File.separator + file.getName(),
-						getClass());
-			} catch (JSchException | IOException e) {
-				logger.error("Error sending file: " + file.toString(), e);
-			}
-		});
-	}
-
 	public Pair<List<File>, List<File>> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
-		List<File> lst = createProfileFiles(solPerJob);
+		List<File> lst = retrieveReplayerFiles (solPerJob);
 		Integer nContainers = solPerJob.getNumberContainers();
 		Integer concurrency = solPerJob.getNumberUsers();
 		Double think = solPerJob.getJob().getThink();

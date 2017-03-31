@@ -16,13 +16,16 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
+import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
+import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,17 +44,20 @@ public abstract class AbstractSolver implements Solver {
 
     protected Logger logger = Logger.getLogger(getClass());
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     protected FileUtility fileUtility;
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     protected Environment environment;
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     protected SshConnectorProxy connector;
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     private SettingsDealer settingsDealer;
+
+    @Setter(onMethod = @__(@Autowired))
+    protected DataProcessor dataProcessor;
 
     protected ConnectionSettings connSettings;
 
@@ -146,8 +152,33 @@ public abstract class AbstractSolver implements Solver {
         }
     }
 
-    public String getRemoteWorkingDirectory() {
-        return connSettings.getRemoteWorkDir();
+    protected String getRemoteWorkSubDirectory () {
+        return connSettings.getRemoteWorkDir () + File.separator + dataProcessor.getCurrentInputsSubFolderName ();
     }
 
+    protected List<File> retrieveReplayerFiles (@NonNull SolutionPerJob solutionPerJob) {
+        String solutionID = solutionPerJob.getParentID();
+        String spjID = solutionPerJob.getId();
+        String provider = dataProcessor.getProviderName();
+        String typeVM = solutionPerJob.getTypeVMselected().getId();
+        return dataProcessor.getCurrentReplayerInputFiles(solutionID, spjID, provider, typeVM);
+    }
+
+    protected void sendFiles(List<File> lstFiles) {
+        try {
+            connector.exec("mkdir -p " + getRemoteWorkSubDirectory (), getClass());
+        } catch (JSchException | IOException e1) {
+            logger.error("Cannot create new Simulation Folder!", e1);
+        }
+
+        lstFiles.forEach((File file) -> {
+            try {
+                connector.sendFile(file.getAbsolutePath(),
+                        getRemoteWorkSubDirectory () + File.separator + file.getName(),
+                        getClass());
+            } catch (JSchException | IOException e) {
+                logger.error("Error sending file: " + file.toString(), e);
+            }
+        });
+    }
 }
