@@ -17,6 +17,7 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import com.jcraft.jsch.JSchException;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
@@ -37,6 +38,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public abstract class AbstractSolver implements Solver {
 
@@ -106,16 +109,6 @@ public abstract class AbstractSolver implements Solver {
         connSettings.setMaxDuration(duration);
     }
 
-    @Override
-    public List<String> pwd() throws Exception {
-        throw new Exception();
-    }
-
-    @Override
-    public SshConnectorProxy getConnector() {
-        return connector;
-    }
-
     /**
      * Execute the model on the remote server.
      * @param pFiles the first List contains the main model files, the second one allows for providing
@@ -123,7 +116,7 @@ public abstract class AbstractSolver implements Solver {
      * @param remoteName is the human readable name presented in the logs.
      * @return a Pair containing the value obtained via the solver and a Boolean that is set to true
      *         in case of failure.
-     * @throws Exception
+     * @throws Exception in case of problems.
      */
     protected abstract Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception;
 
@@ -180,5 +173,15 @@ public abstract class AbstractSolver implements Solver {
                 logger.error("Error sending file: " + file.toString(), e);
             }
         });
+    }
+
+    @Override
+    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model) {
+        return R -> R <= solutionPerJob.getJob ().getD ();
+    }
+
+    @Override
+    public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
+        return solutionPerJob::setDuration;
     }
 }

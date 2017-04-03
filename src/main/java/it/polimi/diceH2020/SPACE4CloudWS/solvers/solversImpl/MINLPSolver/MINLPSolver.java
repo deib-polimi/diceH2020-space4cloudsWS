@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,15 +19,16 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -44,6 +45,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +62,7 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
 	@Override
@@ -132,11 +137,6 @@ public class MINLPSolver extends AbstractSolver {
 		IOUtils.copy(in, out);
 		connector.sendFile(tempFile.getAbsolutePath(), remotePath, getClass());
 		if (fileUtility.delete(tempFile)) logger.debug(tempFile + " deleted");
-	}
-
-	public List<String> clearWorkingDir() throws Exception {
-		String command = "rm -rf " + connSettings.getRemoteWorkDir();
-		return connector.exec(command, getClass());
 	}
 
 	private void clearResultDir() throws JSchException, IOException {
@@ -243,16 +243,6 @@ public class MINLPSolver extends AbstractSolver {
 		}
 	}
 
-	@Override
-	public List<String> pwd() throws Exception {
-		return connector.pwd(getClass());
-	}
-
-	@Override
-	public SshConnectorProxy getConnector() {
-		return connector;
-	}
-
 	public void setModelType(AMPLModel modelType) {
 		((MINLPSettings) connSettings).setModel(modelType);
 		logger.debug("MINLP model set to: " + modelType);
@@ -266,4 +256,27 @@ public class MINLPSolver extends AbstractSolver {
 		AMPLSolFileParser.initializeSolution(solution, matrix);
 	}
 
+	@Override
+	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, SPNModel model) {
+		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
+				getClass ().getCanonicalName ()));
+	}
+
+	@Override
+	public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model) {
+		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
+				getClass ().getCanonicalName ()));
+	}
+
+	@Override
+	public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
+		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
+				getClass ().getCanonicalName ()));
+	}
+
+	@Override
+	public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
+				getClass ().getCanonicalName ()));
+	}
 }

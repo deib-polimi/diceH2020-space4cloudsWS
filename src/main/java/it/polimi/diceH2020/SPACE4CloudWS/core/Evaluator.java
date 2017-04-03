@@ -21,8 +21,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
-import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
-import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.NonNull;
 import lombok.Setter;
@@ -98,26 +96,28 @@ class Evaluator implements IEvaluator {
 	}
 
 	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {
-		if (solPerJob.getDuration() <= solPerJob.getJob().getD()) {
-			solPerJob.setFeasible(true);
-			return true;
+		boolean feasible = false;
+
+		SPNModel spnModel = dataService.getData ().getScenario ()
+				.orElse (Scenarios.PublicAvgWorkLoad).getSwn ();
+
+		if (spnModel == SPNModel.STORM) {
+			if (solPerJob.getUtilization () <= solPerJob.getJob ().getU ()) {
+				feasible = true;
+			}
+		} else if (solPerJob.getDuration() <= solPerJob.getJob().getD()) {
+			feasible = true;
 		}
-		solPerJob.setFeasible(false);
-		return false;
+
+		solPerJob.setFeasible(feasible);
+		return feasible;
 	}
 
 	void initialSimulation(@NonNull Solution sol) {
 		SPNModel technology = SolverChecker.enforceSolverSettings(dataProcessor, sol);
 
-		BiConsumer<SolutionPerJob, Double> resultSaver = technology == SPNModel.MAPREDUCE
-				? (SolutionPerJob spj, Double value) -> {
-			spj.setThroughput(value);
-			spj.setDuration(LittleLaw.computeResponseTime(value, spj));
-			spj.setError(false);
-		} : (SolutionPerJob spj, Double value) -> {
-			spj.setUtilization(Utilization.computeServerUtilization(value, spj));
-			spj.setError(false);
-		};
+		BiConsumer<SolutionPerJob, Double> resultSaver =
+				dataProcessor.getSolver ().initialResultSaver (technology);
 
 		Consumer<SolutionPerJob> errorSetter = technology == SPNModel.MAPREDUCE
 				? (SolutionPerJob spj) -> {

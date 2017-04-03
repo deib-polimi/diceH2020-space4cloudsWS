@@ -23,8 +23,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
-import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
-import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.Setter;
@@ -91,14 +90,11 @@ class CoarseGrainedOptimizer extends Optimizer {
 		if (maybeResult.isPresent()) {
 			success = true;
 
-			Function<Double, Double> fromResult = technology == SPNModel.MAPREDUCE
-					? X -> LittleLaw.computeResponseTime(X, solPerJob)
-					: Nk -> Utilization.computeServerUtilization(Nk, solPerJob);
-			Predicate<Double> feasibilityCheck = technology == SPNModel.MAPREDUCE
-					? R -> R <= solPerJob.getJob().getD()
-					: Uk -> Uk <= solPerJob.getJob ().getU ();
-			Consumer<Double> metricUpdater = technology == SPNModel.MAPREDUCE
-					? solPerJob::setDuration : solPerJob::setUtilization;
+			Solver currentSolver = dataProcessor.getSolver ();
+			Function<Double, Double> fromResult = currentSolver
+					.transformationFromSolverResult (solPerJob, technology);
+			Predicate<Double> feasibilityCheck = currentSolver.feasibilityCheck (solPerJob, technology);
+			Consumer<Double> metricUpdater = currentSolver.metricUpdater (solPerJob, technology);
 
 			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs((prev - curr) / prev) <= 1e-2;
 

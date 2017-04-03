@@ -16,7 +16,9 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.DagSimSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
@@ -28,6 +30,8 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -169,6 +173,21 @@ public class DagSimSolver extends AbstractSolver {
         }
 
         return Pair.of(result, ! success);
+    }
+
+    @Override
+    public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob,
+                                                                    SPNModel model) {
+        return R -> R;
+    }
+
+    @Override
+    public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+        return (SolutionPerJob spj, Double value) -> {
+            spj.setDuration (value);
+            spj.setThroughput (LittleLaw.computeThroughput (value, spj));
+            spj.setError (false);
+        };
     }
 
     private Map<String, Set<String>> flipDirectedEdges (Map<String, Set<String>> dag) {

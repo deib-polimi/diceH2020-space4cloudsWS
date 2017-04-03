@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,9 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -42,38 +44,40 @@ public class SolverProxy {
 
 	private final Logger logger = Logger.getLogger(getClass());
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private SolverFactory solverFactory;
 
+	@Getter
 	private Solver solver;
 
 	@PostConstruct
-	private void setSolver() {
+	private void createSolver () {
 		solver = solverFactory.create();
 	}
 
-	public void changeSettings(Settings settings){
-		if(settings.getSolver() != null){
+	public void changeSettings (Settings settings) {
+		if (settings.getSolver() != null) {
 			solverFactory.setType(settings.getSolver());
-		}else{
-			solverFactory.setType(SolverType.QNSolver); //DEFAULT
+		} else {
+			solverFactory.restoreDefaults ();
 		}
 		refreshSolver();
-		if(settings.getAccuracy() != null) solver.setAccuracy(settings.getAccuracy());
-		if(settings.getSimDuration() != null) solver.setMaxDuration(settings.getSimDuration());
+
+		if (settings.getAccuracy() != null) solver.setAccuracy (settings.getAccuracy());
+		if (settings.getSimDuration() != null) solver.setMaxDuration (settings.getSimDuration());
 		if (solverFactory.getType() == SolverType.SPNSolver && settings.getTechnology() != null) {
 			((SPNSolver) solver).setTechnology(settings.getTechnology());
 		}
 	}
 
 	public void restoreDefaults() {
-		solverFactory.restoreDefaults();
-		refreshSolver();
+		solverFactory.restoreDefaults ();
+		refreshSolver ();
 	}
 
 	private void refreshSolver() {
-		solver = solverFactory.create();
-		solver.restoreDefaults();
+		createSolver ();
+		solver.restoreDefaults ();
 	}
 
 	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME,

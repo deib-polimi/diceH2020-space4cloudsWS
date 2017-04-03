@@ -17,7 +17,9 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
@@ -32,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -158,8 +162,18 @@ public class QNSolver extends AbstractSolver {
 		return new ImmutablePair<>(jmtModel, lst);
 	}
 
-	public List<String> pwd() throws Exception {
-		return connector.pwd(getClass());
+	@Override
+	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob,
+																	SPNModel model) {
+		return X -> LittleLaw.computeResponseTime (X, solutionPerJob);
 	}
 
+	@Override
+	public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+		return (SolutionPerJob spj, Double value) -> {
+			spj.setThroughput (value);
+			spj.setDuration (LittleLaw.computeResponseTime(value, spj));
+			spj.setError (false);
+		};
+	}
 }

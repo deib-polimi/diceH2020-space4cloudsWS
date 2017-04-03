@@ -24,6 +24,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForEvaluation;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
@@ -66,6 +67,10 @@ public class DataProcessor {
 
 	@Setter(onMethod = @__(@Autowired))
 	private FileUtility fileUtility;
+
+	Solver getSolver () {
+		return solverCache.getSolver ();
+	}
 
 	long calculateMetric(@NonNull Solution sol, BiConsumer<SolutionPerJob, Double> resultSaver,
 						 Consumer<SolutionPerJob> ifEmpty) {

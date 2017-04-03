@@ -21,6 +21,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
+import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Setter;
@@ -33,6 +35,10 @@ import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -251,8 +257,38 @@ public class SPNSolver extends AbstractSolver {
         return new ImmutablePair<>(lst, new ArrayList<>());
     }
 
-    public List<String> pwd() throws Exception {
-        return connector.pwd(getClass());
+    @Override
+    public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob,
+                                                                    SPNModel model) {
+        return model == SPNModel.MAPREDUCE
+                ? X -> LittleLaw.computeResponseTime (X, solutionPerJob)
+                : Nk -> Utilization.computeServerUtilization (Nk, solutionPerJob);
+    }
+
+    @Override
+    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model) {
+        return model == SPNModel.MAPREDUCE
+                ? R -> R <= solutionPerJob.getJob ().getD ()
+                : Uk -> Uk <= solutionPerJob.getJob ().getU ();
+    }
+
+    @Override
+    public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
+        return model == SPNModel.MAPREDUCE
+                ? solutionPerJob::setDuration : solutionPerJob::setUtilization;
+    }
+
+    @Override
+    public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+        return model == SPNModel.MAPREDUCE
+                ? (SolutionPerJob spj, Double value) -> {
+            spj.setThroughput (value);
+            spj.setDuration (LittleLaw.computeResponseTime (value, spj));
+            spj.setError (false);
+        } : (SolutionPerJob spj, Double value) -> {
+            spj.setUtilization (Utilization.computeServerUtilization (value, spj));
+            spj.setError (false);
+        };
     }
 
     public void setTechnology (SPNModel technology) {

@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public interface Solver {
 
@@ -30,12 +33,16 @@ public interface Solver {
 
     void initRemoteEnvironment() throws Exception;
 
-    List<String> pwd() throws Exception;
-
-    SshConnectorProxy getConnector();
-
     Optional<Double> evaluate(SolutionPerJob solPerJob);
 
     void restoreDefaults();
+
+    Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, SPNModel model);
+
+    Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model);
+
+    Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model);
+
+    BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model);
 
 }
