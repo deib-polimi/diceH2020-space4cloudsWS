@@ -25,6 +25,8 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -64,6 +67,9 @@ public abstract class AbstractSolver implements Solver {
 
     protected ConnectionSettings connSettings;
 
+    @Getter(AccessLevel.PROTECTED)
+    private String remoteSubDirectory;
+
     protected abstract Class<? extends ConnectionSettings> getSettingsClass();
 
     @PostConstruct
@@ -82,10 +88,12 @@ public abstract class AbstractSolver implements Solver {
             return Optional.of(solPerJob.getThroughput());
         }
         try {
+            bumpRemoteSubDirectory ();
             Pair<List<File>, List<File>> pFiles = createWorkingFiles(solPerJob);
             String jobID = solPerJob.getId();
             Pair<Double, Boolean> result = run(pFiles, "class" + jobID);
             delete(pFiles.getLeft());
+            if (connSettings.isCleanRemote ()) cleanRemoteSubDirectory ();
             solPerJob.setError(result.getRight());
             return Optional.of(result.getLeft());
         } catch (Exception e) {
@@ -145,10 +153,6 @@ public abstract class AbstractSolver implements Solver {
         }
     }
 
-    protected String getRemoteWorkSubDirectory () {
-        return connSettings.getRemoteWorkDir () + File.separator + dataProcessor.getCurrentInputsSubFolderName ();
-    }
-
     protected List<File> retrieveReplayerFiles (@NonNull SolutionPerJob solutionPerJob) {
         String solutionID = solutionPerJob.getParentID();
         String spjID = solutionPerJob.getId();
@@ -159,7 +163,7 @@ public abstract class AbstractSolver implements Solver {
 
     protected void sendFiles(List<File> lstFiles) {
         try {
-            connector.exec("mkdir -p " + getRemoteWorkSubDirectory (), getClass());
+            connector.exec("mkdir -p " + getRemoteSubDirectory (), getClass());
         } catch (JSchException | IOException e1) {
             logger.error("Cannot create new Simulation Folder!", e1);
         }
@@ -167,12 +171,25 @@ public abstract class AbstractSolver implements Solver {
         lstFiles.forEach((File file) -> {
             try {
                 connector.sendFile(file.getAbsolutePath(),
-                        getRemoteWorkSubDirectory () + File.separator + file.getName(),
+                        getRemoteSubDirectory () + File.separator + file.getName(),
                         getClass());
             } catch (JSchException | IOException e) {
                 logger.error("Error sending file: " + file.toString(), e);
             }
         });
+    }
+
+    private void bumpRemoteSubDirectory () {
+        remoteSubDirectory = connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID();
+    }
+
+    protected void cleanRemoteSubDirectory () {
+        String command = String.format ("rm -rf %s", remoteSubDirectory);
+        try {
+            connector.exec (command, getClass ());
+        } catch (JSchException|IOException e) {
+            logger.error ("Could not purge remote subdirectory", e);
+        }
     }
 
     @Override

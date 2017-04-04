@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -42,4 +42,6 @@ public interface ConnectionSettings extends ShallowCopyable<ConnectionSettings> 
     void setAccuracy(double accuracy);
 
     void setMaxDuration(Integer duration);
+
+    boolean isCleanRemote();
 }

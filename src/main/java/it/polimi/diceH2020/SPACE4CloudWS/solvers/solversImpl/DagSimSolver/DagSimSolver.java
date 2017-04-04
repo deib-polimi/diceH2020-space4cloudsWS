@@ -87,7 +87,7 @@ public class DagSimSolver extends AbstractSolver {
 
             replayerFiles.stream ().map (File::getName).filter (name -> name.contains (vertex)).forEach (
                     name -> {
-                        File remote = new File (getRemoteWorkSubDirectory (), name);
+                        File remote = new File (getRemoteSubDirectory (), name);
                         String remoteName = remote.getPath ();
                         currentStage.setDistribution (new Empirical ().setFileName (remoteName));
                     }
@@ -127,18 +127,17 @@ public class DagSimSolver extends AbstractSolver {
 
             File modelFile = pFiles.getLeft().get(0);
             String fileName = modelFile.getName();
-            String remotePath = getRemoteWorkSubDirectory () + File.separator + fileName;
+            String remotePath = getRemoteSubDirectory () + File.separator + fileName;
 
             List<File> workingFiles = pFiles.getRight ();
             workingFiles.add (modelFile);
+            cleanRemoteSubDirectory ();
             sendFiles(workingFiles);
             logger.debug(remoteName + "-> Working files sent");
 
             logger.debug(remoteName + "-> Starting DagSim model...");
             String command = String.format("%s %s", connSettings.getSolverPath(), remotePath);
             remoteMsg = connector.exec(command, getClass());
-
-            connector.exec (String.format ("rm -r %s", getRemoteWorkSubDirectory ()), getClass ());
 
             if (remoteMsg.contains("exit-status: 0")) {
                 stillNotOk = false;

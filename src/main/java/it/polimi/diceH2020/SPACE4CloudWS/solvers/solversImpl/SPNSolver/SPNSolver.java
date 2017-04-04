@@ -77,14 +77,17 @@ public class SPNSolver extends AbstractSolver {
         }
         String prefix = matcher.group(1);
 
-        String remoteDir = connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID();
-        connector.exec(String.format("mkdir -p %s", remoteDir), getClass());
 
-        String remotePath = remoteDir + File.separator + remoteName;
+
+        String remotePath = getRemoteSubDirectory () + File.separator + remoteName;
 
         boolean stillNotOk = true;
         for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
             logger.info(remoteName + "-> Starting Stochastic Petri Net simulation on the server");
+
+            cleanRemoteSubDirectory ();
+            connector.exec(String.format("mkdir -p %s", getRemoteSubDirectory ()), getClass());
+
             connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net", getClass());
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
@@ -112,8 +115,8 @@ public class SPNSolver extends AbstractSolver {
             logger.info(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
         } else {
-            List<String> remoteOutput = connector.exec(String.format("ls %s", remoteDir), getClass());
-            String remoteResultFile = remoteDir + File.separator;
+            List<String> remoteOutput = connector.exec(String.format("ls %s", getRemoteSubDirectory ()), getClass());
+            String remoteResultFile = getRemoteSubDirectory () + File.separator;
             try (BufferedReader reader = new BufferedReader(new StringReader(remoteOutput.get(0)))) {
                 remoteResultFile += reader.lines().filter(line -> line.contains("simres"))
                         .findAny().orElse(remoteName + ".simres");
@@ -126,7 +129,6 @@ public class SPNSolver extends AbstractSolver {
             String label = String.join ("", Files.readAllLines (statFile.toPath ()));
             double result = results.get(label);
             logger.info(remoteName + "-> GreatSPN model run.");
-            connector.exec(String.format("rm -rf %s", remoteDir), getClass());
 
             // TODO: this always returns false, should check if every error just throws
             return Pair.of(result, false);

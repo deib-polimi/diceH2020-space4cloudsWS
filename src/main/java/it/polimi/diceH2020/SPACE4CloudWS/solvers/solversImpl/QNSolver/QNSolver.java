@@ -57,13 +57,13 @@ public class QNSolver extends AbstractSolver {
 
 		String jmtFileName = jmtFile.getName();
 
-		String remotePath = connSettings.getRemoteWorkDir() + File.separator +
-				dataProcessor.getCurrentInputsSubFolderName() + File.separator + jmtFileName;
+		String remotePath = getRemoteSubDirectory () + File.separator + jmtFileName;
 
 		boolean stillNotOk = true;
 		for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
 			logger.info(remoteName + "-> Starting Queuing Net resolution on the server");
 
+			cleanRemoteSubDirectory ();
 			sendFiles(pFiles.getLeft());
 			sendFiles(pFiles.getRight());
 			logger.debug(remoteName + "-> Working files sent");
@@ -121,6 +121,7 @@ public class QNSolver extends AbstractSolver {
 			String name = file.getName();
 			Matcher mapMatcher = patternMap.matcher(name);
 			Matcher rsMatcher = patternRS.matcher(name);
+
 			String stringToBeReplaced = "";
 			if (mapMatcher.find()) {
 				stringToBeReplaced = mapMatcher.group(2).toUpperCase();
@@ -129,10 +130,9 @@ public class QNSolver extends AbstractSolver {
 			} else {
 				logger.error ("Replayer file name does not match the required regex");
 			}
+
 			logger.debug ("Pattern to replace in jsimg: "+ stringToBeReplaced);
-			//TODO + subfolder creation on Simulator
-			inputFilesSet.put(stringToBeReplaced, connSettings.getRemoteWorkDir() + File.separator +
-					dataProcessor.getCurrentInputsSubFolderName() + File.separator + file.getName());
+			inputFilesSet.put(stringToBeReplaced, getRemoteSubDirectory () + File.separator + file.getName());
 		}
 
 		Map<String,String> numMR = new HashMap<>();

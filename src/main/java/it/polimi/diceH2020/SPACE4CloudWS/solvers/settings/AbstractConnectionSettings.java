@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Created by ciavotta on 13/02/16.
- */
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractConnectionSettings implements ConnectionSettings {
     private String address;
 
@@ -47,22 +47,21 @@ public abstract class AbstractConnectionSettings implements ConnectionSettings {
 
     private String solverPath;
 
+    private boolean cleanRemote;
+
     protected AbstractConnectionSettings(AbstractConnectionSettings that) {
         super();
-        address = that.getAddress();
-        port = that.getPort();
-        username = that.getUsername();
-        password = that.getPassword();
-        privateKeyFile = that.getPrivateKeyFile();
-        knownHosts = that.getKnownHosts();
-        forceClean = that.isForceClean();
-        remoteWorkDir = that.getRemoteWorkDir();
-        accuracy = that.getAccuracy();
-        maxDuration = that.getMaxDuration();
-        solverPath = that.getSolverPath();
-    }
-
-    protected AbstractConnectionSettings() {
-        super();
+        address = that.address;
+        port = that.port;
+        username = that.username;
+        password = that.password;
+        privateKeyFile = that.privateKeyFile;
+        knownHosts = that.knownHosts;
+        forceClean = that.forceClean;
+        remoteWorkDir = that.remoteWorkDir;
+        accuracy = that.accuracy;
+        maxDuration = that.maxDuration;
+        solverPath = that.solverPath;
+        cleanRemote = that.cleanRemote;
     }
 }
