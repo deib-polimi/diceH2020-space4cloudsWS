@@ -1,4 +1,5 @@
 /*
+Copyright 2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
 Copyright 2016 Jacopo Rigoli
 
@@ -27,12 +28,11 @@ import javax.validation.constraints.Min;
 @ConfigurationProperties(prefix="ds4c")
 @Data
 public class DS4CSettings {
-	private boolean parallel= false;
+	private boolean parallel = false;
+
 	@Min(1)
 	private Integer availableCores = 1; //for fine Grained Optimization
-	
-	private boolean verbose = false;
-	
+
 	@NestedConfigurationProperty
 	private CacheSettings cache;
 }

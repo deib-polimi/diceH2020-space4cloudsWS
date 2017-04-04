@@ -20,7 +20,6 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfil
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.SVRFeature;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.Setter;
 import org.apache.log4j.Logger;
@@ -38,9 +37,6 @@ public class MLPredictor {
 
 	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
-
-	@Setter(onMethod = @__(@Autowired))
-	private DS4CSettings settings;
 
 	// caches SPJ, in order to recalculate only xi
 	// TODO @Cacheable
@@ -72,7 +68,7 @@ public class MLPredictor {
 		double xi = calculateXi(spj);
 		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
 
-		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
+		logger.debug ("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 
 		spj.setXi(xi);
 		spj.setDuration(deadline);
@@ -103,7 +99,7 @@ public class MLPredictor {
 		double xi = calculateXi(spj);
 		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
 
-		logVerbose("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
+		logger.debug ("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 
 		spj.setXi(xi);
 		spj.setDuration(deadline);
@@ -125,7 +121,7 @@ public class MLPredictor {
 		double w_h = features.getClassFeature("h").getW();
 
 		double result = mu_t + b * sigma_t - (sigma_t / sigma_x) * w_x * mu_x - (sigma_t / sigma_h) * w_h * mu_h;
-		logVerbose(
+		logger.debug (
 				"[SVR] Chi_0_mandatoryParameters = mu_t + b*sigma_t - (sigma_t/sigma_x)*w_x*mu_x - (sigma_t/sigma_h)*w_h*mu_h = "
 						+ mu_t + "+" + b + "*" + sigma_t + "- (" + sigma_t + "/" + sigma_x + ")*" + w_x + "*" + mu_x
 						+ "- (" + sigma_t + "/" + sigma_h + ")*" + w_h + "*" + mu_h + " \n= " + result);
@@ -138,7 +134,7 @@ public class MLPredictor {
 		double w_x = features.getClassFeature("x").getW();
 
 		double result = (sigma_t / sigma_x) * w_x;
-		logVerbose("[SVR] Chi_c = (sigma_t/sigma_x)*w_x = (" + sigma_t + "/" + sigma_x + ")*" + w_x + " = " + result);
+		logger.debug ("[SVR] Chi_c = (sigma_t/sigma_x)*w_x = (" + sigma_t + "/" + sigma_x + ")*" + w_x + " = " + result);
 		return result;
 	}
 
@@ -147,7 +143,7 @@ public class MLPredictor {
 		double sigma_h = features.getClassFeature("h").getSigma();
 		double w_h = features.getClassFeature("h").getW();
 		double result = (sigma_t / sigma_h) * w_h;
-		logVerbose("[SVR] Chi_h = (sigma_t/sigma_h)*w_h = (" + sigma_t + "/" + sigma_h + ")*" + w_h + " = " + result);
+		logger.debug ("[SVR] Chi_h = (sigma_t/sigma_h)*w_h = (" + sigma_t + "/" + sigma_h + ")*" + w_h + " = " + result);
 		return result;
 	}
 
@@ -157,7 +153,7 @@ public class MLPredictor {
 		double V = dataService.getNumCores(spj.getTypeVMselected().getId());
 		double v = spj.getJob().getV();
 		double xi = Math.min(M / m, V / v);
-		logVerbose("[SVR] xi = min(M/m,V/v) = min(" + M + "/" + m + "," + V + "/" + v + ") = " + xi);
+		logger.debug ("[SVR] xi = min(M/m,V/v) = min(" + M + "/" + m + "," + V + "/" + v + ") = " + xi);
 		return xi;
 	}
 
@@ -186,18 +182,14 @@ public class MLPredictor {
 			}
 		}
 
-		logVerbose("[SVR] Chi_0_optional_parameters: "+chi_0_optional_names+"\n"+"="+chi_0_optional_values+"\n = "+featureContribution);
+		logger.debug ("[SVR] Chi_0_optional_parameters: "+chi_0_optional_names+"\n"+"="+chi_0_optional_values+"\n = "+featureContribution);
 		double result = defaultParametersContribution + featureContribution;
-		logVerbose("[SVR] Chi_0 = Chi_0_mandatory_parameters + Chi_0_optional_parameters  = "+defaultParametersContribution+"+"+featureContribution +" = "+result);
+		logger.debug ("[SVR] Chi_0 = Chi_0_mandatory_parameters + Chi_0_optional_parameters  = "+defaultParametersContribution+"+"+featureContribution +" = "+result);
 
 		return result;
 	}
 
 	public void reinitialize() {
 		predictedSPJ = new HashMap<>();
-	}
-
-	private void logVerbose(String message) {//TODO define new custom Logger Level, or a wrapper class
-		if(settings.isVerbose()) logger.debug(message);
 	}
 }
