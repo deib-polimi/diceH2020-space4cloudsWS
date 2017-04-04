@@ -1,7 +1,5 @@
 /*
 Copyright 2017 Eugenio Gianniti
-Copyright 2016 Michele Ciavotta
-Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,24 +17,9 @@ package it.polimi.diceH2020.SPACE4CloudWS.main;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.Min;
-
-@Component
-@ConfigurationProperties(prefix="ds4c")
+@ConfigurationProperties(prefix = "optimization")
 @Data
-public class DS4CSettings {
-	private boolean parallel = false;
-
-	@Min(1)
-	private Integer availableCores = 1; //for fine Grained Optimization
-
-	@NestedConfigurationProperty
-	private CacheSettings cache;
-
-	@NestedConfigurationProperty
-	private OptimizationSettings optimization;
+public class OptimizationSettings {
+    private double tolerance;
 }
-

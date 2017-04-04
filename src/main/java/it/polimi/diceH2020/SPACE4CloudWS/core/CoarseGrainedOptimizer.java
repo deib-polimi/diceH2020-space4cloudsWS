@@ -96,7 +96,8 @@ class CoarseGrainedOptimizer extends Optimizer {
 			Predicate<Double> feasibilityCheck = currentSolver.feasibilityCheck (solPerJob, technology);
 			Consumer<Double> metricUpdater = currentSolver.metricUpdater (solPerJob, technology);
 
-			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs((prev - curr) / prev) <= 1e-2;
+			final double tolerance = settings.getOptimization ().getTolerance ();
+			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs((prev - curr) / prev) <= tolerance;
 
 			Function<Integer, Integer> updateFunction;
 			Predicate<Double> stoppingCondition;

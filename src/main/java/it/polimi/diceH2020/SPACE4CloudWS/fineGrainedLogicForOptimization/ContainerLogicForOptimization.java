@@ -1,4 +1,5 @@
 /*
+Copyright 2017 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,8 @@ package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
+import it.polimi.diceH2020.SPACE4CloudWS.main.OptimizationSettings;
+import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -32,11 +35,14 @@ import java.util.TreeMap;
 public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private final Logger logger = Logger.getLogger(ContainerLogicForOptimization.class.getName());
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private WrapperDispatcher dispatcher;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private FineGrainedOptimizer optimizer;
+
+	@Setter(onMethod = @__(@Autowired))
+	private OptimizationSettings settings;
 
 	private SolutionPerJob initialSpjWithGivenH;
 
@@ -90,7 +96,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		this.executionTime += executionTime;
 		if(!verifyFinalAssumption()){ //true se non posso piu ottenere migliori soluzioni(feasible or infeasible)
 			if(acceptableDurationDecrease()) //duration is decreasing enough
-				try{ 
+				try{
 					if(!sendNextEvent()){ //encode Next spj
 						logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
 						finished(-1); //not enough VM
@@ -123,7 +129,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		String printText = "";
 		printText += "\nJ"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
 		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
-		printText += "Calculated nVM: "+nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).map(e->e.toString()).reduce((t,u)->t+","+u).get()+"\n";
+		printText += "Calculated nVM: "+nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).map(Object::toString).reduce((t,u)->t+","+u).get()+"\n";
 		printText += "finished: "+finished+"\n";
 		printText += "deadline: "+initialSpjWithGivenH.getJob().getD()+"\n";
 		printText += "nVM feas duration\n";
@@ -191,14 +197,14 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private int recursiveBisection(int nVM){
 		if(nVMxSPJ.containsKey(nVM)){
 			return (int)Math.ceil((Math.min(maxVM, getMinVM_Feas()) + Math.max(minVM, getMaxVM_Infeas()))/2);
-		
+
 //			if(!nVMxSPJ.get(nVM).getFeasible()) return updateN(nVM+1);
 //			else return updateN(nVM-1);
 		}else{
 			return nVM;
 		}
 	}
-	
+
 	/**
 	 * Preconditions:
 	 * <ul>
@@ -209,8 +215,8 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	 *	QN, with negative nVM give me the result of |nVM|, so i cannot use negative nVM.... if SVR gives negative nVM evaluator must evaluate nVM > 0
 	 */
 	private synchronized int getNextN(){
-		int nextN = -1;
-		
+		int nextN;
+
 		if(nVMxSPJ.size() == 1){
 			SolutionPerJob lonelyEntry =nVMxSPJ.firstEntry().getValue();
 			if(lonelyEntry.getFeasible()){
@@ -236,42 +242,43 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			nextN = recursiveBisection(nextN);
 			predictedNVM_Hyperbola = nextN;
 		}
-			
-		
+
+
 		if(nextN>maxVM || nextN<minVM || nVMxSPJ.containsKey(nextN)){
 			System.out.println(" max:"+maxVM+" min:"+minVM+" next:"+nextN+" contain:"+nVMxSPJ.containsKey(nextN));
 			logger.info("Error with preconditions!");
 			return -1;
 		}
-		
+
 		return nextN;
 	}
-	
+
 	private int checkNVMAgainstRange(int nVM){
 		nVM = Math.min(nVM, getMinVM_Feas());
 		nVM = Math.max(nVM, getMaxVM_Infeas());
 		return nVM;
 	}
-	
+
 	private int getMinVM_Feas(){
 		int n = maxVM;
 		Optional<SolutionPerJob> nvm = nVMxSPJ.values().stream().filter(SolutionPerJob::getFeasible).filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(nvm.isPresent()) n = nvm.get().getNumberVM();
 		return n;
 	}
-	
+
 	private int getMaxVM_Infeas(){
 		int n = minVM;
 		Optional<SolutionPerJob> nvm = nVMxSPJ.values().stream().filter(s->!s.getFeasible()).filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).max(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(nvm.isPresent()) n = nvm.get().getNumberVM();
 		return n;
 	}
-	
-	private int hyperbolicAssestment(SolutionPerJob spj1, SolutionPerJob spj2){
-		int nVM = (int) Math.ceil(getPointCoordinateOnHyperbola(spj1.getNumberVM(), spj1.getDuration(), spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD())); //ceil, because first i look for the feasible sol
-		return nVM;
+
+	private int hyperbolicAssestment (SolutionPerJob spj1, SolutionPerJob spj2) {
+		// ceil, because first i look for the feasible sol
+		return (int) Math.ceil(getPointCoordinateOnHyperbola(spj1.getNumberVM(), spj1.getDuration(),
+				spj2.getNumberVM(), spj2.getDuration(), initialSpjWithGivenH.getJob().getD()));
 	}
-	
+
 	/**
 	 * From a hyperbola given two points coordinates and a third point y coordinate
 	 * retrieves this third point x coordinate.
@@ -293,12 +300,10 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		if(nVMxSPJ.firstEntry().getValue().getFeasible() && nVMxSPJ.firstEntry().getValue().getNumberVM() == minVM) return minVM;
 
 		//Check for alternate feasibility: I->F
-		for(int i = nVMxSPJ.firstKey(); i <= nVMxSPJ.lastKey(); i++){
-
+		for (int i = nVMxSPJ.firstKey(); i <= nVMxSPJ.lastKey(); ++i) {
 			if( ! nVMxSPJ.containsKey(i) ){
 				prevFeasibility = -1;
-				continue;
-			}else{
+			} else {
 				//adjacent spj check
 				int currFeasibility;
 				if(nVMxSPJ.get(i).getFeasible()) currFeasibility = 1;
@@ -314,14 +319,11 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 
 	private boolean acceptableDurationDecrease(){
 		double prevDuration = 0;
-		for(int i = nVMxSPJ.firstKey(); i <= nVMxSPJ.lastKey(); i++){
-			if( ! nVMxSPJ.containsKey(i) ){
-				continue;
-			}else{
+		for (int i = nVMxSPJ.firstKey(); i <= nVMxSPJ.lastKey(); ++i) {
+			if (nVMxSPJ.containsKey(i)) {
 				double currentDuration = nVMxSPJ.get(i).getDuration();
-				if(!nVMxSPJ.get(i).getFeasible()){
-					if(Math.abs(currentDuration - prevDuration) < 80 ){ //abs not required
-						prevDuration = currentDuration;
+				if (! nVMxSPJ.get(i).getFeasible()) {
+					if (Math.abs((currentDuration - prevDuration) / prevDuration) < settings.getTolerance () ) {
 						return false;
 					}
 					prevDuration = currentDuration;
@@ -345,27 +347,20 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	 * 			when already sent spjs arrive
 	 */
 	private boolean verifyFinalAssumption(){
-		if(nVMxSPJ.firstEntry().getValue().getFeasible() && nVMxSPJ.firstEntry().getValue().getNumberVM()==minVM) return true;
-		if(!nVMxSPJ.lastEntry().getValue().getFeasible() && nVMxSPJ.lastEntry().getValue().getNumberVM()==maxVM) return true;
-		if(solutionPresent()) return true;
-
-		return false;
+		return (nVMxSPJ.firstEntry().getValue().getFeasible() && nVMxSPJ.firstEntry().getValue().getNumberVM() == minVM)
+				|| (! nVMxSPJ.lastEntry().getValue().getFeasible() && nVMxSPJ.lastEntry().getValue().getNumberVM() == maxVM)
+				|| solutionPresent ();
 	}
-	
+
 	private boolean solutionPresent(){
 		if(nVMxSPJ.size()<2) return false;
 		Optional<SolutionPerJob> sol = nVMxSPJ.values().stream().filter(s->s.getNumberVM()>=minVM).filter(s->s.getNumberVM()<=maxVM).filter(SolutionPerJob::getFeasible).min(Comparator.comparingInt(SolutionPerJob::getNumberVM));
 		if(!sol.isPresent()) return false;
-		
+
 		if(nVMxSPJ.containsKey(sol.get().getNumberVM()-1)){
 			if(!nVMxSPJ.get(sol.get().getNumberVM()-1).getFeasible()) return true;
 		}
 		return false;
-	}
-	
-
-	public boolean isFinished() {
-		return finished;
 	}
 
 	private int getInitialNVM(){
