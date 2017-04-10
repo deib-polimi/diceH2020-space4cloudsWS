@@ -1,7 +1,7 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Michele Ciavotta
 Copyright 2016 Jacopo Rigoli
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class SolutionBuilder extends Builder {
 
 	private boolean error;
 
-	Solution getInitialSolution() throws Exception {
+	Solution getInitialSolution() {
 		Instant first = Instant.now();
 		error = false;
 		String instanceId = dataService.getData().getId();

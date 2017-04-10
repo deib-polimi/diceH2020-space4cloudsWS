@@ -1,6 +1,6 @@
 /*
+Copyright 2016-2017 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
-Copyright 2016 Eugenio Gianniti
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -46,9 +46,8 @@ class MatrixBuilder extends Builder {
 	/**
 	 *
 	 * @return Initialized Solution with its initialized SolutionPerJob
-	 * @throws Exception
 	 */
-	Solution getInitialSolution() throws Exception {
+	Solution getInitialSolution() {
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
@@ -94,14 +93,15 @@ class MatrixBuilder extends Builder {
 					Optional<SolutionPerJob> min = mapResults.entrySet().stream().min(
 							Map.Entry.comparingByValue()).map(Map.Entry::getKey);
 					error = true;
+					final int j = i;
 					min.ifPresent(s -> {
 						error = false;
 						TypeVM minTVM = s.getTypeVMselected();
+						matrixLine[j] = s;
 						logger.info("For job class " + s.getId() + " with H="+s.getNumberUsers()+ " has been selected the machine " + minTVM.getId());
 					});
-					matrixLine[i] = min.get();
 				}
-				i++;
+				++i;
 			}
 			matrix.put(matrixRow.getKey(), matrixLine);
 		}
