@@ -20,6 +20,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParame
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,10 +35,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 class MatrixBuilder extends Builder {
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
-	@Autowired
+
+	@Setter(onMethod = @__(@Autowired))
 	private IEvaluator evaluator;
+
 	private boolean error;
 
 	/**
@@ -68,7 +71,6 @@ class MatrixBuilder extends Builder {
 	 */
 	Matrix getInitialMatrix(Solution solution){
 		Instant first = Instant.now();
-		approximator.reinitialize();
 		Matrix tmpMatrix = createTmpMatrix(solution);
 		Matrix matrix = new Matrix();
 

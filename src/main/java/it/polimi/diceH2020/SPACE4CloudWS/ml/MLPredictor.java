@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -38,21 +37,13 @@ public class MLPredictor {
 	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
-	// caches SPJ, in order to recalculate only xi
-	// TODO @Cacheable
-	private Map<String, MLPrediction> predictedSPJ = new HashMap<>();
-
 	/**
 	 * Precondition: DataService has M,V (received from JSON or retrieved from
 	 * DB) SolutionPerJob has h,m,v,D and all the required parameters in
 	 * JobMLProfile
 	 */
 	public void approximateWithSVR(SolutionPerJob spj) {
-		if (predictedSPJ.containsKey(spj.getId())) {
-			retrievePrediction(spj);
-		} else {
-			calculatePrediction(spj);
-		}
+		calculatePrediction(spj);
 	}
 
 	private void calculatePrediction(SolutionPerJob spj) {
@@ -74,7 +65,6 @@ public class MLPredictor {
 		spj.setDuration(deadline);
 		spj.updateNumberContainers(c);
 		validate(spj);
-		predictedSPJ.put(spj.getId(), new MLPrediction(deadline, chi_c, chi_h, chi_0));
 	}
 
 	private void validate(SolutionPerJob spj) {
@@ -84,27 +74,6 @@ public class MLPredictor {
 		}else{
 			logger.info("[SVR] SolutionPerJob #VM has been updated to "+spj.getNumberVM()+".");
 		}
-	}
-
-	private void retrievePrediction(SolutionPerJob spj) {
-		MLPrediction prediction = predictedSPJ.get(spj.getId());
-
-		double deadline = prediction.getDeadline();
-		double chi_c = prediction.getChi_c();
-		double chi_h = prediction.getChi_h();
-		double chi_0 = prediction.getChi_0();
-
-		int h = spj.getNumberUsers();
-
-		double xi = calculateXi(spj);
-		int c = (int) Math.ceil(chi_c / (deadline - chi_h * h - chi_0));
-
-		logger.debug ("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
-
-		spj.setXi(xi);
-		spj.setDuration(deadline);
-		spj.updateNumberContainers(c);
-		validate(spj);
 	}
 
 	private double calculateDefaultParametersContribution(JobMLProfile features) {
@@ -187,9 +156,5 @@ public class MLPredictor {
 		logger.debug ("[SVR] Chi_0 = Chi_0_mandatory_parameters + Chi_0_optional_parameters  = "+defaultParametersContribution+"+"+featureContribution +" = "+result);
 
 		return result;
-	}
-
-	public void reinitialize() {
-		predictedSPJ = new HashMap<>();
 	}
 }

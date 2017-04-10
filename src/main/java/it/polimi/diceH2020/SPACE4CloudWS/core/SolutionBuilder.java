@@ -21,6 +21,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParame
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,15 +36,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 class SolutionBuilder extends Builder {
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
-	@Autowired
+
+	@Setter(onMethod = @__(@Autowired))
 	private IEvaluator evaluator;
+
 	private boolean error;
 
 	Solution getInitialSolution() throws Exception {
 		Instant first = Instant.now();
-		approximator.reinitialize();
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
