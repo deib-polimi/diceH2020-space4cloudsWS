@@ -18,7 +18,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.FineGrainedOptimizer;
-import it.polimi.diceH2020.SPACE4CloudWS.main.OptimizationSettings;
+import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private FineGrainedOptimizer optimizer;
 
 	@Setter(onMethod = @__(@Autowired))
-	private OptimizationSettings settings;
+	private DS4CSettings settings;
 
 	private SolutionPerJob initialSpjWithGivenH;
 
@@ -323,7 +323,8 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			if (nVMxSPJ.containsKey(i)) {
 				double currentDuration = nVMxSPJ.get(i).getDuration();
 				if (! nVMxSPJ.get(i).getFeasible()) {
-					if (Math.abs((currentDuration - prevDuration) / prevDuration) < settings.getTolerance () ) {
+					if (Math.abs((currentDuration - prevDuration) / prevDuration)
+							< settings.getOptimization ().getTolerance ()) {
 						return false;
 					}
 					prevDuration = currentDuration;
