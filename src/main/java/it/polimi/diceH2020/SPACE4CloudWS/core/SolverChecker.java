@@ -35,11 +35,13 @@ class SolverChecker {
                             dataProcessor.changeSettings(override);
                             break;
                         case MAPREDUCE:
-                            boolean needsSPN = hasSPNInputFiles (dataProcessor, solution);
-                            if (needsSPN) {
-                                override.setSolver (SolverType.SPNSolver);
-                                dataProcessor.changeSettings (override);
-                            }
+                            boolean needsSPN = hasModelInputFiles (dataProcessor, solution, ".net");
+                            if (needsSPN) override.setSolver (SolverType.SPNSolver);
+
+                            boolean needsQN = hasModelInputFiles (dataProcessor, solution, ".jsimg");
+                            if (needsQN) override.setSolver (SolverType.QNSolver);
+
+                            if (needsQN || needsSPN)  dataProcessor.changeSettings (override);
                             break;
                         default:
                             throw new RuntimeException ("The required technology is still not implemented");
@@ -48,10 +50,14 @@ class SolverChecker {
         return solution.getScenario().map(Scenarios::getSwn).orElse(SPNModel.MAPREDUCE);
     }
 
-    private static boolean hasSPNInputFiles (DataProcessor dataProcessor, Solution solution) {
-        long netFilesCount = solution.getLstSolutions ().stream ().mapToLong (solutionPerJob ->
-                dataProcessor.getSPNFiles (".net", solution.getId (), solutionPerJob.getId (),
-                        solution.getProvider (), solutionPerJob.getTypeVMselected ().getId ()).size ()).sum ();
-        return netFilesCount > 0;
+    private static boolean hasModelInputFiles (DataProcessor dataProcessor, Solution solution, String extension) {
+        long modelFilesCount = solution.getLstSolutions ().stream ().mapToLong (
+                solutionPerJob ->
+                        dataProcessor.retrieveInputFiles (extension, solution.getId (), solutionPerJob.getId (),
+                                solution.getProvider (),
+                                solutionPerJob.getTypeVMselected ().getId ()).size ()
+        ).sum ();
+
+        return modelFilesCount > 0;
     }
 }

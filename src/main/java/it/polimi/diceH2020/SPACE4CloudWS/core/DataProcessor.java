@@ -159,13 +159,8 @@ public class DataProcessor {
 				.filter(s -> s.getName().contains(solutionID)).collect(Collectors.toList());
 	}
 
-	public List<File> getCurrentReplayerInputFiles(String solutionID, String spjID,
-												   String provider, String typeVM) {
-		return filterFiles (getCurrentInputFiles (".txt"), solutionID, spjID, provider, typeVM);
-	}
-
-	public List<File> getSPNFiles(String extension, String solutionID, String spjID,
-								  String provider, String typeVM) {
+	public List<File> retrieveInputFiles (String extension, String solutionID, String spjID,
+										  String provider, String typeVM) {
 		return filterFiles (getCurrentInputFiles (extension), solutionID, spjID, provider, typeVM);
 	}
 }

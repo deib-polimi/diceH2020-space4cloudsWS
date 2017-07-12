@@ -26,15 +26,22 @@ import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Setter;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -49,12 +56,9 @@ import java.util.regex.Pattern;
 public class SPNSolver extends AbstractSolver {
 
     private final static Pattern prefixRegex = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net");
-    private final static Pattern coresRegex = Pattern.compile ("(?<name>[-\\w]+)\\s+@@CORES@@");
 
     @Setter(onMethod = @__(@Autowired))
     private DataProcessor dataProcessor;
-
-    private boolean embeddedModel;
 
     @Override
     protected Class<? extends ConnectionSettings> getSettingsClass() {
@@ -77,8 +81,6 @@ public class SPNSolver extends AbstractSolver {
         }
         String prefix = matcher.group(1);
 
-
-
         String remotePath = getRemoteSubDirectory () + File.separator + remoteName;
 
         boolean stillNotOk = true;
@@ -92,12 +94,8 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            if (embeddedModel) {
-                connector.sendFile (statFile.getAbsolutePath (), remotePath + ".stat", getClass ());
-                logger.debug (remoteName + "-> GreatSPN .stat file sent");
-            } else {
-                logger.debug (remoteName + "-> GreatSPN .stat file not used");
-            }
+            connector.sendFile (statFile.getAbsolutePath (), remotePath + ".stat", getClass ());
+            logger.debug (remoteName + "-> GreatSPN .stat file sent");
 
             String command = String.format("%s %s -a %f -c %d", connSettings.getSolverPath(), remotePath,
                     connSettings.getAccuracy(), ((SPNSettings) connSettings).getConfidence().getFlag());
@@ -140,52 +138,49 @@ public class SPNSolver extends AbstractSolver {
             throws IOException {
         Pair<List<File>, List<File>> returnValue;
 
-        List<File> netFileList = dataProcessor.getSPNFiles (".net", solutionPerJob.getParentID(),
+        List<File> netFileList = dataProcessor.retrieveInputFiles (".net", solutionPerJob.getParentID(),
                 solutionPerJob.getId(), dataProcessor.getProviderName(), solutionPerJob.getTypeVMselected().getId());
-        List<File> defFileList = dataProcessor.getSPNFiles (".def", solutionPerJob.getParentID(),
+        List<File> defFileList = dataProcessor.retrieveInputFiles (".def", solutionPerJob.getParentID(),
+                solutionPerJob.getId(), dataProcessor.getProviderName(), solutionPerJob.getTypeVMselected().getId());
+        List<File> statFileList = dataProcessor.retrieveInputFiles (".stat", solutionPerJob.getParentID(),
                 solutionPerJob.getId(), dataProcessor.getProviderName(), solutionPerJob.getTypeVMselected().getId());
 
         final String experiment = String.format ("%s, class %s, provider %s, VM %s",
                 solutionPerJob.getParentID (), solutionPerJob.getId (), dataProcessor.getProviderName (),
                 solutionPerJob.getTypeVMselected ().getId ());
 
-        if (netFileList.isEmpty () || defFileList.isEmpty ()) {
+        if (netFileList.isEmpty () || defFileList.isEmpty () || statFileList.isEmpty ()) {
             logger.debug (String.format ("Generating SPN model for %s", experiment));
-            embeddedModel = true;
             returnValue = generateSPNModel (solutionPerJob);
         } else {
             logger.debug (String.format ("Using input SPN model for %s", experiment));
-            embeddedModel = false;
 
             // TODO now it just takes the first file, I would expect a single file per list
             File inputNetFile = netFileList.get (0);
             File inputDefFile = defFileList.get (0);
+            File inputStatFile = statFileList.get (0);
 
             String prefix = filePrefix (solutionPerJob);
 
             Map<String, String> defFilePlaceholders = new TreeMap<>();
             defFilePlaceholders.put ("@@CONCURRENCY@@",
                     Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
-            Pair<List<String>, Optional<String>> outcomes =
-                    processPlaceholders (inputDefFile, defFilePlaceholders, false);
+            List<String> outcomes = processPlaceholders (inputDefFile, defFilePlaceholders);
 
             File defFile = fileUtility.provideTemporaryFile (prefix, ".def");
-            writeLinesToFile (outcomes.getLeft (), defFile);
+            writeLinesToFile (outcomes, defFile);
 
             Map<String, String> netFilePlaceholders = new TreeMap<>();
             netFilePlaceholders.put ("@@CORES@@", Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ()));
-            outcomes = processPlaceholders (inputNetFile, netFilePlaceholders, true);
+            outcomes = processPlaceholders (inputNetFile, netFilePlaceholders);
 
             File netFile = fileUtility.provideTemporaryFile (prefix, ".net");
-            writeLinesToFile (outcomes.getLeft(), netFile);
+            writeLinesToFile (outcomes, netFile);
 
-            if (! outcomes.getRight ().isPresent ()) {
-                throw new RuntimeException (String.format ("@@CORES@@ placeholder not found in '%s' file",
-                        netFile.getName ()));
-            }
-            File statFile = writeStatFile (solutionPerJob, outcomes.getRight().get());
+            File statFile = fileUtility.provideTemporaryFile (prefix, ".stat");
+            FileUtils.copyFile (inputStatFile, statFile);
 
-            List<File> model = new ArrayList<> ();
+            List<File> model = new ArrayList<> (3);
             model.add (netFile);
             model.add (defFile);
             model.add (statFile);
@@ -193,34 +188,6 @@ public class SPNSolver extends AbstractSolver {
         }
 
         return returnValue;
-    }
-
-    private @NotNull Pair<List<String>, Optional<String>> processPlaceholders(@NotNull File templateFile,
-                                                                              @NotNull Map<String, String> nameValueMap,
-                                                                              boolean lookForLabel) throws IOException {
-        List<String> lines = new LinkedList<>();
-        Optional<String> maybeLabel = Optional.empty();
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(templateFile))) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                if (lookForLabel) {
-                    Matcher match = coresRegex.matcher(line);
-                    if (match.find()) {
-                        maybeLabel = Optional.of(match.group("name"));
-                    }
-                }
-
-                for (Map.Entry<String, String> entry: nameValueMap.entrySet()) {
-                    line = line.replace(entry.getKey(), entry.getValue());
-                }
-
-                lines.add(line);
-            }
-        }
-
-        return Pair.of(lines, maybeLabel);
     }
 
     private Pair<List<File>, List<File>> generateSPNModel(@NotNull SolutionPerJob solPerJob) throws IOException {
@@ -252,7 +219,7 @@ public class SPNSolver extends AbstractSolver {
         String label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
         File statFile = writeStatFile (solPerJob, label);
 
-        List<File> lst = new ArrayList<>(2);
+        List<File> lst = new ArrayList<>(3);
         lst.add(netFile);
         lst.add(defFile);
         lst.add(statFile);
@@ -306,14 +273,5 @@ public class SPNSolver extends AbstractSolver {
         File statFile = fileUtility.provideTemporaryFile(prefix, ".stat");
         fileUtility.writeContentToFile(String.format ("%s\n", label), statFile);
         return statFile;
-    }
-
-    private void writeLinesToFile(@NotNull List<String> lines, @NotNull File outputFile) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter (new FileWriter (outputFile))) {
-            for (String line: lines) {
-                writer.write (line);
-                writer.newLine ();
-            }
-        }
     }
 }

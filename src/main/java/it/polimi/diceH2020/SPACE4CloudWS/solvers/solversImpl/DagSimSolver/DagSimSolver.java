@@ -58,7 +58,7 @@ public class DagSimSolver extends AbstractSolver {
                 .setMaxJobs(((DagSimSettings) connSettings).getEvents())
                 .setQuantile(((DagSimSettings) connSettings).getConfidence().getQuantile());
 
-        List<File> replayerFiles = retrieveReplayerFiles (solPerJob);
+        List<File> replayerFiles = retrieveInputFiles (solPerJob, ".txt");
         Map<String, Set<String>> successors = dataService.getData ().getMapDags ()
                 .get (solPerJob.getId ()).getSuccessors ();
         Map<String, Set<String>> predecessors = flipDirectedEdges (successors);

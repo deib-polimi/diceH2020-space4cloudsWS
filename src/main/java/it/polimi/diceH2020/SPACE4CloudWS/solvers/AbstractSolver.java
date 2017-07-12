@@ -35,12 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import javax.validation.constraints.NotNull;
+import java.io.*;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -153,12 +150,12 @@ public abstract class AbstractSolver implements Solver {
         }
     }
 
-    protected List<File> retrieveReplayerFiles (@NonNull SolutionPerJob solutionPerJob) {
+    protected List<File> retrieveInputFiles (@NonNull SolutionPerJob solutionPerJob, String extension) {
         String solutionID = solutionPerJob.getParentID();
         String spjID = solutionPerJob.getId();
         String provider = dataProcessor.getProviderName();
         String typeVM = solutionPerJob.getTypeVMselected().getId();
-        return dataProcessor.getCurrentReplayerInputFiles(solutionID, spjID, provider, typeVM);
+        return dataProcessor.retrieveInputFiles(extension, solutionID, spjID, provider, typeVM);
     }
 
     protected void sendFiles(List<File> lstFiles) {
@@ -200,5 +197,34 @@ public abstract class AbstractSolver implements Solver {
     @Override
     public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
         return solutionPerJob::setDuration;
+    }
+
+    protected void writeLinesToFile(@NotNull List<String> lines, @NotNull File outputFile) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter (new FileWriter (outputFile))) {
+            for (String line: lines) {
+                writer.write (line);
+                writer.newLine ();
+            }
+        }
+    }
+
+    protected  @NotNull List<String>
+    processPlaceholders (@NotNull File templateFile,
+                         @NotNull Map<String, String> nameValueMap) throws IOException {
+        List<String> lines = new LinkedList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(templateFile))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                for (Map.Entry<String, String> entry: nameValueMap.entrySet()) {
+                    line = line.replace(entry.getKey(), entry.getValue());
+                }
+
+                lines.add(line);
+            }
+        }
+
+        return lines;
     }
 }

@@ -29,10 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -99,12 +96,51 @@ public class QNSolver extends AbstractSolver {
 		}
 	}
 
-	public Pair<List<File>, List<File>> createWorkingFiles(@NonNull SolutionPerJob solPerJob) throws IOException {
-		List<File> lst = retrieveReplayerFiles (solPerJob);
+	@Override
+	protected Pair<List<File>, List<File>>
+	createWorkingFiles(@NonNull SolutionPerJob solutionPerJob) throws IOException {
+		Pair<List<File>, List<File>> returnValue;
+
+		List<File> jsimgFileList = retrieveInputFiles (solutionPerJob, ".jsimg");
+
+		final String experiment = String.format ("%s, class %s, provider %s, VM %s",
+				solutionPerJob.getParentID (), solutionPerJob.getId (), dataProcessor.getProviderName (),
+				solutionPerJob.getTypeVMselected ().getId ());
+
+		if (jsimgFileList.isEmpty ()) {
+			logger.debug (String.format ("Generating QN model for %s", experiment));
+			returnValue = generateQNModel (solutionPerJob);
+		} else {
+			logger.debug (String.format ("Using input QN model for %s", experiment));
+
+			// TODO now it just takes the first file, I would expect a single file per list
+			File inputJsimgFile = jsimgFileList.get (0);
+
+			final String prefix = buildPrefix (solutionPerJob);
+
+			Map<String, String> jsimgFilePlaceholders = new TreeMap<>();
+			jsimgFilePlaceholders.put ("@@CORES@@",
+					Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ()));
+			jsimgFilePlaceholders.put ("@@CONCURRENCY@@",
+					Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
+			List<String> outcomes = processPlaceholders (inputJsimgFile, jsimgFilePlaceholders);
+
+			File jsimgFile = fileUtility.provideTemporaryFile (prefix, ".jsimg");
+			writeLinesToFile (outcomes, jsimgFile);
+
+			List<File> model = new ArrayList<> (1);
+			model.add (jsimgFile);
+			returnValue = new ImmutablePair<> (model, new ArrayList<> ());
+		}
+
+		return returnValue;
+	}
+
+	private Pair<List<File>, List<File>> generateQNModel (@NonNull SolutionPerJob solPerJob) throws IOException {
+		List<File> replayerFiles = retrieveInputFiles (solPerJob, ".txt");
 		Integer nContainers = solPerJob.getNumberContainers();
 		Integer concurrency = solPerJob.getNumberUsers();
 		Double think = solPerJob.getJob().getThink();
-		String jobID = solPerJob.getId();
 
 		QueueingNetworkModel model = ((QNSettings) connSettings).getModel();
 		int nMR = (int) solPerJob.getProfile().getProfileMap().keySet().stream().filter(s -> {
@@ -117,7 +153,7 @@ public class QNSolver extends AbstractSolver {
 		}
 
 		Map<String,String> inputFilesSet = new HashMap<>();
-		for (File file : lst) {
+		for (File file : replayerFiles) {
 			String name = file.getName();
 			Matcher mapMatcher = patternMap.matcher(name);
 			Matcher rsMatcher = patternRS.matcher(name);
@@ -152,14 +188,18 @@ public class QNSolver extends AbstractSolver {
 				.setThinkRate(1 / think).setAccuracy(connSettings.getAccuracy() / 100)
 				.setSignificance(((QNSettings) connSettings).getSignificance()).build();
 
-		File jsimgTempFile = fileUtility.provideTemporaryFile(String.format("QN-%s-class%s%s%s-",
-				solPerJob.getParentID(), jobID, dataProcessor.getProviderName(),
-				solPerJob.getTypeVMselected().getId()), ".jsimg");
-
+		File jsimgTempFile = fileUtility.provideTemporaryFile(buildPrefix (solPerJob), ".jsimg");
 		fileUtility.writeContentToFile(jsimgfileContent, jsimgTempFile);
-		List<File> jmtModel = new ArrayList<>();
+
+		List<File> jmtModel = new ArrayList<>(1);
 		jmtModel.add(jsimgTempFile);
-		return new ImmutablePair<>(jmtModel, lst);
+		return new ImmutablePair<>(jmtModel, replayerFiles);
+	}
+
+	private @NonNull  String buildPrefix (@NonNull SolutionPerJob solutionPerJob) {
+		return String.format("QN-%s-class%s-%s-%s-", solutionPerJob.getParentID (),
+				solutionPerJob.getId (), dataProcessor.getProviderName (),
+				solutionPerJob.getTypeVMselected ().getId ());
 	}
 
 	@Override
