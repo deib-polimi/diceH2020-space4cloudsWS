@@ -26,7 +26,6 @@ import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Setter;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +55,12 @@ import java.util.regex.Pattern;
 public class SPNSolver extends AbstractSolver {
 
     private final static Pattern prefixRegex = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net");
+    private final static String statSafeLabel = "SafeNameForStatFileButLongEnoughToBeImplausible";
 
     @Setter(onMethod = @__(@Autowired))
     private DataProcessor dataProcessor;
+
+    private String label;
 
     @Override
     protected Class<? extends ConnectionSettings> getSettingsClass() {
@@ -124,7 +126,6 @@ public class SPNSolver extends AbstractSolver {
             Map<String, Double> results = new PNSimResFileParser(solFile).parse();
             if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
 
-            String label = String.join ("", Files.readAllLines (statFile.toPath ()));
             double result = results.get(label);
             logger.info(remoteName + "-> GreatSPN model run.");
 
@@ -161,10 +162,13 @@ public class SPNSolver extends AbstractSolver {
             File inputStatFile = statFileList.get (0);
 
             String prefix = filePrefix (solutionPerJob);
+            final String originalLabel = String.join ("", Files.readAllLines (inputStatFile.toPath ()));
+            label = statSafeLabel;
 
             Map<String, String> defFilePlaceholders = new TreeMap<>();
             defFilePlaceholders.put ("@@CONCURRENCY@@",
                     Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
+            defFilePlaceholders.put (originalLabel, label);
             List<String> outcomes = processPlaceholders (inputDefFile, defFilePlaceholders);
 
             File defFile = fileUtility.provideTemporaryFile (prefix, ".def");
@@ -172,13 +176,16 @@ public class SPNSolver extends AbstractSolver {
 
             Map<String, String> netFilePlaceholders = new TreeMap<>();
             netFilePlaceholders.put ("@@CORES@@", Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ()));
+            netFilePlaceholders.put (originalLabel, label);
             outcomes = processPlaceholders (inputNetFile, netFilePlaceholders);
 
             File netFile = fileUtility.provideTemporaryFile (prefix, ".net");
             writeLinesToFile (outcomes, netFile);
 
             File statFile = fileUtility.provideTemporaryFile (prefix, ".stat");
-            FileUtils.copyFile (inputStatFile, statFile);
+            List<String> statContent = new ArrayList<> (1);
+            statContent.add (label);
+            writeLinesToFile (statContent, statFile);
 
             List<File> model = new ArrayList<> (3);
             model.add (netFile);
@@ -216,7 +223,7 @@ public class SPNSolver extends AbstractSolver {
         File defFile = fileUtility.provideTemporaryFile(prefix, ".def");
         fileUtility.writeContentToFile(defFileContent, defFile);
 
-        String label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
+        label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
         File statFile = writeStatFile (solPerJob, label);
 
         List<File> lst = new ArrayList<>(3);
