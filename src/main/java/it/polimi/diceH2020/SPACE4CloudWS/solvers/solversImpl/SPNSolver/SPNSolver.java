@@ -166,20 +166,17 @@ public class SPNSolver extends AbstractSolver {
             final String originalLabel = String.join ("", Files.readAllLines (inputStatFile.toPath ()));
             label = statSafeLabel;
 
-            Map<String, String> defFilePlaceholders = new TreeMap<>();
-            defFilePlaceholders.put ("@@CONCURRENCY@@",
+            Map<String, String> placeHolders = new TreeMap<>();
+            placeHolders.put ("@@CONCURRENCY@@",
                     Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
-            defFilePlaceholders.put (originalLabel, label);
-            List<String> outcomes = processPlaceholders (inputDefFile, defFilePlaceholders);
+            placeHolders.put ("@@CORES@@",
+                    Long.toUnsignedString (solutionPerJob.getNumberContainers ().longValue ()));
+            placeHolders.put (originalLabel, label);
+            List<String> outcomes = processPlaceholders (inputDefFile, placeHolders);
 
             File defFile = fileUtility.provideTemporaryFile (prefix, ".def");
             writeLinesToFile (outcomes, defFile);
-
-            Map<String, String> netFilePlaceholders = new TreeMap<>();
-            netFilePlaceholders.put ("@@CORES@@",
-                    Long.toUnsignedString (solutionPerJob.getNumberContainers ().longValue ()));
-            netFilePlaceholders.put (originalLabel, label);
-            outcomes = processPlaceholders (inputNetFile, netFilePlaceholders);
+            outcomes = processPlaceholders (inputNetFile, placeHolders);
 
             File netFile = fileUtility.provideTemporaryFile (prefix, ".net");
             writeLinesToFile (outcomes, netFile);
