@@ -1,4 +1,5 @@
 /*
+Copyright 2017 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +16,13 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -38,15 +44,19 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>> {
 
 	private final Logger logger = Logger.getLogger(getClass());
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private EventBus eventBus;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private WrapperDispatcher dispatcher;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private SolverProxy solverCache;
 
+	@Setter(onMethod = @__(@Autowired))
+	private DataService dataService;
+
+	@Getter
 	private int id;
 
 	public ReactorConsumer(int id) {
@@ -66,7 +76,7 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>> {
 		SolutionPerJob spj = ev.getData().getSpj();
 		ContainerLogicGivenH containerLogic = ev.getData().getHandler();
 		logger.info("|Q-STATUS| received spjWrapper"+spj.getId()+"."+spj.getNumberUsers()+" on channel"+id+"\n");
-		Pair<Boolean, Long> solverResult = calculateDuration(spj);
+		Pair<Boolean, Long> solverResult = runSolver (spj);
 		long exeTime = solverResult.getRight();
 		if (solverResult.getLeft()) {
 			containerLogic.registerCorrectSolutionPerJob(spj, exeTime);
@@ -76,34 +86,23 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>> {
 		dispatcher.notifyReadyChannel(this);
 	}
 
-	private Pair<Boolean, Long> calculateDuration(SolutionPerJob solPerJob) {
+	private Pair<Boolean, Long> runSolver (SolutionPerJob solPerJob) {
 		Pair<Optional<Double>, Long> solverResult = solverCache.evaluate(solPerJob);
-		Optional<Double> duration = solverResult.getLeft();
+		Optional<Double> solverMetric = solverResult.getLeft();
 		long runtime = solverResult.getRight();
-		if (duration.isPresent()) {
-			solPerJob.setDuration(duration.get());
-			evaluateFeasibility(solPerJob);
+
+		if (solverMetric.isPresent()) {
+			Solver solver = solverCache.getSolver ();
+			SPNModel technology = dataService.getScenario ().getSwn ();
+			Double mainMetric = solver.transformationFromSolverResult (
+					solPerJob, technology).apply (solverMetric.get ());
+			solver.metricUpdater (solPerJob, technology).accept (mainMetric);
+			boolean feasible = solver.feasibilityCheck (solPerJob, technology).test (mainMetric);
+			solPerJob.setFeasible (feasible);
 			return new ImmutablePair<>(true, runtime);
 		}
+
 		solverCache.invalidate(solPerJob);
 		return new ImmutablePair<>(false, runtime);
 	}
-
-	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {
-		if (solPerJob.getDuration() <= solPerJob.getJob().getD()) {
-			solPerJob.setFeasible(true);
-			return true;
-		}
-		solPerJob.setFeasible(false);
-		return false;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
 }
