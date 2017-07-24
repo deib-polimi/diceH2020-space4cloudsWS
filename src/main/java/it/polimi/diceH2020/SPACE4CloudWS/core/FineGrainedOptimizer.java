@@ -1,4 +1,5 @@
 /*
+Copyright 2017 Eugenio Gianniti
 Copyright 2016 Jacopo Rigoli
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,18 +23,21 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForOptimization;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FineGrainedOptimizer extends Optimizer {
-
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private ApplicationContext context;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private EngineProxy engineProxy;
+
+	@Setter(onMethod = @__(@Autowired))
+	private SolverChecker solverChecker;
 
 	private Matrix matrix;
 
@@ -42,6 +46,7 @@ public class FineGrainedOptimizer extends Optimizer {
 	private long executionTime;
 
 	void hillClimbing(Matrix matrix) {
+		solverChecker.enforceSolverSettings (matrix.getAllSolutions ());
 		this.matrix = matrix;
 		this.registeredSolutionsPerJob = 0;
 		logger.info(String.format("---------- Starting fine grained hill climbing for instance %s ----------", engineProxy.getEngine().getSolution().getId()));

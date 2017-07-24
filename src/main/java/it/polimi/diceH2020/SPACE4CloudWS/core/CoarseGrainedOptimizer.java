@@ -56,9 +56,12 @@ class CoarseGrainedOptimizer extends Optimizer {
 	@Setter(onMethod = @__(@Autowired))
 	private StateMachine<States, Events> stateHandler;
 
+	@Setter(onMethod = @__(@Autowired))
+	private SolverChecker solverChecker;
+
 	void hillClimbing(Solution solution) {
 		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
-		SPNModel model = SolverChecker.enforceSolverSettings(dataProcessor, solution);
+		SPNModel model = solverChecker.enforceSolverSettings (solution.getLstSolutions ());
 
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
@@ -149,10 +152,10 @@ class CoarseGrainedOptimizer extends Optimizer {
 
 			Integer nVM = solPerJob.getNumberVM();
 			lst.add(new ImmutableTriple<>(nVM, maybeResult,
-					interestingMetric.filter(feasibilityCheck).map(v -> true).orElse(false)));
+					interestingMetric.filter(feasibilityCheck).isPresent ()));
 
 			boolean terminationCriterion = ! checkState() || vmCheck.test(nVM) ||
-					interestingMetric.filter(stoppingCondition).map(v -> true).orElse(false);
+					interestingMetric.filter(stoppingCondition).isPresent ();
 			if (previous.isPresent() && interestingMetric.isPresent()) {
 				terminationCriterion |= incrementCheck.test(previous.get(), interestingMetric.get());
 			}

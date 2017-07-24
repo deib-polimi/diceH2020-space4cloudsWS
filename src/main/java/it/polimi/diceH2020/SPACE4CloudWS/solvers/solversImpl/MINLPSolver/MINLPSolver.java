@@ -144,8 +144,7 @@ public class MINLPSolver extends AbstractSolver {
 		connector.exec(command, getClass());
 	}
 
-	@Override
-	protected Pair<Double, Boolean> run(@NotNull Pair<List<File>, List<File>> pFiles, String remoteName)
+	protected Pair<Double, Boolean> run (@NotNull Pair<List<File>, List<File>> pFiles, String remoteName)
 			throws JSchException, IOException {
 		List<File> amplFiles = pFiles.getLeft();
 		boolean stillNotOk = true;
@@ -277,6 +276,14 @@ public class MINLPSolver extends AbstractSolver {
 	@Override
 	public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
 		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
+				getClass ().getCanonicalName ()));
+	}
+
+	@Override
+	protected Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName,
+										 String remoteDirectory) throws Exception {
+		throw new Exception (String.format ("method '%s' is not implemented in class <%s>",
+				getClass ().getEnclosingMethod ().getName (),
 				getClass ().getCanonicalName ()));
 	}
 }

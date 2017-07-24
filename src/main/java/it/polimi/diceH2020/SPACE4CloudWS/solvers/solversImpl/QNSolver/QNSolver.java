@@ -49,20 +49,21 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	@Override
-	protected Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+	protected Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName,
+										 String remoteDirectory) throws Exception {
 		File jmtFile = pFiles.getLeft().stream().filter(s -> s.getName().contains(".jsimg")).findFirst().get();
 
 		String jmtFileName = jmtFile.getName();
 
-		String remotePath = getRemoteSubDirectory () + File.separator + jmtFileName;
+		String remotePath = remoteDirectory + File.separator + jmtFileName;
 
 		boolean stillNotOk = true;
 		for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
 			logger.info(remoteName + "-> Starting Queuing Net resolution on the server");
 
-			cleanRemoteSubDirectory ();
-			sendFiles(pFiles.getLeft());
-			sendFiles(pFiles.getRight());
+			cleanRemoteSubDirectory (remoteDirectory);
+			sendFiles (remoteDirectory, pFiles.getLeft());
+			sendFiles (remoteDirectory, pFiles.getRight());
 			logger.debug(remoteName + "-> Working files sent");
 
 			String command = connSettings.getMaxDuration() == Integer.MIN_VALUE
@@ -168,7 +169,8 @@ public class QNSolver extends AbstractSolver {
 			}
 
 			logger.debug ("Pattern to replace in jsimg: "+ stringToBeReplaced);
-			inputFilesSet.put(stringToBeReplaced, getRemoteSubDirectory () + File.separator + file.getName());
+			inputFilesSet.put (stringToBeReplaced,
+					retrieveRemoteSubDirectory (solPerJob) + File.separator + file.getName());
 		}
 
 		Map<String,String> numMR = new HashMap<>();

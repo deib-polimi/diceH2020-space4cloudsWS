@@ -25,8 +25,6 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
@@ -64,8 +62,7 @@ public abstract class AbstractSolver implements Solver {
 
     protected ConnectionSettings connSettings;
 
-    @Getter(AccessLevel.PROTECTED)
-    private String remoteSubDirectory;
+    private Map<SolutionPerJob, String> remoteSubDirectories = new HashMap<> ();
 
     protected abstract Class<? extends ConnectionSettings> getSettingsClass();
 
@@ -81,23 +78,28 @@ public abstract class AbstractSolver implements Solver {
 
     @Override
     public Optional<Double> evaluate(@NonNull SolutionPerJob solPerJob) {
-        if (! solPerJob.getChanged()) {
-            return Optional.of(solPerJob.getThroughput());
+        Optional<Double> returnValue = Optional.of(solPerJob.getThroughput());
+
+        if (solPerJob.getChanged()) {
+            try {
+                putRemoteSubDirectory (solPerJob);
+                Pair<List<File>, List<File>> pFiles = createWorkingFiles (solPerJob);
+                String jobID = solPerJob.getId ();
+                String directory = retrieveRemoteSubDirectory (solPerJob);
+                Pair<Double, Boolean> result = run (pFiles, "class" + jobID, directory);
+                delete (pFiles.getLeft ());
+                if (connSettings.isCleanRemote ()) cleanRemoteSubDirectory (directory);
+                solPerJob.setError (result.getRight ());
+                returnValue = Optional.of (result.getLeft ());
+                removeRemoteSubDirectory (solPerJob);
+            } catch (Exception e) {
+                logger.error ("Error in SPJ evaluation", e);
+                solPerJob.setError (Boolean.TRUE);
+                returnValue = Optional.empty ();
+            }
         }
-        try {
-            bumpRemoteSubDirectory ();
-            Pair<List<File>, List<File>> pFiles = createWorkingFiles(solPerJob);
-            String jobID = solPerJob.getId();
-            Pair<Double, Boolean> result = run(pFiles, "class" + jobID);
-            delete(pFiles.getLeft());
-            if (connSettings.isCleanRemote ()) cleanRemoteSubDirectory ();
-            solPerJob.setError(result.getRight());
-            return Optional.of(result.getLeft());
-        } catch (Exception e) {
-            logger.error("Error in SPJ evaluation", e);
-            solPerJob.setError(Boolean.TRUE);
-            return Optional.empty();
-        }
+
+        return returnValue;
     }
 
     public void delete(List<File> pFiles) {
@@ -119,16 +121,17 @@ public abstract class AbstractSolver implements Solver {
      * @param pFiles the first List contains the main model files, the second one allows for providing
      *               also replayer files.
      * @param remoteName is the human readable name presented in the logs.
+     * @param remoteDirectory is the path where the solver should work remotely.
      * @return a Pair containing the value obtained via the solver and a Boolean that is set to true
      *         in case of failure.
      * @throws Exception in case of problems.
      */
-    protected abstract Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception;
+    protected abstract Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName, String remoteDirectory) throws Exception;
 
     /**
-     * Prepare the working files needed for a subsequent call to {@link #run(Pair, String) run}.
+     * Prepare the working files needed for a subsequent call to {@link #run(Pair, String, String) run}.
      * @param solPerJob partial solution for the class of interest.
-     * @return a Pair suitable for {@link #run(Pair, String) run}.
+     * @return a Pair suitable for {@link #run(Pair, String, String) run}.
      * @throws IOException if creating or writing these files fails.
      */
     protected abstract Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
@@ -158,9 +161,9 @@ public abstract class AbstractSolver implements Solver {
         return dataProcessor.retrieveInputFiles(extension, solutionID, spjID, provider, typeVM);
     }
 
-    protected void sendFiles(List<File> lstFiles) {
+    protected void sendFiles(@NotNull String remoteDirectory, List<File> lstFiles) {
         try {
-            connector.exec("mkdir -p " + getRemoteSubDirectory (), getClass());
+            connector.exec("mkdir -p " + remoteDirectory, getClass());
         } catch (JSchException | IOException e1) {
             logger.error("Cannot create new Simulation Folder!", e1);
         }
@@ -168,7 +171,7 @@ public abstract class AbstractSolver implements Solver {
         lstFiles.forEach((File file) -> {
             try {
                 connector.sendFile(file.getAbsolutePath(),
-                        getRemoteSubDirectory () + File.separator + file.getName(),
+                        remoteDirectory + File.separator + file.getName(),
                         getClass());
             } catch (JSchException | IOException e) {
                 logger.error("Error sending file: " + file.toString(), e);
@@ -176,12 +179,21 @@ public abstract class AbstractSolver implements Solver {
         });
     }
 
-    private void bumpRemoteSubDirectory () {
-        remoteSubDirectory = connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID();
+    private synchronized void putRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+        remoteSubDirectories.put (solutionPerJob,
+                connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID());
     }
 
-    protected void cleanRemoteSubDirectory () {
-        String command = String.format ("rm -rf %s", remoteSubDirectory);
+    private synchronized void removeRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+        remoteSubDirectories.remove (solutionPerJob);
+    }
+
+    protected String retrieveRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+        return remoteSubDirectories.get (solutionPerJob);
+    }
+
+    protected void cleanRemoteSubDirectory (@NotNull String remoteDirectory) {
+        String command = String.format ("rm -rf %s", remoteDirectory);
         try {
             connector.exec (command, getClass ());
         } catch (JSchException|IOException e) {

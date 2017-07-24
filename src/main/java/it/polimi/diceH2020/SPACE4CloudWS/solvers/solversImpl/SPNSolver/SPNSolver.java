@@ -68,7 +68,8 @@ public class SPNSolver extends AbstractSolver {
     }
 
     @Override
-    protected Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+    protected Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName,
+                                         String remoteDirectory) throws Exception {
         List<File> files = pFiles.getLeft();
         if (! pFiles.getRight().isEmpty() || files.size() != 3) {
             throw new IllegalArgumentException("wrong number of input files");
@@ -83,14 +84,14 @@ public class SPNSolver extends AbstractSolver {
         }
         String prefix = matcher.group(1);
 
-        String remotePath = getRemoteSubDirectory () + File.separator + remoteName;
+        String remotePath = remoteDirectory + File.separator + remoteName;
 
         boolean stillNotOk = true;
         for (int i = 0; stillNotOk && i < MAX_ITERATIONS; ++i) {
             logger.info(remoteName + "-> Starting Stochastic Petri Net simulation on the server");
 
-            cleanRemoteSubDirectory ();
-            connector.exec(String.format("mkdir -p %s", getRemoteSubDirectory ()), getClass());
+            cleanRemoteSubDirectory (remoteDirectory);
+            connector.exec(String.format("mkdir -p %s", remoteDirectory), getClass());
 
             connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net", getClass());
             logger.debug(remoteName + "-> GreatSPN .net file sent");
@@ -115,8 +116,8 @@ public class SPNSolver extends AbstractSolver {
             logger.info(remoteName + "-> Error in remote optimization");
             throw new Exception("Error in the SPN server");
         } else {
-            List<String> remoteOutput = connector.exec(String.format("ls %s", getRemoteSubDirectory ()), getClass());
-            String remoteResultFile = getRemoteSubDirectory () + File.separator;
+            List<String> remoteOutput = connector.exec(String.format("ls %s", remoteDirectory), getClass());
+            String remoteResultFile = remoteDirectory + File.separator;
             try (BufferedReader reader = new BufferedReader(new StringReader(remoteOutput.get(0)))) {
                 remoteResultFile += reader.lines().filter(line -> line.contains("simres"))
                         .findAny().orElse(remoteName + ".simres");

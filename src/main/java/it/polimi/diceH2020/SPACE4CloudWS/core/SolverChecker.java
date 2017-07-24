@@ -19,42 +19,54 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.util.List;
+
+@Component
 class SolverChecker {
-    static SPNModel enforceSolverSettings (DataProcessor dataProcessor, Solution solution) {
-        solution.getScenario().ifPresent(
-                scenario -> {
-                    SPNModel technology = scenario.getSwn();
-                    Settings override = new Settings();
-                    override.setTechnology(technology);
+    @Setter(onMethod = @__(@Autowired))
+    private DataProcessor dataProcessor;
 
-                    switch (technology) {
-                        case STORM:
-                            override.setSolver(SolverType.SPNSolver);
-                            dataProcessor.changeSettings(override);
-                            break;
-                        case MAPREDUCE:
-                            boolean needsSPN = hasModelInputFiles (dataProcessor, solution, ".net");
-                            if (needsSPN) override.setSolver (SolverType.SPNSolver);
+    @Setter(onMethod = @__(@Autowired))
+    private DataService dataService;
 
-                            boolean needsQN = hasModelInputFiles (dataProcessor, solution, ".jsimg");
-                            if (needsQN) override.setSolver (SolverType.QNSolver);
+    SPNModel enforceSolverSettings (List<SolutionPerJob> solutionsPerJob) {
+        Scenarios scenario = dataService.getScenario();
+        SPNModel technology = scenario.getSwn();
+        Settings override = new Settings();
+        override.setTechnology(technology);
 
-                            if (needsQN || needsSPN)  dataProcessor.changeSettings (override);
-                            break;
-                        default:
-                            throw new RuntimeException ("The required technology is still not implemented");
-                    }
-                });
-        return solution.getScenario().map(Scenarios::getSwn).orElse(SPNModel.MAPREDUCE);
+        switch (technology) {
+            case STORM:
+                override.setSolver(SolverType.SPNSolver);
+                dataProcessor.changeSettings(override);
+                break;
+            case MAPREDUCE:
+                boolean needsSPN = hasModelInputFiles (solutionsPerJob, ".net");
+                if (needsSPN) override.setSolver (SolverType.SPNSolver);
+
+                boolean needsQN = hasModelInputFiles (solutionsPerJob, ".jsimg");
+                if (needsQN) override.setSolver (SolverType.QNSolver);
+
+                if (needsQN || needsSPN)  dataProcessor.changeSettings (override);
+                break;
+            default:
+                throw new RuntimeException ("The required technology is still not implemented");
+        }
+
+        return scenario.getSwn ();
     }
 
-    private static boolean hasModelInputFiles (DataProcessor dataProcessor, Solution solution, String extension) {
-        long modelFilesCount = solution.getLstSolutions ().stream ().mapToLong (
+    private boolean hasModelInputFiles (List<SolutionPerJob> solutionsPerJob, String extension) {
+        long modelFilesCount = solutionsPerJob.stream ().mapToLong (
                 solutionPerJob ->
-                        dataProcessor.retrieveInputFiles (extension, solution.getId (), solutionPerJob.getId (),
-                                solution.getProvider (),
+                        dataProcessor.retrieveInputFiles (extension, solutionPerJob.getParentID (),
+                                solutionPerJob.getId (), dataProcessor.getProviderName (),
                                 solutionPerJob.getTypeVMselected ().getId ()).size ()
         ).sum ();
 

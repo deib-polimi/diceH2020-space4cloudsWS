@@ -87,7 +87,7 @@ public class DagSimSolver extends AbstractSolver {
 
             replayerFiles.stream ().map (File::getName).filter (name -> name.contains (vertex)).forEach (
                     name -> {
-                        File remote = new File (getRemoteSubDirectory (), name);
+                        File remote = new File (retrieveRemoteSubDirectory (solPerJob), name);
                         String remoteName = remote.getPath ();
                         currentStage.setDistribution (new Empirical ().setFileName (remoteName));
                     }
@@ -108,7 +108,8 @@ public class DagSimSolver extends AbstractSolver {
     }
 
     @Override
-    protected Pair<Double, Boolean> run(Pair<List<File>, List<File>> pFiles, String remoteName) throws Exception {
+    protected Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName,
+                                         String remoteDirectory) throws Exception {
         if (pFiles.getLeft() == null || pFiles.getLeft().size() != 1) {
             throw new Exception ("Model file missing");
         }
@@ -127,12 +128,12 @@ public class DagSimSolver extends AbstractSolver {
 
             File modelFile = pFiles.getLeft().get(0);
             String fileName = modelFile.getName();
-            String remotePath = getRemoteSubDirectory () + File.separator + fileName;
+            String remotePath = remoteDirectory + File.separator + fileName;
 
             List<File> workingFiles = pFiles.getRight ();
             workingFiles.add (modelFile);
-            cleanRemoteSubDirectory ();
-            sendFiles(workingFiles);
+            cleanRemoteSubDirectory (remoteDirectory);
+            sendFiles (remoteDirectory, workingFiles);
             logger.debug(remoteName + "-> Working files sent");
 
             logger.debug(remoteName + "-> Starting DagSim model...");

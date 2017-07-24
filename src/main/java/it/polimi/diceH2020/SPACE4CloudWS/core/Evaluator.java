@@ -39,6 +39,9 @@ class Evaluator implements IEvaluator {
 	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
+	@Setter(onMethod = @__(@Autowired))
+	private SolverChecker solverChecker;
+
 	private Matrix matrix;
 
 	private Solution solution;
@@ -114,7 +117,7 @@ class Evaluator implements IEvaluator {
 	}
 
 	void initialSimulation(@NonNull Solution sol) {
-		SPNModel technology = SolverChecker.enforceSolverSettings(dataProcessor, sol);
+		SPNModel technology = solverChecker.enforceSolverSettings (sol.getLstSolutions ());
 
 		BiConsumer<SolutionPerJob, Double> resultSaver =
 				dataProcessor.getSolver ().initialResultSaver (technology);
@@ -134,7 +137,8 @@ class Evaluator implements IEvaluator {
 		sol.addPhase(phase);
 	}
 
-	void calculateDuration(@NonNull Matrix matrix, @NonNull Solution solution){
+	void calculateDuration(@NonNull Matrix matrix, @NonNull Solution solution) {
+		solverChecker.enforceSolverSettings (matrix.getAllSolutions ());
 		this.matrix = matrix;
 		this.solution = solution;
 		executionTime = 0L;
