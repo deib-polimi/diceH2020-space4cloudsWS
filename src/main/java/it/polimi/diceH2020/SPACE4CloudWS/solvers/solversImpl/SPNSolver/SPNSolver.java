@@ -176,7 +176,8 @@ public class SPNSolver extends AbstractSolver {
             writeLinesToFile (outcomes, defFile);
 
             Map<String, String> netFilePlaceholders = new TreeMap<>();
-            netFilePlaceholders.put ("@@CORES@@", Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ()));
+            netFilePlaceholders.put ("@@CORES@@",
+                    Long.toUnsignedString (solutionPerJob.getNumberContainers ().longValue ()));
             netFilePlaceholders.put (originalLabel, label);
             outcomes = processPlaceholders (inputNetFile, netFilePlaceholders);
 

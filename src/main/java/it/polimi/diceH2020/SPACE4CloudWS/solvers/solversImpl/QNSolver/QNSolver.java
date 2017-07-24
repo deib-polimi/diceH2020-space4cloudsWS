@@ -121,7 +121,7 @@ public class QNSolver extends AbstractSolver {
 
 			Map<String, String> jsimgFilePlaceholders = new TreeMap<>();
 			jsimgFilePlaceholders.put ("@@CORES@@",
-					Long.toUnsignedString (solutionPerJob.getNumCores ().longValue ()));
+					Long.toUnsignedString (solutionPerJob.getNumberContainers ().longValue ()));
 			jsimgFilePlaceholders.put ("@@CONCURRENCY@@",
 					Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
 			List<String> outcomes = processPlaceholders (inputJsimgFile, jsimgFilePlaceholders);
