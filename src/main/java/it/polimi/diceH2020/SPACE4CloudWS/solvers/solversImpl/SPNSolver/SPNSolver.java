@@ -61,6 +61,7 @@ public class SPNSolver extends AbstractSolver {
     private DataProcessor dataProcessor;
 
     private String label;
+    private boolean usingInputModel;
 
     @Override
     protected Class<? extends ConnectionSettings> getSettingsClass() {
@@ -128,6 +129,13 @@ public class SPNSolver extends AbstractSolver {
             if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
 
             double result = results.get(label);
+            /* This is a workaround for the crazy behavior of the PNML transformation
+             * that converts milliseconds to seconds.
+             * Here we turn hertz into kilohertz to obtain results consistent
+             * with our input.
+             */
+            if (usingInputModel &&
+                    ((SPNSettings) connSettings).getModel () == SPNModel.MAPREDUCE) result /= 1000;
             logger.info(remoteName + "-> GreatSPN model run.");
 
             // TODO: this always returns false, should check if every error just throws
@@ -153,9 +161,11 @@ public class SPNSolver extends AbstractSolver {
 
         if (netFileList.isEmpty () || defFileList.isEmpty () || statFileList.isEmpty ()) {
             logger.debug (String.format ("Generating SPN model for %s", experiment));
+            usingInputModel = false;
             returnValue = generateSPNModel (solutionPerJob);
         } else {
             logger.debug (String.format ("Using input SPN model for %s", experiment));
+            usingInputModel = true;
 
             // TODO now it just takes the first file, I would expect a single file per list
             File inputNetFile = netFileList.get (0);

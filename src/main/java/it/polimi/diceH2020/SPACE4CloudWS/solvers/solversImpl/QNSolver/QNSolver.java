@@ -43,6 +43,8 @@ public class QNSolver extends AbstractSolver {
 	private static final Pattern patternRS = Pattern.compile("(.*)(RS[0-9]*)(J)(.*)");
 	private static final Pattern patternNMR = Pattern.compile("((nm[0-9]*)|(nr[0-9]*))");
 
+	private boolean usingInputModel;
+
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
 		return QNSettings.class;
@@ -91,6 +93,12 @@ public class QNSolver extends AbstractSolver {
 			if (fileUtility.delete(solFile)) logger.debug(solFile + " deleted");
 
 			Double throughput = resultObject.getMeanValue();
+			/* This is a workaround for the crazy behavior of the PNML transformation
+             * that converts milliseconds to seconds.
+             * Here we turn hertz into kilohertz to obtain results consistent
+             * with our input.
+             */
+			if (usingInputModel) throughput /= 1000;
 			boolean failure = resultObject.isFailed();
 
 			return Pair.of(throughput, failure);
@@ -110,9 +118,11 @@ public class QNSolver extends AbstractSolver {
 
 		if (jsimgFileList.isEmpty ()) {
 			logger.debug (String.format ("Generating QN model for %s", experiment));
+			usingInputModel = false;
 			returnValue = generateQNModel (solutionPerJob);
 		} else {
 			logger.debug (String.format ("Using input QN model for %s", experiment));
+			usingInputModel = true;
 
 			// TODO now it just takes the first file, I would expect a single file per list
 			File inputJsimgFile = jsimgFileList.get (0);
