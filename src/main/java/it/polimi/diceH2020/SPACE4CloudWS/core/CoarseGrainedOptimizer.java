@@ -100,8 +100,8 @@ class CoarseGrainedOptimizer extends Optimizer {
 			Consumer<Double> metricUpdater = currentSolver.metricUpdater (solPerJob, technology);
 
 			final double tolerance = settings.getOptimization ().getTolerance ();
-			BiPredicate<Double, Double> incrementCheck = (prev, curr) -> Math.abs((prev - curr) / prev) <= tolerance;
 
+			BiPredicate<Double, Double> incrementCheck;
 			Function<Integer, Integer> updateFunction;
 			Predicate<Double> stoppingCondition;
 			Predicate<Integer> vmCheck;
@@ -111,27 +111,30 @@ class CoarseGrainedOptimizer extends Optimizer {
 				updateFunction = n -> n - 1;
 				stoppingCondition = feasibilityCheck.negate();
 				vmCheck = n -> n == 1;
+				incrementCheck = (prev, curr) -> false;
 			} else {
 				updateFunction = n -> n + 1;
 				stoppingCondition = feasibilityCheck;
 				vmCheck = n -> false;
+				incrementCheck = (prev, curr) -> Math.abs((prev - curr) / prev) < tolerance;
 			}
 
 			List<Triple<Integer, Optional<Double>, Boolean>> resultsList = alterUntilBreakPoint(solPerJob,
 					updateFunction, fromResult, feasibilityCheck, stoppingCondition, incrementCheck, vmCheck);
 			Optional<Triple<Integer, Optional<Double>, Boolean>> result = resultsList.parallelStream().filter(t ->
 					t.getRight() && t.getMiddle().isPresent()).min(Comparator.comparing(Triple::getLeft));
-			result.ifPresent(triple -> {
-				double output = triple.getMiddle().get();
-				int nVM = triple.getLeft();
-				if (technology == SPNModel.MAPREDUCE) solPerJob.setThroughput(output);
-				solPerJob.updateNumberVM(nVM);
-				double metric = fromResult.apply(output);
-				metricUpdater.accept(metric);
-				logger.info(String
-						.format("class%s-> MakeFeasible ended, result = %f, other metric = %f, obtained with: %d VMs",
+			result.ifPresent(triple ->
+					triple.getMiddle ().ifPresent (output -> {
+						int nVM = triple.getLeft();
+						if (technology == SPNModel.MAPREDUCE) solPerJob.setThroughput(output);
+						solPerJob.updateNumberVM(nVM);
+						double metric = fromResult.apply(output);
+						metricUpdater.accept(metric);
+						logger.info(String.format(
+								"class%s-> MakeFeasible ended, result = %f, other metric = %f, obtained with: %d VMs",
 								solPerJob.getId(), output, metric, nVM));
-			});
+					})
+			);
 		} else logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
 		return success;
 	}
