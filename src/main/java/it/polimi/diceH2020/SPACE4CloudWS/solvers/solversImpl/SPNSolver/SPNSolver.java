@@ -155,9 +155,9 @@ public class SPNSolver extends AbstractSolver {
         List<File> statFileList = dataProcessor.retrieveInputFiles (".stat", solutionPerJob.getParentID(),
                 solutionPerJob.getId(), dataProcessor.getProviderName(), solutionPerJob.getTypeVMselected().getId());
 
-        final String experiment = String.format ("%s, class %s, provider %s, VM %s",
+        final String experiment = String.format ("%s, class %s, provider %s, VM %s, # %d",
                 solutionPerJob.getParentID (), solutionPerJob.getId (), dataProcessor.getProviderName (),
-                solutionPerJob.getTypeVMselected ().getId ());
+                solutionPerJob.getTypeVMselected ().getId (), solutionPerJob.getNumberVM ());
 
         if (netFileList.isEmpty () || defFileList.isEmpty () || statFileList.isEmpty ()) {
             logger.debug (String.format ("Generating SPN model for %s", experiment));

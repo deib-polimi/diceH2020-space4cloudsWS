@@ -51,6 +51,11 @@ public class DagSimSolver extends AbstractSolver {
 
     @Override
     protected Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException {
+        final String experiment = String.format ("%s, class %s, provider %s, VM %s, # %d",
+                solPerJob.getParentID (), solPerJob.getId (), dataProcessor.getProviderName (),
+                solPerJob.getTypeVMselected ().getId (), solPerJob.getNumberVM ());
+        logger.debug (String.format ("Generating DagSim model for %s", experiment));
+
         DagSimFileBuilder builder = new DagSimFileBuilder ()
                 .setContainers(solPerJob.getNumberContainers())
                 .setUsers(solPerJob.getNumberUsers())

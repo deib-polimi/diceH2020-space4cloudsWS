@@ -112,9 +112,9 @@ public class QNSolver extends AbstractSolver {
 
 		List<File> jsimgFileList = retrieveInputFiles (solutionPerJob, ".jsimg");
 
-		final String experiment = String.format ("%s, class %s, provider %s, VM %s",
+		final String experiment = String.format ("%s, class %s, provider %s, VM %s, # %d",
 				solutionPerJob.getParentID (), solutionPerJob.getId (), dataProcessor.getProviderName (),
-				solutionPerJob.getTypeVMselected ().getId ());
+				solutionPerJob.getTypeVMselected ().getId (), solutionPerJob.getNumberVM ());
 
 		if (jsimgFileList.isEmpty ()) {
 			logger.debug (String.format ("Generating QN model for %s", experiment));
