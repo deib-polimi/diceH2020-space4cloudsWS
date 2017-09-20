@@ -15,6 +15,11 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.model;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -22,36 +27,11 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "Provider")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EntityProvider {
-
-	@Id
-	@Column(name = "pId")
-	String name;
-
-	public EntityProvider() {
-		super();
-		System.out.println("");
-	}
-
-	public EntityProvider(String name) {
-		super();
-		this.name = name;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-	@Override
-	public boolean equals(Object provider){
-		EntityProvider myProvider = (EntityProvider) provider;
-		if( this.getName().equals(myProvider.name)){
-			return true;
-		}
-		return false;
-	}
-
+    @Id
+    @Column(name = "pId")
+    String name;
 }

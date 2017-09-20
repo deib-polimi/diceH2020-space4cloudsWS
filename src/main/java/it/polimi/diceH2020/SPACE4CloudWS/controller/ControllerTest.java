@@ -29,6 +29,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.Validator;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.statemachine.StateMachine;
@@ -41,26 +42,26 @@ import java.util.Optional;
 @Profile("test")
 class ControllerTest {
 
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	private DataService dataService;
 
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	private EngineService engineService;
 
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	FileUtility fileUtility;
 
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	private Validator validator;
 
 	// I could use the daoService, but this class is only for testing purposes
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	private JobRepository jobRepository;
 
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	private TypeVMRepository typeVMRepository;
 
-	@Autowired
+	@Setter(onMethod = @___(@Autowired))
 	private StateMachine<States, Events> stateHandler;
 
 	@RequestMapping(method = RequestMethod.GET, value = "appldata")
@@ -73,19 +74,16 @@ class ControllerTest {
 	@Profile("test")
 	public @ResponseBody EntityJobClass postJob(@RequestBody EntityJobClass jb){
 		jobRepository.saveAndFlush(jb);
-		EntityJobClass job = jobRepository.findOne(jb.getIdJob());
-		return job;
+		return jobRepository.findOne(jb.getIdJob());
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "typeVM")
 	@Profile("test")
 	public @ResponseBody EntityTypeVM postTypeVM(@RequestBody EntityTypeVM typeVM){
 		typeVMRepository.saveAndFlush(typeVM);
-		EntityProvider provider = new EntityProvider();
-		provider.setName("Amazon");
+		EntityProvider provider = new EntityProvider("Amazon");
 		EntityKey key = new EntityKey("T1", provider);
-		EntityTypeVM tVM = typeVMRepository.findOne(key);
-		return tVM;
+		return typeVMRepository.findOne(key);
 	}
 
 	@RequestMapping(method = RequestMethod.POST, value = "debug/event")
@@ -101,6 +99,6 @@ class ControllerTest {
 		InstanceDataMultiProvider inputData = new InstanceDataMultiProvider();
 		validator.setInstanceData(inputData);
 		Optional<Solution> sol = engineService.generateInitialSolution();
-		return sol.isPresent()? sol.get(): null;
+		return sol.orElse (null);
 	}
 }

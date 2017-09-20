@@ -16,14 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfilesMap;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.PublicCloudParameters;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
-import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.VMConfiguration;
+import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.*;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
@@ -37,7 +30,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
-
+import lombok.Setter;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
@@ -53,19 +46,18 @@ import java.util.Map.Entry;
 @Service
 @Data
 public class DataService {
-	
-	private static Logger logger = Logger.getLogger(DataService.class.getName());
-	
-	@Autowired(required = false)
+
+	private final Logger logger = Logger.getLogger(getClass ());
+
 	private InstanceDataMultiProvider data;
-	
-	@Autowired
+
+	@Setter(onMethod = @__(@Autowired))
 	private StateMachine<States, Events> stateHandler;
 
-	@Autowired
+	@Setter(onMethod = @__(@Autowired))
 	private DAOService daoService;
-	
-	@Autowired
+
+	@Setter(onMethod = @__(@Autowired))
 	private FileUtility fileUtility;
 
 	private int jobNumber;
@@ -75,17 +67,17 @@ public class DataService {
 	private Scenarios scenario = Scenarios.PublicAvgWorkLoad;
 
 	private Map<EntityKey, EntityTypeVM> mapCloudParameters;
-	
+
 	private Map<String,List<TypeVM>> mapTypeVM;
 
 	private String providerName;
 
 	private Matrix matrix;
-	
-	private String simFoldersPath = new String();
-	
-	private List<String> usedSimFoldersName = new ArrayList<>(); 
-	
+
+	private String simFoldersPath = "";
+
+	private List<String> usedSimFoldersName = new ArrayList<>();
+
 	private int gamma = 1500;
 
 	@Getter(AccessLevel.PRIVATE)
@@ -93,7 +85,7 @@ public class DataService {
 
 	public Double getDeltaBar(String tVM) {
 		EntityKey key = new EntityKey(tVM, this.providerName);
-		return this.mapCloudParameters.get(key).getDeltabar();
+		return this.mapCloudParameters.get(key).getDeltaBar ();
 	}
 
 	public Double getRhoBar(String tVM) {
@@ -105,10 +97,10 @@ public class DataService {
 		EntityKey key = new EntityKey(tVM, this.providerName);
 		return this.mapCloudParameters.get(key).getSigmaBar();
 	}
-	
+
 	public Double getNumCores(String tVM) {
 		EntityKey key = new EntityKey(tVM, this.providerName);
-		return this.mapCloudParameters.get(key).getNumCores();
+		return this.mapCloudParameters.get(key).getCores ();
 	}
 
 	public Double getMemory(String tVM) {
@@ -116,16 +108,16 @@ public class DataService {
 		return this.mapCloudParameters.get(key).getMemory();
 	}
 
-	public void setInstanceData(InstanceDataMultiProvider inputData) {
+	void setInstanceData(InstanceDataMultiProvider inputData) {
 		this.data = inputData;
 		this.jobNumber = data.getNumberOfClasses();
 		this.providerName = data.getProvider();
 		this.scenario = data.getScenario().get();
-		
+
 		if(providerName == null || scenario == null){
 			//TODO
 		}
-		
+
 		if(data.getMapJobMLProfiles() != null ){
 			if(data.getMapJobMLProfiles().getMapJobMLProfile()!=null){
 				this.mlProfileMap = Optional.of(data.getMapJobMLProfiles());
@@ -143,11 +135,11 @@ public class DataService {
 			loadDataFromJson();
 			considerOnlyReserved();
 		}
-		
+
 		if(!scenario.equals(Scenarios.PrivateAdmissionControl)&&!scenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
 			makeInputDataConsistent();
 		}
-		
+
 		simFoldersPath = createInputSubFolder();
 		this.matrix = null;
 	}
@@ -155,28 +147,28 @@ public class DataService {
 	private void loadDataFromDB(EntityProvider provider) {
 		this.mapCloudParameters = daoService.typeVMFindAllToMap(provider);
 	}
-	
+
 	public String getSimFoldersName(){
 		return simFoldersPath;
 	}
 
 	/**
-	 * Set mapTypeVm by fetching JSON data (In the Public Case this map is retrieved from DB) 
+	 * Set mapTypeVm by fetching JSON data (In the Public Case this map is retrieved from DB)
 	 */
 	private void loadDataFromJson(){
-		HashMap<EntityKey, EntityTypeVM> map = new HashMap<EntityKey, EntityTypeVM>();
-		
+		HashMap<EntityKey, EntityTypeVM> map = new HashMap<>();
+
 		if(data.getMapVMConfigurations().getMapVMConfigurations().size()>0){
 			for (Map.Entry<String, VMConfiguration> vm : data.getMapVMConfigurations().getMapVMConfigurations().entrySet()) {
 				EntityKey key = new EntityKey(vm.getKey(), vm.getValue().getProvider());
 				EntityTypeVM typeVM  = new EntityTypeVM(vm.getKey());
-				typeVM.setCore(vm.getValue().getCore());
+				typeVM.setCores (vm.getValue().getCore());
 				typeVM.setMemory(vm.getValue().getMemory());
 
-				typeVM.setRhobar(0.0);
-				typeVM.setSigmabar(0.0);
-				if(vm.getValue().getCost().isPresent()) typeVM.setDeltabar(vm.getValue().getCost().get());
-				else  typeVM.setDeltabar(1);
+				typeVM.setRhoBar (0.0);
+				typeVM.setSigmaBar (0.0);
+				if(vm.getValue().getCost().isPresent()) typeVM.setDeltaBar (vm.getValue().getCost().get());
+				else  typeVM.setDeltaBar (1);
 
 				typeVM.setProvider(new EntityProvider(vm.getValue().getProvider()));
 				map.put(key, typeVM);
@@ -184,35 +176,35 @@ public class DataService {
 		}
 		this.mapCloudParameters = map ;
 	}
-	
+
 	private void overrideDBLocalData(){
 		//TODO if empty throw exception
 		for(Map.Entry<EntityKey, EntityTypeVM> entry : mapCloudParameters.entrySet()){
-			entry.getValue().setRhobar(0.0);
-			entry.getValue().setSigmabar(0.0);
+			entry.getValue().setRhoBar (0.0);
+			entry.getValue().setSigmaBar (0.0);
 		}
 	}
 
 	private void considerOnlyReserved(){
 		if(data.getMapPublicCloudParameters() == null || data.getMapPublicCloudParameters().getMapPublicCloudParameters() == null) return;
 		for (Map.Entry<String, Map<String, Map<String, PublicCloudParameters>>> jobIDs : this.data.getMapPublicCloudParameters().getMapPublicCloudParameters().entrySet()) {
-		    for (Map.Entry<String, Map<String, PublicCloudParameters>> providers : jobIDs.getValue().entrySet()) {
-		    	for (Map.Entry<String, PublicCloudParameters> typeVMs : providers.getValue().entrySet()) {
-		    		PublicCloudParameters vm = typeVMs.getValue();
+			for (Map.Entry<String, Map<String, PublicCloudParameters>> providers : jobIDs.getValue().entrySet()) {
+				for (Map.Entry<String, PublicCloudParameters> typeVMs : providers.getValue().entrySet()) {
+					PublicCloudParameters vm = typeVMs.getValue();
 					vm.setEta(0.0);
 					vm.setR(0);
-		    	}
-		    }
+				}
+			}
 		}
 	}
-	
+
 	private void makeInputDataConsistent(){
 		for(ClassParameters jobClass : this.data.getMapClassParameters().getMapClassParameters().values()){
 			jobClass.setHlow(jobClass.getHup());
 			jobClass.setPenalty(0);
 		}
 	}
-	
+
 
 	public Map<String, ClassParameters> getMapJobClass() {
 		return data.getMapClassParameters().getMapClassParameters();
@@ -250,19 +242,15 @@ public class DataService {
 		return mlProfileMap.get().getMapJobMLProfile().get(id);
 	}
 
-	public int getGamma() {
-		return gamma;
-	}
-	
 	private synchronized String createInputSubFolder(){
 		String folderNameStaticPart = fileUtility.generateUniqueString();
 		if(usedSimFoldersName.stream().anyMatch(f->f.equals(folderNameStaticPart))){
 			return addFolder(folderNameStaticPart);
 		}
-		
+
 		return addFolder(incrementFolderName(folderNameStaticPart));
 	}
-	
+
 	private String incrementFolderName(String name){
 		String fol = name;
 		int i = 1;
@@ -272,21 +260,21 @@ public class DataService {
 		}
 		return fol;
 	}
-	
+
 	private synchronized String addFolder(String folder){
-		String folderAbsolutePath = new String();
+		String folderAbsolutePath = "";
 		try {
 			folderAbsolutePath = fileUtility.createInputSubFolder(folder);
 		} catch (IOException e) {
 			logger.error("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);
 		}
-		
+
 		usedSimFoldersName.add(0, folder);
 		if(usedSimFoldersName.size()==100){
 			usedSimFoldersName.remove(usedSimFoldersName.size()-1);
 		}
-		
+
 		if(usedSimFoldersName.size()>=100){
 			System.out.println("FolderList dimension doesn't respect the upper bound (99)");
 		}

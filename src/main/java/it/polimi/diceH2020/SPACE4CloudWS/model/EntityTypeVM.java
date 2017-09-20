@@ -16,89 +16,35 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.model;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 
 @Entity
 @IdClass(EntityKey.class)
 @Table(name = "TYPEVM")
+@Data
+@NoArgsConstructor
 public class EntityTypeVM {
 
-	@Id
-	private String type;
-	@Id
-	@ManyToOne
-	@JoinColumn(name = "pId")
-	private EntityProvider provider;
-	private double core;
-	private double memory;
-	private double deltabar;
-	// cost reserved
-	private double rhobar;
-	// cost
-	private double sigmabar;
+    @Id
+    private String type;
 
-	public EntityTypeVM() {
-	}
+    @Id
+    @ManyToOne
+    @JoinColumn(name = "pId")
+    private EntityProvider provider;
 
-	public EntityTypeVM(String type) {
-		super();
-		this.type = type;
-	}
+    private double cores;
+    private double memory;
 
-	public EntityProvider getProvider() {
-		return provider;
-	}
+    private double deltaBar;
+    private double rhoBar;
+    private double sigmaBar;
 
-	public void setProvider(EntityProvider provider) {
-		this.provider = provider;
-	}
-
-	public double getNumCores() {
-		return core;
-	}
-
-	public void setCore(double core) {
-		this.core = core;
-	}
-
-	public double getMemory() {
-		return memory;
-	}
-
-	public void setMemory(double memory) {
-		this.memory = memory;
-	}
-
-	public double getDeltabar() {
-		return deltabar;
-	}
-
-	public void setDeltabar(double deltabar) {
-		this.deltabar = deltabar;
-	}
-
-	public double getRhoBar() {
-		return rhobar;
-	}
-
-	public void setRhobar(double rhobar) {
-		this.rhobar = rhobar;
-	}
-
-	public double getSigmaBar() {
-		return sigmabar;
-	}
-
-	public void setSigmabar(double sigmabar) {
-		this.sigmabar = sigmabar;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
+    public EntityTypeVM(String type) {
+        super();
+        this.type = type;
+    }
 }
