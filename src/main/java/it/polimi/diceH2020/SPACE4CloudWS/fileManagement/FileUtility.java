@@ -38,10 +38,10 @@ import java.util.Random;
 @Component
 public class FileUtility {
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     private DeletionPolicy policy;
 
-    @Autowired
+    @Setter(onMethod = @__(@Autowired))
     private Settings settings;
 
     public boolean delete(@NotNull Pair<File, File> pFiles) {
@@ -104,7 +104,7 @@ public class FileUtility {
     }
 
     public boolean delete(@NotNull List<File> pFiles) {
-        return ! pFiles.isEmpty() && pFiles.stream().map(this::delete).allMatch(r -> r);
+        return ! pFiles.isEmpty() && pFiles.stream().allMatch(this::delete);
     }
 
     public String createInputSubFolder(@NotNull String folderName) throws IOException {
@@ -117,7 +117,7 @@ public class FileUtility {
 
     public String generateUniqueString() {
         Date dNow = new Date( );
-        SimpleDateFormat ft = new SimpleDateFormat ("Edd-MM-yyyy_HH-mm-ss");
+        SimpleDateFormat ft = new SimpleDateFormat ("yyyy-MM-dd_HH-mm-ss");
         Random random = new Random();
         return ft.format(dNow)+random.nextInt(99999);
     }
