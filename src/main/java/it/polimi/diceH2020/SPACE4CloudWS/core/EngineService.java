@@ -19,12 +19,12 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
-import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.statemachine.StateMachine;
@@ -34,35 +34,40 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.concurrent.Future;
 
-@Service
 @WithStateMachine
-public class EngineService implements Engine{
+public abstract class EngineService implements Engine{
 
-	private final Logger logger = Logger.getLogger(getClass());
-
-	@Autowired
-	private CoarseGrainedOptimizer optimizer;
+	protected final Logger logger = Logger.getLogger(getClass());
 
 	@Autowired
-	private SolutionBuilder solBuilder;
+	protected SolutionBuilder solBuilder;
 
 	@Autowired
-	private StateMachine<States, Events> stateHandler;
+	protected StateMachine<States, Events> stateHandler;
 
 	@Autowired
-	private DataProcessor dataProcessor;
+	protected DataProcessor dataProcessor;
 
 	@Autowired
-	private Evaluator evaluator;
+	protected Evaluator evaluator;
 
-	private Solution solution;
+	protected Solution solution;
 
-	private Matrix matrix;
+	protected Matrix matrix;
 
-	@Async("workExecutor")
-	public Future<String> runningInitSolution() {
+	@Autowired
+	private MatrixBuilder matrixBuilder;
+
+	@Autowired
+   @Lazy
+	protected FineGrainedOptimizer fineGrainedOptimizer; 
+
+	protected Future<String> fineGrainedRunningInitSolution() {
 		try {
+			logger.trace(solBuilder.getClass().getName());
 			solution = solBuilder.getInitialSolution();
+			matrix = matrixBuilder.getInitialMatrix(solution);
+			logger.info(matrix.asString());
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		} catch (Exception e) {
 			logger.error("Error while performing optimization", e);
@@ -72,10 +77,9 @@ public class EngineService implements Engine{
 		return new AsyncResult<>("Done");
 	}
 
-	@Async("workExecutor")
-	public void localSearch() {
+	protected void fineGrainedLocalSearch() {
 		try {
-			optimizer.hillClimbing(solution);
+			fineGrainedOptimizer.hillClimbing(matrix);
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.error("Error while performing local search", e);
@@ -92,20 +96,10 @@ public class EngineService implements Engine{
 		dataProcessor.restoreDefaults();
 	}
 
-	/**
-	 *  Evaluate the Solution/matrix with the specified solver
-	 */
-	@Async("workExecutor")
-	public void evaluatingInitSolution() {
-		evaluator.initialSimulation(solution);
-		if (solution.getLstSolutions().stream().map(SolutionPerJob::getError)
-				.reduce(false, Boolean::logicalOr)) {
-			logger.info("The simulator failed while evaluating the initial solution");
-			stateHandler.sendEvent(Events.STOP);
-		} else if (stateHandler.getState().getId() != States.IDLE) {
-			stateHandler.sendEvent(Events.TO_EVALUATED_INITSOLUTION);
-		}
+	protected void fineGrainedEvaluatingInitSolution() {
+		evaluator.calculateDuration(matrix,solution);
 	}
+
 
 	public void evaluated(){
 		evaluator.evaluate(solution);

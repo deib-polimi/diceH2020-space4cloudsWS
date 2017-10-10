@@ -35,80 +35,31 @@ import java.util.concurrent.Future;
 
 @Service
 @WithStateMachine
-public class EngineServiceWithACService implements Engine{
-
-	private final Logger logger = Logger.getLogger(getClass());
-
-	@Autowired
-	private MatrixBuilder matrixBuilder;
-
-	@Autowired
-	@Lazy
-	private FineGrainedOptimizer optimizer;
-
-	@Autowired
-	private Evaluator evaluator;
-
-	@Autowired
-	private DataProcessor dataProcessor;
+public class EngineServiceWithACService extends EngineService{
 
 	@Autowired
 	private Selector selector;
 
-	@Autowired
-	private StateMachine<States, Events> stateHandler;
-
-	private Solution solution;
-
-	private Matrix matrix; //with admission control till now used only in private
-
-	public Solution getSolution() {
-		return solution;
-	}
-
-	public void setSolution(Solution sol) {
-		this.solution = sol;
-	}
-
-	public Matrix getMatrix() {
-		return matrix;
-	}
-
-	public void setMatrix(Matrix matrix) {
-		this.matrix = matrix;
-	}
-
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {
-		try {
-			solution = matrixBuilder.getInitialSolution();
-			matrix = matrixBuilder.getInitialMatrix(solution);
-			logger.info(matrix.asString());
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
-		} catch (Exception e) {
-			logger.error("Error while performing optimization", e);
-			stateHandler.sendEvent(Events.STOP);
-		}
-		logger.info(stateHandler.getState().getId());
-		return new AsyncResult<>("Done");
+      return fineGrainedRunningInitSolution();
 	}
 
 	@Async("workExecutor")
 	public void localSearch() {
-		try {
-			optimizer.hillClimbing(matrix);
-		} catch (Exception e) {
-			logger.error("Error while performing local search", e);
-			stateHandler.sendEvent(Events.STOP);
-		}
-		logger.info(stateHandler.getState().getId());
+      fineGrainedLocalSearch();
+	}
+
+	@Async("workExecutor")
+	public void evaluatingInitSolution() {
+      fineGrainedEvaluatingInitSolution();
 	}
 
 	@Async("workExecutor")
 	public Future<String> reduceMatrix() {
 		try {
 			selector.selectMatrixCells(matrix, solution);
-			optimizer.finish();
+			fineGrainedOptimizer.finish();
 			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.info("Error while performing optimization", e);
@@ -116,22 +67,6 @@ public class EngineServiceWithACService implements Engine{
 		}
 		logger.info(stateHandler.getState().getId());
 		return new AsyncResult<>("Done");
-	}
-
-	public void changeSettings(Settings settings) {
-		dataProcessor.changeSettings(settings);
-	}
-
-	public void restoreDefaults() {
-		dataProcessor.restoreDefaults();
-	}
-
-	/**
-	 *  Evaluate the Solution/matrix with the specified solver (QN, SPN)
-	 */
-	@Async("workExecutor")
-	public void evaluatingInitSolution() {
-		evaluator.calculateDuration(matrix,solution);
 	}
 
 	public void evaluated(){

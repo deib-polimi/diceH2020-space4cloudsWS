@@ -17,6 +17,7 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.PrivateCloudParameters;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
@@ -56,11 +57,18 @@ public class FineGrainedOptimizer extends Optimizer {
 	private void start() {
 		executionTime = 0L;
 		for (SolutionPerJob spj: matrix.getAllSolutions()) {
-			PrivateCloudParameters p = dataService.getData().getPrivateCloudParameters();
-			double m_tilde = dataService.getMemory(spj.getTypeVMselected().getId());
-			double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
-			int maxNumVM = (int) Math.floor(Math.min(Math.ceil(p.getM() / m_tilde),
-					Math.ceil(p.getV() / v_tilde))) * p.getN();
+			int maxNumVM = 0;
+			Scenarios scenarios = dataService.getScenario();
+			if (scenarios.equals(Scenarios.PrivateAdmissionControl)
+				|| scenarios.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
+				PrivateCloudParameters p = dataService.getData().getPrivateCloudParameters();
+				double m_tilde = dataService.getMemory(spj.getTypeVMselected().getId());
+				double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
+				maxNumVM = (int) Math.floor(Math.min(Math.ceil(p.getM() / m_tilde),
+						Math.ceil(p.getV() / v_tilde))) * p.getN();
+			} else {
+				maxNumVM = Integer.MAX_VALUE;
+			}
 			System.out.println("MAX NUMVM:"+maxNumVM);
 			ContainerLogicForOptimization spjOptimizer =
 					(ContainerLogicForOptimization) context.getBean("containerLogicForOptimization", spj, 1, maxNumVM);

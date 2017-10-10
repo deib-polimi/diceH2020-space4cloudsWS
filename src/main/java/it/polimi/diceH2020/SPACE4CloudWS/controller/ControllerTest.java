@@ -45,7 +45,7 @@ class ControllerTest {
 	@Setter(onMethod = @___(@Autowired))
 	private DataService dataService;
 
-	@Setter(onMethod = @___(@Autowired))
+	@Setter
 	private EngineService engineService;
 
 	@Setter(onMethod = @___(@Autowired))

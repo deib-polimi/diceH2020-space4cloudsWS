@@ -76,7 +76,6 @@ class Controller {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	@Autowired
 	private Engine engineService;
 
 	@Autowired
