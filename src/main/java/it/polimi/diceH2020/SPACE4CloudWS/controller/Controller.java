@@ -180,6 +180,8 @@ class Controller {
 		if (submittedScenario.equals(Scenarios.PrivateAdmissionControl)
 				|| submittedScenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
 			engineService = engineProxy.refreshEngine(EngineTypes.AC);
+		} else if(submittedScenario.equals(Scenarios.StormPublicAvgWorkLoad)) {
+			engineService = engineProxy.refreshEngine(EngineTypes.ST);
 		} else {
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);
 		}
