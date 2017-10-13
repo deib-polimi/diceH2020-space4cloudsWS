@@ -199,7 +199,8 @@ public class SPNSolver extends AbstractSolver {
             List<File> model = new ArrayList<> (3);
             model.add (netFile);
             model.add (defFile);
-            model.add (statFile);
+            if(((SPNSettings) connSettings).getModel() != SPNModel.STORM)
+                model.add (statFile);
             returnValue = new ImmutablePair<> (model, new ArrayList<> ());
         }
 
