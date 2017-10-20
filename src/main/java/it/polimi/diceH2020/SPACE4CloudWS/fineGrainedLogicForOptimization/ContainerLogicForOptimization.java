@@ -128,7 +128,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private void printStatus(){
 		String printText = "";
 		printText += "\nJ"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"typeVMselected:"+ initialSpjWithGivenH.getTypeVMselected().getId()+"\n";
-		printText += "nVMmin"+minVM+" nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
+		printText += "nVMmin: " + minVM + " nVMmax:"+maxVM+" initial NVM:"+initialSpjWithGivenH.getNumberVM()+"\n";
 		printText += "Calculated nVM: "+nVMxSPJ.values().stream().map(SolutionPerJob::getNumberVM).map(Object::toString).reduce((t,u)->t+","+u).get()+"\n";
 		printText += "finished: "+finished+"\n";
 		printText += "deadline: "+initialSpjWithGivenH.getJob().getD()+"\n";
@@ -196,7 +196,8 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	 */
 	private int recursiveBisection(int nVM){
 		if(nVMxSPJ.containsKey(nVM)){
-			return (int)Math.ceil((Math.min(maxVM, getMinVM_Feas()) + Math.max(minVM, getMaxVM_Infeas()))/2);
+			logger.trace("Bisection: min(" + maxVM + ", " + getMinVM_Feas() + "):max(" + minVM + ", " + getMaxVM_Infeas() + ")");
+			return (int)Math.ceil((Math.min(maxVM, getMinVM_Feas())/2 + Math.max(minVM, getMaxVM_Infeas())/2));
 
 //			if(!nVMxSPJ.get(nVM).getFeasible()) return updateN(nVM+1);
 //			else return updateN(nVM-1);
@@ -216,8 +217,10 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	 */
 	private synchronized int getNextN(){
 		int nextN;
+		logger.trace("Getting nextN");
 
 		if(nVMxSPJ.size() == 1){
+			logger.trace("Only one point available");
 			SolutionPerJob lonelyEntry =nVMxSPJ.firstEntry().getValue();
 			if(lonelyEntry.getFeasible()){
 				nextN = lonelyEntry.getNumberVM()-1;
@@ -227,19 +230,26 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			nextN = checkNVMAgainstRange(nextN);
 			nextN = recursiveBisection(nextN);
 		}else{ //size≥2
+			logger.trace("At least two points available. MaxVM_Infeas: " + getMaxVM_Infeas() + " MinVM_Feas: " + getMinVM_Feas());
+			
 			if(nVMxSPJ.get(getMaxVM_Infeas()) == null){
+				logger.trace("MaxVM_Infeas: " + getMaxVM_Infeas() + " - Solution not found");
 				SolutionPerJob s = nVMxSPJ.get(getMinVM_Feas());
 				nextN = hyperbolicAssestment(s,nVMxSPJ.get(nVMxSPJ.ceilingKey(s.getNumberVM()+1)));
 			}else if(nVMxSPJ.get(getMinVM_Feas()) == null){
+				logger.trace("MinVM_Feas: " + getMinVM_Feas() + " - Solution not found");
 				SolutionPerJob s = nVMxSPJ.get(getMaxVM_Infeas());
 				nextN = hyperbolicAssestment(nVMxSPJ.get(nVMxSPJ.floorKey(s.getNumberVM()-1)),s);
 			}else{
+				logger.trace("Third case");
 				nextN = hyperbolicAssestment(nVMxSPJ.get(getMaxVM_Infeas()),nVMxSPJ.get(getMinVM_Feas()));
 			}
+			logger.trace("NVM before check of range: " + nextN);
 			nextN = checkNVMAgainstRange(nextN);
 			System.out.println("NVM with Hyperbola:"+ nextN);
 			System.out.println("[J"+initialSpjWithGivenH.getId()+"."+initialSpjWithGivenH.getNumberUsers()+"]Hyperbolic prevision: "+nextN);
 			nextN = recursiveBisection(nextN);
+			logger.trace("NVM after recursive bisection: " + nextN);
 			predictedNVM_Hyperbola = nextN;
 		}
 
