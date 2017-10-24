@@ -19,6 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.Setter;
@@ -63,7 +64,11 @@ class SolutionBuilder extends Builder {
 							jobClass.getKey(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getValue(), tVM, jobClass.getKey());
 					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
-					approximator.approximateWithSVR(solutionPerJob);
+					if(dataService.getScenario().getSwn() == SPNModel.STORM) {
+						solutionPerJob.updateNumberContainers(1);
+					} else {
+						approximator.approximateWithSVR(solutionPerJob);
+					}
 					double cost = evaluator.evaluate(solutionPerJob);
 					logger.debug("Class"+solutionPerJob.getId()+"-> cost:"+cost+" users:"+solutionPerJob.getNumberUsers()+" #vm"+solutionPerJob.getNumberVM());
 					mapResults.put(solutionPerJob, cost);
