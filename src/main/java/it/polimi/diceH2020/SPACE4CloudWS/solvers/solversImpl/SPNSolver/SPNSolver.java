@@ -98,8 +98,11 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            connector.sendFile (statFile.getAbsolutePath (), remotePath + ".stat", getClass ());
-            logger.debug (remoteName + "-> GreatSPN .stat file sent");
+            logger.trace("SPNModel is " + ((SPNSettings) connSettings).getModel().name());
+            if(((SPNSettings) connSettings).getModel() != SPNModel.STORM) {
+               connector.sendFile (statFile.getAbsolutePath (), remotePath + ".stat", getClass ());
+               logger.debug (remoteName + "-> GreatSPN .stat file sent");
+            }
 
             String command = String.format("%s %s -a %f -c %d", connSettings.getSolverPath(), remotePath,
                     connSettings.getAccuracy(), ((SPNSettings) connSettings).getConfidence().getFlag());
@@ -181,6 +184,7 @@ public class SPNSolver extends AbstractSolver {
                     Long.toUnsignedString (solutionPerJob.getNumberUsers ().longValue ()));
             placeHolders.put ("@@CORES@@",
                     Long.toUnsignedString (solutionPerJob.getNumberContainers ().longValue ()));
+            logger.trace("@@CORES@@ replaced with " + solutionPerJob.getNumberContainers ().toString());
             placeHolders.put (originalLabel, label);
             List<String> outcomes = processPlaceholders (inputDefFile, placeHolders);
 
@@ -199,7 +203,7 @@ public class SPNSolver extends AbstractSolver {
             List<File> model = new ArrayList<> (3);
             model.add (netFile);
             model.add (defFile);
-            if(((SPNSettings) connSettings).getModel() != SPNModel.STORM)
+            logger.trace("The model is " + ((SPNSettings) connSettings).getModel().name());
                 model.add (statFile);
             returnValue = new ImmutablePair<> (model, new ArrayList<> ());
         }
