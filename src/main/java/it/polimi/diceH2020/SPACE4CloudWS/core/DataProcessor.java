@@ -110,8 +110,8 @@ public class DataProcessor {
 		Pair<Optional<Double>, Long> result = solverCache.evaluate(solPerJob);
 		Optional<Double> optionalValue = result.getLeft();
 		if (optionalValue.isPresent()) {
-			String message = String.format("%s-> A metric with %d VMs and h = %d has been simulated: %f",
-					solPerJob.getId(), solPerJob.getNumberVM(), solPerJob.getNumberUsers(), optionalValue.get());
+			String message = String.format("%s-> A metric with %d VMs, %d Containers, and h = %d has been simulated: %f",
+					solPerJob.getId(), solPerJob.getNumberVM(), solPerJob.getNumberContainers(), solPerJob.getNumberUsers(), optionalValue.get());
 			logger.info(message);
 		} else solverCache.invalidate(solPerJob);
 		return result;

@@ -156,15 +156,20 @@ class CoarseGrainedOptimizer extends Optimizer {
 			Integer nVM = solPerJob.getNumberVM();
 			lst.add(new ImmutableTriple<>(nVM, maybeResult,
 					interestingMetric.filter(feasibilityCheck).isPresent ()));
-
-			boolean terminationCriterion = ! checkState() || vmCheck.test(nVM) ||
-					interestingMetric.filter(stoppingCondition).isPresent ();
-			if (previous.isPresent() && interestingMetric.isPresent()) {
+			boolean terminationCriterion = ! checkState();
+			logger.trace("terminationCriterion is " + terminationCriterion + " after checkState()");
+			terminationCriterion |= vmCheck.test(nVM);
+			logger.trace("terminationCriterion is " + terminationCriterion + " after vmCheck.test()");
+			terminationCriterion |= interestingMetric.filter(stoppingCondition).isPresent ();
+			logger.trace("terminationCriterion is " + terminationCriterion + " after filter");
+			if (previous.isPresent() && interestingMetric.isPresent() && (dataService.getScenario().getSwn() != SPNModel.STORM || interestingMetric.get() == 0.0)) {
 				terminationCriterion |= incrementCheck.test(previous.get(), interestingMetric.get());
 			}
 			shouldKeepGoing = ! terminationCriterion;
 			previous = interestingMetric;
-
+			if(dataService.getScenario().getSwn() == SPNModel.STORM){
+				logger.trace(interestingMetric.orElse(Double.NaN) + " vs. " + solPerJob.getJob().getU()); 
+			}
 			if (shouldKeepGoing) {
 				String message = String.format("class %s -> num VM: %d, simulator result: %f, metric: %f",
 						solPerJob.getId(), nVM, maybeResult.orElse(Double.NaN),
