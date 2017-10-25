@@ -83,6 +83,7 @@ class MatrixBuilder extends Builder {
 					spj2.setParentID(dataService.getData().getId());
 					setTypeVM(spj2, cloneVM(tVM));
 					spj2.setNumberUsers(spj.getNumberUsers());
+					spj2.setXi(approximator.calculateXi(spj2));
 					approximator.approximateWithSVR(spj2);
 					logger.info("Preliminary evaluation for class: "+spj2.getId()+" with "+ tVM.getId());
 					double cost = evaluator.evaluate(spj2);

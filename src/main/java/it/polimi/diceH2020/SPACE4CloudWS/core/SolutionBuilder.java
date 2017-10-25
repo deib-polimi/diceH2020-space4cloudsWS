@@ -64,8 +64,10 @@ class SolutionBuilder extends Builder {
 							jobClass.getKey(), tVM.getId()));
 					SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getValue(), tVM, jobClass.getKey());
 					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
+					solutionPerJob.setXi(approximator.calculateXi(solutionPerJob));
+					logger.trace("Computed xi is " + solutionPerJob.getXi());
 					if(dataService.getScenario().getSwn() == SPNModel.STORM) {
-						solutionPerJob.updateNumberContainers(1);
+						solutionPerJob.updateNumberVM(1);
 					} else {
 						approximator.approximateWithSVR(solutionPerJob);
 					}

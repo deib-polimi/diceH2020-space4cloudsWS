@@ -61,7 +61,6 @@ public class MLPredictor {
 
 		logger.debug ("[SVR] numContainers = ceil(chi_c/(deadline - chi_h*h - chi_0)) = ceil("+chi_c+"/("+deadline+"-"+chi_h+"*"+h+"-"+chi_0+") = "+c);
 
-		spj.setXi(xi);
 		spj.setDuration(deadline);
 		spj.updateNumberContainers(c);
 		validate(spj);
@@ -116,7 +115,7 @@ public class MLPredictor {
 		return result;
 	}
 
-	private double calculateXi(SolutionPerJob spj) {
+	public double calculateXi(SolutionPerJob spj) {
 		double M = dataService.getMemory(spj.getTypeVMselected().getId());
 		double m = spj.getJob().getM();
 		double V = dataService.getNumCores(spj.getTypeVMselected().getId());
