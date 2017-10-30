@@ -18,7 +18,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
@@ -98,8 +98,8 @@ public class SPNSolver extends AbstractSolver {
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            logger.trace("SPNModel is " + ((SPNSettings) connSettings).getModel().name());
-            if(((SPNSettings) connSettings).getModel() != SPNModel.STORM) {
+            logger.trace("Technology is " + ((SPNSettings) connSettings).getTechnology().name());
+            if(((SPNSettings) connSettings).getTechnology() != Technology.STORM) {
                connector.sendFile (statFile.getAbsolutePath (), remotePath + ".stat", getClass ());
                logger.debug (remoteName + "-> GreatSPN .stat file sent");
             }
@@ -138,7 +138,7 @@ public class SPNSolver extends AbstractSolver {
              * with our input.
              */
             if (usingInputModel &&
-                    ((SPNSettings) connSettings).getModel () == SPNModel.MAPREDUCE) result /= 1000;
+                    ((SPNSettings) connSettings).getTechnology () != Technology.STORM) result /= 1000;
             logger.info(remoteName + "-> GreatSPN model run.");
 
             // TODO: this always returns false, should check if every error just throws
@@ -203,8 +203,7 @@ public class SPNSolver extends AbstractSolver {
             List<File> model = new ArrayList<> (3);
             model.add (netFile);
             model.add (defFile);
-            logger.trace("The model is " + ((SPNSettings) connSettings).getModel().name());
-                model.add (statFile);
+            model.add (statFile);
             returnValue = new ImmutablePair<> (model, new ArrayList<> ());
         }
 
@@ -226,18 +225,18 @@ public class SPNSolver extends AbstractSolver {
 
         String prefix = filePrefix (solPerJob);
 
-        final SPNModel model = ((SPNSettings) connSettings).getModel();
-        String netFileContent = new PNNetFileBuilder().setSPNModel(model).setCores(nContainers)
+        final Technology technology = ((SPNSettings) connSettings).getTechnology();
+        String netFileContent = new PNNetFileBuilder().setTechnology(technology).setCores(nContainers)
                 .setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
         File netFile = fileUtility.provideTemporaryFile(prefix, ".net");
         fileUtility.writeContentToFile(netFileContent, netFile);
 
-        String defFileContent = new PNDefFileBuilder().setSPNModel(model).setConcurrency(nUsers)
+        String defFileContent = new PNDefFileBuilder().setTechnology(technology).setConcurrency(nUsers)
                 .setNumberOfMapTasks(NM).setNumberOfReduceTasks(NR).build();
         File defFile = fileUtility.provideTemporaryFile(prefix, ".def");
         fileUtility.writeContentToFile(defFileContent, defFile);
 
-        label = ((SPNSettings) connSettings).getModel() == SPNModel.MAPREDUCE ? "end" : "nCores_2";
+        label = ((SPNSettings) connSettings).getTechnology() != Technology.STORM ? "end" : "nCores_2";
         File statFile = writeStatFile (solPerJob, label);
 
         List<File> lst = new ArrayList<>(3);
@@ -248,41 +247,66 @@ public class SPNSolver extends AbstractSolver {
     }
 
     @Override
-    public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob,
-                                                                    SPNModel model) {
-        return model == SPNModel.MAPREDUCE
-                ? X -> LittleLaw.computeResponseTime (X, solutionPerJob)
-                : Nk -> Utilization.computeServerUtilization (Nk, solutionPerJob);
+    public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology) {
+        switch(technology) {
+            case STORM:
+               return Nk -> Utilization.computeServerUtilization (Nk, solutionPerJob);
+            case HADOOP:
+            case SPARK:
+               return X -> LittleLaw.computeResponseTime (X, solutionPerJob);
+            default:
+               throw new RuntimeException("Unexpected technology");
+        }
     }
 
     @Override
-    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model) {
-        return model == SPNModel.MAPREDUCE
-                ? R -> R <= solutionPerJob.getJob ().getD ()
-                : Uk -> Uk <= solutionPerJob.getJob ().getU ();
+    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
+        switch(technology) {
+            case HADOOP:
+            case SPARK:
+               return R -> R <= solutionPerJob.getJob ().getD ();
+            case STORM:
+               return Uk -> Uk <= solutionPerJob.getJob ().getU ();
+            default:
+               throw new RuntimeException("Unexpected technology");
+        }
     }
 
     @Override
-    public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
-        return model == SPNModel.MAPREDUCE
-                ? solutionPerJob::setDuration : solutionPerJob::setUtilization;
+    public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology) {
+        switch(technology) {
+            case HADOOP:
+            case SPARK:
+               return solutionPerJob::setDuration;
+            case STORM:
+               return solutionPerJob::setUtilization;
+            default:
+               throw new RuntimeException("Unexpected technology");
+        }
     }
 
     @Override
-    public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
-        return model == SPNModel.MAPREDUCE
-                ? (SolutionPerJob spj, Double value) -> {
-            spj.setThroughput (value);
-            spj.setDuration (LittleLaw.computeResponseTime (value, spj));
-            spj.setError (false);
-        } : (SolutionPerJob spj, Double value) -> {
-            spj.setUtilization (Utilization.computeServerUtilization (value, spj));
-            spj.setError (false);
-        };
+    public BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology) {
+        switch(technology) {
+            case HADOOP:
+            case SPARK:
+               return (SolutionPerJob spj, Double value) -> {
+                  spj.setThroughput (value);
+                  spj.setDuration (LittleLaw.computeResponseTime (value, spj));
+                 spj.setError (false);
+               };
+            case STORM:
+               return (SolutionPerJob spj, Double value) -> {
+                  spj.setUtilization (Utilization.computeServerUtilization (value, spj));
+                  spj.setError (false);
+               };
+            default:
+               throw new RuntimeException("Unexpected technology");
+        }
     }
 
-    public void setTechnology (SPNModel technology) {
-        ((SPNSettings) connSettings).setModel(technology);
+    public void setTechnology (Technology technology) {
+        ((SPNSettings) connSettings).setTechnology(technology);
     }
 
     private String filePrefix(@NotNull SolutionPerJob solutionPerJob) {

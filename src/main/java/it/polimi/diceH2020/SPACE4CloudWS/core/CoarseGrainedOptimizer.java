@@ -17,7 +17,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
@@ -61,14 +61,14 @@ class CoarseGrainedOptimizer extends Optimizer {
 
 	void hillClimbing(Solution solution) {
 		logger.info(String.format("---------- Starting hill climbing for instance %s ----------", solution.getId()));
-		SPNModel model = solverChecker.enforceSolverSettings (solution.getLstSolutions ());
+		Technology technology = solverChecker.enforceSolverSettings (solution.getLstSolutions ());
 
 		List<SolutionPerJob> lst = solution.getLstSolutions();
 		Stream<SolutionPerJob> strm = settings.isParallel() ? lst.parallelStream() : lst.stream();
 		AtomicLong executionTime = new AtomicLong();
 		boolean overallSuccess = strm.map(s -> {
 			Instant first = Instant.now();
-			boolean success = hillClimbing(s, model);
+			boolean success = hillClimbing(s, technology);
 			Instant after = Instant.now();
 			executionTime.addAndGet(Duration.between(first, after).toMillis());
 			return success;
@@ -86,7 +86,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 		}
 	}
 
-	private boolean hillClimbing(SolutionPerJob solPerJob, SPNModel technology) {
+	private boolean hillClimbing(SolutionPerJob solPerJob, Technology technology) {
 		boolean success = false;
 		Pair<Optional<Double>, Long> simulatorResult = dataProcessor.simulateClass(solPerJob);
 		Optional<Double> maybeResult = simulatorResult.getLeft();
@@ -126,7 +126,16 @@ class CoarseGrainedOptimizer extends Optimizer {
 			result.ifPresent(triple ->
 					triple.getMiddle ().ifPresent (output -> {
 						int nVM = triple.getLeft();
-						if (technology == SPNModel.MAPREDUCE) solPerJob.setThroughput(output);
+						switch(technology) {
+							case HADOOP:
+							case SPARK:
+								solPerJob.setThroughput(output);
+								break;
+							case STORM:
+								break;
+							default:
+								throw new RuntimeException("Unexpected technology");
+						}
 						solPerJob.updateNumberVM(nVM);
 						double metric = fromResult.apply(output);
 						metricUpdater.accept(metric);
@@ -162,12 +171,12 @@ class CoarseGrainedOptimizer extends Optimizer {
 			logger.trace("terminationCriterion is " + terminationCriterion + " after vmCheck.test()");
 			terminationCriterion |= interestingMetric.filter(stoppingCondition).isPresent ();
 			logger.trace("terminationCriterion is " + terminationCriterion + " after filter");
-			if (previous.isPresent() && interestingMetric.isPresent() && (dataService.getScenario().getSwn() != SPNModel.STORM || interestingMetric.get() == 0.0)) {
+			if (previous.isPresent() && interestingMetric.isPresent() && (dataService.getScenario().getTechnology() != Technology.STORM || interestingMetric.get() == 0.0)) {
 				terminationCriterion |= incrementCheck.test(previous.get(), interestingMetric.get());
 			}
 			shouldKeepGoing = ! terminationCriterion;
 			previous = interestingMetric;
-			if(dataService.getScenario().getSwn() == SPNModel.STORM){
+			if(dataService.getScenario().getTechnology() == Technology.STORM){
 				logger.trace(interestingMetric.orElse(Double.NaN) + " vs. " + solPerJob.getJob().getU()); 
 			}
 			if (shouldKeepGoing) {

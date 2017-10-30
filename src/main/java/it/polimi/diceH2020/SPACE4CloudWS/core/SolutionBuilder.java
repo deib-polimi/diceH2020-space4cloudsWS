@@ -19,7 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.TypeVM;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.Setter;
@@ -66,7 +66,7 @@ class SolutionBuilder extends Builder {
 					solutionPerJob.setNumberUsers(solutionPerJob.getJob().getHup());
 					solutionPerJob.setXi(approximator.calculateXi(solutionPerJob));
 					logger.trace("Computed xi is " + solutionPerJob.getXi());
-					if(dataService.getScenario().getSwn() == SPNModel.STORM) {
+					if(dataService.getScenario().getTechnology() == Technology.STORM) {
 						solutionPerJob.updateNumberVM(1);
 					} else {
 						approximator.approximateWithSVR(solutionPerJob);

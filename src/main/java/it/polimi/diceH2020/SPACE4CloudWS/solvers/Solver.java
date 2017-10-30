@@ -16,7 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
 import java.util.Optional;
@@ -37,12 +37,12 @@ public interface Solver {
 
     void restoreDefaults();
 
-    Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, SPNModel model);
+    Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology);
 
-    Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model);
+    Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology);
 
-    Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model);
+    Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology);
 
-    BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model);
+    BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology);
 
 }

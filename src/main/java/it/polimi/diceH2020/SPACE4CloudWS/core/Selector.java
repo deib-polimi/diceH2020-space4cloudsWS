@@ -17,6 +17,8 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
@@ -49,17 +51,14 @@ class Selector {
 		Instant first = Instant.now();
 		Phase phase = new Phase();
 		try {
-			switch (dataService.getScenario()) {
-				case PrivateAdmissionControl:
-					phase.setId(PhaseID.SELECTION_KN);
-					minlpSolver.setModelType(AMPLModel.KNAPSACK);
-					break;
-				case PrivateAdmissionControlWithPhysicalAssignment:
-					phase.setId(PhaseID.SELECTION_BP);
-					minlpSolver.setModelType(AMPLModel.BIN_PACKING);
-					break;
-				default:
-					throw new AssertionError("The required scenario does not require optimization");
+			if(!dataService.getScenario().getCloudType().equals(CloudType.PUBLIC) || dataService.getScenario().getTechnology().equals(Technology.STORM))
+				throw new AssertionError("The required scenario does not require optimization");
+			if(! dataService.getScenario().getPhysicalAssignment()) {
+				phase.setId(PhaseID.SELECTION_KN);
+				minlpSolver.setModelType(AMPLModel.KNAPSACK);
+			} else {
+				phase.setId(PhaseID.SELECTION_BP);
+				minlpSolver.setModelType(AMPLModel.BIN_PACKING);
 			}
 			minlpSolver.evaluate(matrix, solution);
 		} catch (MatrixHugeHoleException e) {

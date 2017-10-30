@@ -17,8 +17,8 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
 import com.jcraft.jsch.JSchException;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -202,12 +202,12 @@ public abstract class AbstractSolver implements Solver {
     }
 
     @Override
-    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model) {
+    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
         return R -> R <= solutionPerJob.getJob ().getD ();
     }
 
     @Override
-    public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
+    public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology) {
         return solutionPerJob::setDuration;
     }
 

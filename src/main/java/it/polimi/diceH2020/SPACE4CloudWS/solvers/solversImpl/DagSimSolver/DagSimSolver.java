@@ -16,12 +16,12 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.DagSimSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,13 +181,12 @@ public class DagSimSolver extends AbstractSolver {
     }
 
     @Override
-    public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob,
-                                                                    SPNModel model) {
+    public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology) {
         return R -> R;
     }
 
     @Override
-    public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+    public BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology) {
         return (SolutionPerJob spj, Double value) -> {
             spj.setDuration (value);
             spj.setThroughput (LittleLaw.computeThroughput (value, spj));

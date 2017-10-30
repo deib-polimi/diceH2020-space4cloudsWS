@@ -18,7 +18,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.*;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
@@ -64,7 +64,7 @@ public class DataService {
 
 	private Solution currentSolution;
 
-	private Scenarios scenario = Scenarios.PublicAvgWorkLoad;
+	private Scenario scenario;
 
 	private Map<EntityKey, EntityTypeVM> mapCloudParameters;
 
@@ -112,7 +112,7 @@ public class DataService {
 		this.data = inputData;
 		this.jobNumber = data.getNumberOfClasses();
 		this.providerName = data.getProvider();
-		this.scenario = data.getScenario().get();
+		this.scenario = data.getScenario();
 
 		if(providerName == null || scenario == null){
 			//TODO
@@ -124,9 +124,9 @@ public class DataService {
 			}
 		}
 
-		if(scenario.getCloudType().equals(CloudType.Public)){
+		if(scenario.getCloudType().equals(CloudType.PUBLIC)){
 			loadDataFromDB(new EntityProvider(this.providerName));
-			if(scenario.equals(Scenarios.PublicAvgWorkLoad)){
+			if(! scenario.getLTC()){
 				considerOnlyReserved();
 				overrideDBLocalData();
 			}
@@ -135,8 +135,7 @@ public class DataService {
 			loadDataFromJson();
 			considerOnlyReserved();
 		}
-
-		if(!scenario.equals(Scenarios.PrivateAdmissionControl)&&!scenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)){
+		if(!scenario.getCloudType().equals(CloudType.PRIVATE)) {
 			makeInputDataConsistent();
 		}
 

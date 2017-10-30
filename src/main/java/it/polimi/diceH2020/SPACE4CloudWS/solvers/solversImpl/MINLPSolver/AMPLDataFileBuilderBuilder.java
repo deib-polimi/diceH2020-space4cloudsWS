@@ -52,10 +52,10 @@ class AMPLDataFileBuilderBuilder {
 		}
 
 		final boolean tail = (matrix.getNumRows() > 1);
-		Pair<Iterable<Integer>, Iterable<Double>>[] costOrPenaltiesPairs = tail ? new Pair[matrix.getNumRows()-1] : null;
-		Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = tail ? new Pair[matrix.getNumRows()-1] : null;
-		Pair<Iterable<Integer>, Iterable<Double>>[] vTilde = tail ? new Pair[matrix.getNumRows()-1] : null;
-		Pair<Iterable<Integer>, Iterable<Integer>>[] nu = tail ? new Pair[matrix.getNumRows()-1] : null;
+		@SuppressWarnings("unchecked") Pair<Iterable<Integer>, Iterable<Double>>[] costOrPenaltiesPairs = tail ? new Pair[matrix.getNumRows()-1] : null;
+		@SuppressWarnings("unchecked") Pair<Iterable<Integer>, Iterable<Double>>[] mTilde = tail ? new Pair[matrix.getNumRows()-1] : null;
+		@SuppressWarnings("unchecked") Pair<Iterable<Integer>, Iterable<Double>>[] vTilde = tail ? new Pair[matrix.getNumRows()-1] : null;
+		@SuppressWarnings("unchecked") Pair<Iterable<Integer>, Iterable<Integer>>[] nu = tail ? new Pair[matrix.getNumRows()-1] : null;
 
 		Pair<Iterable<Integer>, Iterable<Double>> costOrPenaltiesFirst = null;
 		Pair<Iterable<Integer>, Iterable<Double>> mTildeFirst = null;

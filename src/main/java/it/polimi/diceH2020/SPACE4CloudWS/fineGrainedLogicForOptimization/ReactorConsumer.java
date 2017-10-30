@@ -16,7 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SolverProxy;
@@ -93,7 +93,7 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>> {
 
 		if (solverMetric.isPresent()) {
 			Solver solver = solverCache.getSolver ();
-			SPNModel technology = dataService.getScenario ().getSwn ();
+			Technology technology = dataService.getScenario ().getTechnology ();
 			Double mainMetric = solver.transformationFromSolverResult (
 					solPerJob, technology).apply (solverMetric.get ());
 			solver.metricUpdater (solPerJob, technology).accept (mainMetric);

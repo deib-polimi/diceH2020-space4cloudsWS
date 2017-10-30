@@ -15,7 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 
 import java.io.*;
 import java.util.LinkedList;
@@ -25,7 +25,7 @@ class PNDefFileBuilder {
     private Integer concurrency;
     private Integer numberOfMapTasks;
     private Integer numberOfReduceTasks;
-    private SPNModel model = SPNModel.MAPREDUCE;
+    private Technology technology;
 
     PNDefFileBuilder setNumberOfReduceTasks(int numberOfReduceTasks) {
         this.numberOfReduceTasks = numberOfReduceTasks;
@@ -42,18 +42,19 @@ class PNDefFileBuilder {
         return this;
     }
 
-    PNDefFileBuilder setSPNModel(SPNModel spnModel) {
-        model = spnModel;
+    PNDefFileBuilder setTechnology(Technology technology) {
+        this.technology = technology; 
         return this;
     }
 
     String build() throws IOException {
         String filename;
-        switch (model) {
+        switch (technology) {
             case STORM:
                 filename = File.separator + "GreatSPN" + File.separator + "Storm.def";
                 break;
-            case MAPREDUCE:
+            case HADOOP:
+            case SPARK:
             default:
                 filename = File.separator + "GreatSPN" + File.separator + "SingleClass.def";
         }

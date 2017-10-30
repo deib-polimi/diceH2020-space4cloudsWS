@@ -19,7 +19,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
@@ -256,25 +256,25 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	@Override
-	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, SPNModel model) {
+	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology) {
 		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
 				getClass ().getCanonicalName ()));
 	}
 
 	@Override
-	public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, SPNModel model) {
+	public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
 		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
 				getClass ().getCanonicalName ()));
 	}
 
 	@Override
-	public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, SPNModel model) {
+	public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology) {
 		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
 				getClass ().getCanonicalName ()));
 	}
 
 	@Override
-	public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+	public BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology) {
 		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
 				getClass ().getCanonicalName ()));
 	}

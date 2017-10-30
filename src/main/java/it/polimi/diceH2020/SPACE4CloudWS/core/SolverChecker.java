@@ -15,10 +15,10 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.Setter;
@@ -35,9 +35,9 @@ class SolverChecker {
     @Setter(onMethod = @__(@Autowired))
     private DataService dataService;
 
-    SPNModel enforceSolverSettings (List<SolutionPerJob> solutionsPerJob) {
-        Scenarios scenario = dataService.getScenario();
-        SPNModel technology = scenario.getSwn();
+    Technology enforceSolverSettings (List<SolutionPerJob> solutionsPerJob) {
+        Scenario scenario = dataService.getScenario();
+        Technology technology = scenario.getTechnology();
         Settings override = new Settings();
         override.setTechnology(technology);
 
@@ -46,7 +46,8 @@ class SolverChecker {
                 override.setSolver(SolverType.SPNSolver);
                 dataProcessor.changeSettings(override);
                 break;
-            case MAPREDUCE:
+            case HADOOP:
+            case SPARK:
                 boolean needsSPN = hasModelInputFiles (solutionsPerJob, ".net");
                 if (needsSPN) override.setSolver (SolverType.SPNSolver);
 
@@ -59,7 +60,7 @@ class SolverChecker {
                 throw new RuntimeException ("The required technology is still not implemented");
         }
 
-        return scenario.getSwn ();
+        return scenario.getTechnology ();
     }
 
     private boolean hasModelInputFiles (List<SolutionPerJob> solutionsPerJob, String extension) {

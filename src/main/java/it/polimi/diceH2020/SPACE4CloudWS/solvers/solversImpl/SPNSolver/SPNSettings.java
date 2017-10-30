@@ -16,7 +16,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.AbstractConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Getter;
@@ -33,12 +33,12 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "SPN")
 final class SPNSettings extends AbstractConnectionSettings {
 
-    private SPNModel model = SPNModel.MAPREDUCE;
+    private Technology technology; 
     private SPNConfidence confidence;
 
     private SPNSettings(SPNSettings that) {
         super(that);
-        model = that.model;
+        technology = that.technology;
         confidence = that.confidence;
     }
 

@@ -15,18 +15,19 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
+
 
 class PNNetFileBuilder {
     private Double mapRate;
     private Double reduceRate;
     private Double thinkRate;
     private Integer cores;
-    private SPNModel model;
+    private Technology technology;
 
     PNNetFileBuilder setMapRate(Double mapRate) {
         this.mapRate = mapRate;
@@ -48,18 +49,19 @@ class PNNetFileBuilder {
         return this;
     }
 
-    PNNetFileBuilder setSPNModel(SPNModel spnModel) {
-        model = spnModel;
+    PNNetFileBuilder setTechnology(Technology technology) {
+        this.technology = technology;
         return this;
     }
 
     String build() throws IOException {
         String filename;
-        switch (model) {
+        switch (technology) {
             case STORM:
                 filename = File.separator + "GreatSPN" + File.separator + "Storm.net";
                 break;
-            case MAPREDUCE:
+            case HADOOP:
+            case SPARK:
             default:
                 filename = File.separator + "GreatSPN" + File.separator + "SingleClass.net";
         }

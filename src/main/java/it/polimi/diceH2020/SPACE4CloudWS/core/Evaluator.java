@@ -17,8 +17,9 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
@@ -59,7 +60,7 @@ class Evaluator implements IEvaluator {
 		solution.getLstSolutions().parallelStream().forEach(this::evaluateFeasibility);
 		solution.setEvaluated(true);
 
-		if (dataService.getScenario() == Scenarios.PrivateAdmissionControlWithPhysicalAssignment) {
+		if (dataService.getScenario().getCloudType() == CloudType.PRIVATE && dataService.getScenario().getPhysicalAssignment() == true) {
 			int activeNodes = 0;
 			if(dataService.getScenario().getModel().equals(AMPLModel.BIN_PACKING)){
 				if(solution.getActiveNodes()!=null && !solution.getActiveNodes().isEmpty()){
@@ -101,10 +102,8 @@ class Evaluator implements IEvaluator {
 	private boolean evaluateFeasibility(SolutionPerJob solPerJob) {
 		boolean feasible = false;
 
-		SPNModel spnModel = dataService.getData ().getScenario ()
-				.orElse (Scenarios.PublicAvgWorkLoad).getSwn ();
-
-		if (spnModel == SPNModel.STORM) {
+		Technology technology = dataService.getData().getScenario().getTechnology();
+		if (technology == technology.STORM) {
 			if (solPerJob.getUtilization () <= solPerJob.getJob ().getU ()) {
 				feasible = true;
 			}
@@ -117,12 +116,12 @@ class Evaluator implements IEvaluator {
 	}
 
 	void initialSimulation(@NonNull Solution sol) {
-		SPNModel technology = solverChecker.enforceSolverSettings (sol.getLstSolutions ());
+		Technology technology = solverChecker.enforceSolverSettings (sol.getLstSolutions ());
 
 		BiConsumer<SolutionPerJob, Double> resultSaver =
 				dataProcessor.getSolver ().initialResultSaver (technology);
 
-		Consumer<SolutionPerJob> errorSetter = technology == SPNModel.MAPREDUCE
+		Consumer<SolutionPerJob> errorSetter = technology != Technology.STORM 
 				? (SolutionPerJob spj) -> {
 			spj.setThroughput(Double.MAX_VALUE);
 			spj.setDuration(Double.MAX_VALUE);

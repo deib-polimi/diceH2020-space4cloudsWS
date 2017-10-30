@@ -20,7 +20,8 @@ package it.polimi.diceH2020.SPACE4CloudWS.controller;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
@@ -170,16 +171,11 @@ class Controller {
 		return stateHandler.getState().getId().toString();
 	}
 
-	private void refreshEngine(Optional<Scenarios> receivedScenario) {
+	private void refreshEngine(Scenario receivedScenario) {
 
-		Scenarios submittedScenario = Scenarios.PublicPeakWorkload;
-
-		if (receivedScenario.isPresent()) {
-			submittedScenario = receivedScenario.get();
-		}
+		Scenario submittedScenario = new Scenario(); 
 		// TODO edit shared project in order to add EngineTypes to each case.
-		if (submittedScenario.equals(Scenarios.PrivateAdmissionControl)
-				|| submittedScenario.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
+		if (receivedScenario.getCloudType().equals(CloudType.PRIVATE)) {
 			engineService = engineProxy.refreshEngine(EngineTypes.AC);
 		} else {
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);

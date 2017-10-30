@@ -17,7 +17,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.QNSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SPNModel;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
@@ -215,13 +216,12 @@ public class QNSolver extends AbstractSolver {
 	}
 
 	@Override
-	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob,
-																	SPNModel model) {
+	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology) {
 		return X -> LittleLaw.computeResponseTime (X, solutionPerJob);
 	}
 
 	@Override
-	public BiConsumer<SolutionPerJob, Double> initialResultSaver (SPNModel model) {
+	public BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology) {
 		return (SolutionPerJob spj, Double value) -> {
 			spj.setThroughput (value);
 			spj.setDuration (LittleLaw.computeResponseTime(value, spj));
