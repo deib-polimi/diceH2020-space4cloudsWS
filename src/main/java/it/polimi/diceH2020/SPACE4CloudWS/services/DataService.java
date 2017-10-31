@@ -126,7 +126,7 @@ public class DataService {
 
 		if(scenario.getCloudType().equals(CloudType.PUBLIC)){
 			loadDataFromDB(new EntityProvider(this.providerName));
-			if(! scenario.getLTC()){
+			if(! scenario.getLongTermCommitment()){
 				considerOnlyReserved();
 				overrideDBLocalData();
 			}
