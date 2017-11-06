@@ -62,9 +62,6 @@ public class MINLPSolver extends AbstractSolver {
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
-	@Setter(onMethod = @__(@Autowired))
-	private DataService dataService;
-
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
 		return MINLPSettings.class;

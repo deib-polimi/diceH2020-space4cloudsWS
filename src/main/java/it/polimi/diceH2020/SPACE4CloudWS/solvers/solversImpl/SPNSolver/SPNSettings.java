@@ -33,12 +33,10 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "SPN")
 final class SPNSettings extends AbstractConnectionSettings {
 
-    private Technology technology; 
     private SPNConfidence confidence;
 
     private SPNSettings(SPNSettings that) {
         super(that);
-        technology = that.technology;
         confidence = that.confidence;
     }
 

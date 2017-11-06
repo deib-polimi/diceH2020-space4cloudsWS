@@ -18,6 +18,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.ClassParameters;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
@@ -93,13 +94,12 @@ public class SPNSolver extends AbstractSolver {
 
             cleanRemoteSubDirectory (remoteDirectory);
             connector.exec(String.format("mkdir -p %s", remoteDirectory), getClass());
-
+            logger.trace("Scenario is " + dataService.getScenario().getStringRepresentation());
             connector.sendFile(netFile.getAbsolutePath(), remotePath + ".net", getClass());
             logger.debug(remoteName + "-> GreatSPN .net file sent");
             connector.sendFile(defFile.getAbsolutePath(), remotePath + ".def", getClass());
             logger.debug(remoteName + "-> GreatSPN .def file sent");
-            logger.trace("Technology is " + ((SPNSettings) connSettings).getTechnology().name());
-            if(((SPNSettings) connSettings).getTechnology() != Technology.STORM) {
+            if(dataService.getScenario().getTechnology() != Technology.STORM) {
                connector.sendFile (statFile.getAbsolutePath (), remotePath + ".stat", getClass ());
                logger.debug (remoteName + "-> GreatSPN .stat file sent");
             }
@@ -137,8 +137,7 @@ public class SPNSolver extends AbstractSolver {
              * Here we turn hertz into kilohertz to obtain results consistent
              * with our input.
              */
-            if (usingInputModel &&
-                    ((SPNSettings) connSettings).getTechnology () != Technology.STORM) result /= 1000;
+            if (usingInputModel && dataService.getScenario().getTechnology () != Technology.STORM) result /= 1000;
             logger.info(remoteName + "-> GreatSPN model run.");
 
             // TODO: this always returns false, should check if every error just throws
@@ -225,7 +224,7 @@ public class SPNSolver extends AbstractSolver {
 
         String prefix = filePrefix (solPerJob);
 
-        final Technology technology = ((SPNSettings) connSettings).getTechnology();
+        final Technology technology = dataService.getScenario().getTechnology();
         String netFileContent = new PNNetFileBuilder().setTechnology(technology).setCores(nContainers)
                 .setMapRate(1 / mAvg).setReduceRate(1 / (rAvg + shTypAvg)).setThinkRate(1 / think).build();
         File netFile = fileUtility.provideTemporaryFile(prefix, ".net");
@@ -236,7 +235,7 @@ public class SPNSolver extends AbstractSolver {
         File defFile = fileUtility.provideTemporaryFile(prefix, ".def");
         fileUtility.writeContentToFile(defFileContent, defFile);
 
-        label = ((SPNSettings) connSettings).getTechnology() != Technology.STORM ? "end" : "nCores_2";
+        label = dataService.getScenario().getTechnology() != Technology.STORM ? "end" : "nCores_2";
         File statFile = writeStatFile (solPerJob, label);
 
         List<File> lst = new ArrayList<>(3);
@@ -303,10 +302,6 @@ public class SPNSolver extends AbstractSolver {
             default:
                throw new RuntimeException("Unexpected technology");
         }
-    }
-
-    public void setTechnology (Technology technology) {
-        ((SPNSettings) connSettings).setTechnology(technology);
     }
 
     private String filePrefix(@NotNull SolutionPerJob solutionPerJob) {

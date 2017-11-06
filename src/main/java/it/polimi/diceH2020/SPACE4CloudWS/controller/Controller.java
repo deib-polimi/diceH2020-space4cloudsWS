@@ -125,7 +125,7 @@ class Controller {
 	@ResponseStatus(value = HttpStatus.OK)
 	public String endpointInputData(@RequestBody InstanceDataMultiProvider inputData) throws Exception {
 		if (getWebServiceState().equals("IDLE")) {
-			logger.info("Starting simulation for " + inputData.getScenario() + " scenario...");
+			logger.info("Starting simulation for " + inputData.getScenario().getStringRepresentation() + " scenario...");
 			refreshEngine(inputData.getScenario());
 			cacheInitialization();
 
@@ -175,7 +175,7 @@ class Controller {
 
 		Scenario submittedScenario = new Scenario(); 
 		// TODO edit shared project in order to add EngineTypes to each case.
-		if (receivedScenario.getCloudType().equals(CloudType.PRIVATE)) {
+		if (receivedScenario.getCloudType().equals(CloudType.PRIVATE) && receivedScenario.getAdmissionControl()) {
 			engineService = engineProxy.refreshEngine(EngineTypes.AC);
 		} else {
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);

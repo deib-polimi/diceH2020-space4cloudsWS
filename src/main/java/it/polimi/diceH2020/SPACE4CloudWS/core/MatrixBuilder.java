@@ -51,6 +51,9 @@ class MatrixBuilder extends Builder {
 		error = false;
 		String instanceId = dataService.getData().getId();
 		Solution startingSol = new Solution(instanceId);
+		logger.trace(dataService.toString());
+		logger.trace(dataService.getData().toString());
+		logger.trace(dataService.getData().getPrivateCloudParameters().toString());
 		startingSol.setPrivateCloudParameters(Optional.of(dataService.getData().getPrivateCloudParameters()));
 		startingSol.setProvider(dataService.getProviderName());
 		startingSol.setScenario(Optional.of(dataService.getScenario()));

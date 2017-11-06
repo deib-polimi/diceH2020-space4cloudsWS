@@ -54,7 +54,7 @@ class SolutionBuilder extends Builder {
 		startingSol.setScenario(Optional.of(dataService.getScenario()));
 		logger.info(String.format(
 				"---------- Starting optimization for instance %s ----------", instanceId));
-
+		logger.trace("Scenario is " + dataService.getScenario().getStringRepresentation());
 		for(Entry<String, ClassParameters> jobClass : dataService.getMapJobClass().entrySet()){
 			Map<SolutionPerJob, Double> mapResults = new ConcurrentHashMap<>();
 			dataService.getLstTypeVM(jobClass.getKey()).forEach(tVM -> {

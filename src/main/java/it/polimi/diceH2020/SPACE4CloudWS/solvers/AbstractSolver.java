@@ -22,6 +22,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4CloudWS.connection.SshConnector;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
+import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.SshConnectorProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
@@ -59,6 +60,9 @@ public abstract class AbstractSolver implements Solver {
 
     @Setter(onMethod = @__(@Autowired))
     protected DataProcessor dataProcessor;
+
+    @Setter(onMethod = @__(@Autowired))
+    protected DataService dataService;
 
     protected ConnectionSettings connSettings;
 

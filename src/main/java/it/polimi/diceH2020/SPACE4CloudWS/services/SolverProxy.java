@@ -65,9 +65,6 @@ public class SolverProxy {
 
 		if (settings.getAccuracy() != null) solver.setAccuracy (settings.getAccuracy());
 		if (settings.getSimDuration() != null) solver.setMaxDuration (settings.getSimDuration());
-		if (solverFactory.getType() == SolverType.SPNSolver && settings.getTechnology() != null) {
-			((SPNSolver) solver).setTechnology(settings.getTechnology());
-		}
 	}
 
 	public void restoreDefaults() {

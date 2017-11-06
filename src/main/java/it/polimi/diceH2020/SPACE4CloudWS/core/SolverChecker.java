@@ -39,7 +39,6 @@ class SolverChecker {
         Scenario scenario = dataService.getScenario();
         Technology technology = scenario.getTechnology();
         Settings override = new Settings();
-        override.setTechnology(technology);
 
         switch (technology) {
             case STORM:
