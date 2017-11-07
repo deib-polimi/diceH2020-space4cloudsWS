@@ -60,7 +60,7 @@ class Evaluator implements IEvaluator {
 		solution.getLstSolutions().parallelStream().forEach(this::evaluateFeasibility);
 		solution.setEvaluated(true);
 
-		if (dataService.getScenario().getCloudType() == CloudType.PRIVATE && dataService.getScenario().getPhysicalAssignment() == true) {
+		if (dataService.getScenario().getCloudType() == CloudType.PRIVATE && dataService.getScenario().getAdmissionControl() == true) {
 			int activeNodes = 0;
 			if(dataService.getScenario().getModel().equals(AMPLModel.BIN_PACKING)){
 				if(solution.getActiveNodes()!=null && !solution.getActiveNodes().isEmpty()){

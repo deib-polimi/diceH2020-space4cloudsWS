@@ -54,13 +54,8 @@ class Selector {
 			if(dataService.getScenario().getCloudType().equals(CloudType.PUBLIC)) {
 				throw new RuntimeException("The required scenario does not require optimization");
 			}
-			if(! dataService.getScenario().getPhysicalAssignment()) {
-				phase.setId(PhaseID.SELECTION_KN);
-				minlpSolver.setModelType(AMPLModel.KNAPSACK);
-			} else {
-				phase.setId(PhaseID.SELECTION_BP);
-				minlpSolver.setModelType(AMPLModel.BIN_PACKING);
-			}
+			phase.setId(PhaseID.SELECTION_KN);
+			minlpSolver.setModelType(AMPLModel.KNAPSACK);
 			minlpSolver.evaluate(matrix, solution);
 		} catch (MatrixHugeHoleException e) {
 			logger.error("The matrix has too few feasible alternatives", e);
