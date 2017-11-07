@@ -16,7 +16,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
@@ -55,7 +54,6 @@ class Selector {
 				throw new RuntimeException("The required scenario does not require optimization");
 			}
 			phase.setId(PhaseID.SELECTION_KN);
-			minlpSolver.setModelType(AMPLModel.KNAPSACK);
 			minlpSolver.evaluate(matrix, solution);
 		} catch (MatrixHugeHoleException e) {
 			logger.error("The matrix has too few feasible alternatives", e);

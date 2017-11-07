@@ -16,7 +16,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
@@ -59,20 +58,6 @@ class Evaluator implements IEvaluator {
 		Double cost = solution.getLstSolutions().parallelStream().mapToDouble(this::calculateCostPerJob).sum();
 		solution.getLstSolutions().parallelStream().forEach(this::evaluateFeasibility);
 		solution.setEvaluated(true);
-
-		if (dataService.getScenario().getCloudType() == CloudType.PRIVATE && dataService.getScenario().getAdmissionControl() == true) {
-			int activeNodes = 0;
-			if(dataService.getScenario().getModel().equals(AMPLModel.BIN_PACKING)){
-				if(solution.getActiveNodes()!=null && !solution.getActiveNodes().isEmpty()){
-					for(Boolean b : solution.getActiveNodes().values()){
-						if(b){
-							activeNodes++;
-						}
-					}
-				}
-				cost = solution.getPrivateCloudParameters().get().getE() * activeNodes;
-			}
-		}
 
 		solution.setCost(cost);
 		return cost;

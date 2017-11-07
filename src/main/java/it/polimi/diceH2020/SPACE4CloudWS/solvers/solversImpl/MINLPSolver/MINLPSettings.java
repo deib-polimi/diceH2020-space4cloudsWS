@@ -16,7 +16,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.AbstractConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Getter;
@@ -32,13 +31,11 @@ final class MINLPSettings extends AbstractConnectionSettings {
 
     private String amplDirectory;
     private boolean verbose = false;
-    private AMPLModel model;
 
     private MINLPSettings(MINLPSettings that) {
         super(that);
         amplDirectory = that.getAmplDirectory();
         verbose = that.isVerbose();
-        model = that.getModel();
     }
 
     // Used by Spring Boot

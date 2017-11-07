@@ -18,7 +18,6 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import com.jcraft.jsch.JSchException;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
@@ -69,7 +68,7 @@ public class MINLPSolver extends AbstractSolver {
 
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
 		String fileToString = FileUtils.readFileToString(solFile);
-		String objective = getModelType().toString().toLowerCase() + "_obj = ";
+		String objective = "knapsack_obj = ";
 		int startPos = fileToString.indexOf(objective);
 		int endPos = fileToString.indexOf('\n', startPos);
 		Double objFunctionValue = Double.parseDouble(fileToString.substring(startPos + objective.length(), endPos));
@@ -160,8 +159,7 @@ public class MINLPSolver extends AbstractSolver {
 			String prefix = matcher.group(1);
 			File runFile = fileUtility.provideTemporaryFile(prefix, ".run");
 			String runFileContent = new AMPLRunFileBuilder().setDataFile(remoteRelativeDataPath)
-					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath)
-					.setModelType(getModelType()).build();
+					.setSolverPath(connSettings.getSolverPath()).setSolutionFile(remoteRelativeSolutionPath).build();
 			fileUtility.writeContentToFile(runFileContent, runFile);
 
 			fullRemotePath = connSettings.getRemoteWorkDir() + REMOTE_SCRATCH + "/" + REMOTEPATH_DATA_RUN;
@@ -211,8 +209,7 @@ public class MINLPSolver extends AbstractSolver {
 	}
 
 	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, MatrixHugeHoleException {
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix, getModelType())
-				.populateBuilder();
+		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix).populateBuilder();
 		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
 		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
 		fileUtility.writeContentToFile(builder.build(), dataFile);
@@ -228,24 +225,15 @@ public class MINLPSolver extends AbstractSolver {
 		try {
 			List<File> filesList = createWorkingFiles(matrix, solution);
 			Pair<List<File>, List<File>> pair = new ImmutablePair<>(filesList, new ArrayList<>());
-			Pair<Double, Boolean> result = run(pair, getModelType() + " solution");
+			Pair<Double, Boolean> result = run(pair, "Knapsack solution");
 			File resultsFile = filesList.get(1);
-			new AMPLSolFileParser().updateResults(getModelType(), solution, matrix, resultsFile);
+			new AMPLSolFileParser().updateResults(solution, matrix, resultsFile);
 			delete(filesList);
 			return Optional.of(result.getLeft());
 		} catch (IOException | JSchException e) {
 			logger.error("Evaluate Matrix: no result due to an exception", e);
 			return Optional.empty();
 		}
-	}
-
-	public void setModelType(AMPLModel modelType) {
-		((MINLPSettings) connSettings).setModel(modelType);
-		logger.debug("MINLP model set to: " + modelType);
-	}
-
-	private AMPLModel getModelType() {
-		return ((MINLPSettings) connSettings).getModel();
 	}
 
 	public void initializeSpj(Solution solution, Matrix matrix) {

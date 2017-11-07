@@ -15,7 +15,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -160,17 +159,8 @@ class AMPLSolFileParser {
 		}
 	}
 
-	void updateResults(AMPLModel model, Solution solution, Matrix matrix, File resultsFile) throws IOException {
-		switch (model) {
-			case KNAPSACK:
-				parseKnapsackSolution(solution, matrix, resultsFile);
-				break;
-			case BIN_PACKING:
-				parseBinPackingSolution(solution, matrix, resultsFile);
-				break;
-			default:
-				throw new AssertionError("The required model is still not implemented");
-		}
+	void updateResults(Solution solution, Matrix matrix, File resultsFile) throws IOException {
+		parseKnapsackSolution(solution, matrix, resultsFile);
 	}
 
 	static void initializeSolution(Solution solution, Matrix matrix) {

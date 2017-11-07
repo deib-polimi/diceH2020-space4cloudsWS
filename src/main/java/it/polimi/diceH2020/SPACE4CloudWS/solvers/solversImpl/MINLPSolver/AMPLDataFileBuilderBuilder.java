@@ -18,7 +18,6 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDataMultiProvider;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -31,13 +30,10 @@ class AMPLDataFileBuilderBuilder {
 
 	private InstanceDataMultiProvider data;
 	private Matrix fullMatrix;
-	private AMPLModel model;
 
-	AMPLDataFileBuilderBuilder (InstanceDataMultiProvider instanceDataMultiProvider,
-								Matrix matrixWithoutHoles, AMPLModel modelType) {
+	AMPLDataFileBuilderBuilder (InstanceDataMultiProvider instanceDataMultiProvider, Matrix matrixWithoutHoles) {
 		data = instanceDataMultiProvider;
 		fullMatrix = matrixWithoutHoles;
-		model = modelType;
 	}
 
 	AMPLDataFileBuilder populateBuilder() throws MatrixHugeHoleException {
@@ -47,9 +43,6 @@ class AMPLDataFileBuilderBuilder {
 		builder.addScalarParameter("N", data.getPrivateCloudParameters().getN());
 		builder.addDoubleParameter("V", data.getPrivateCloudParameters().getV());
 		builder.addDoubleParameter("M", data.getPrivateCloudParameters().getM());
-		if (model == AMPLModel.BIN_PACKING) {
-			builder.addDoubleParameter("bigE", data.getPrivateCloudParameters().getE());
-		}
 
 		final boolean tail = (matrix.getNumRows() > 1);
 		@SuppressWarnings("unchecked") Pair<Iterable<Integer>, Iterable<Double>>[] costOrPenaltiesPairs = tail ? new Pair[matrix.getNumRows()-1] : null;
@@ -65,9 +58,7 @@ class AMPLDataFileBuilderBuilder {
 		int i = 0;
 		for (Entry<String, SolutionPerJob[]> row : matrix.entrySet()) {
 			Iterable<Integer> rowH = matrix.getAllH(row.getKey());
-			Iterable<Double> rowCostOrPenalty = model == AMPLModel.KNAPSACK
-					? matrix.getAllCost(row.getKey())
-					: matrix.getAllPenalty(row.getKey());
+			Iterable<Double> rowCostOrPenalty = matrix.getAllCost(row.getKey());
 			Iterable<Double> rowMTilde = matrix.getAllMtilde(row.getKey(), data.getMapVMConfigurations());
 			Iterable<Double> rowVTilde = matrix.getAllVtilde(row.getKey(), data.getMapVMConfigurations());
 			Iterable<Integer> rowNu = matrix.getAllNu(row.getKey());
@@ -95,7 +86,7 @@ class AMPLDataFileBuilderBuilder {
 			fullMatrix.addNotFailedRow(writtenIndex, row.getKey());
 		}
 
-		final String parameterName = (model == AMPLModel.KNAPSACK) ? "bigC" : "bigP";
+		final String parameterName = "bigC";
 		builder.addIndexedArrayParameter(parameterName, costOrPenaltiesFirst, costOrPenaltiesPairs);
 		builder.addIndexedArrayParameter("Mtilde", mTildeFirst, mTilde);
 		builder.addIndexedArrayParameter("Vtilde", vTildeFirst, vTilde);

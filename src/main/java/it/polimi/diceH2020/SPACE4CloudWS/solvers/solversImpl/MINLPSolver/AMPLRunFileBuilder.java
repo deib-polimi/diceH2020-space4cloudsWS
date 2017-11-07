@@ -15,7 +15,6 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.AMPLModel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +27,6 @@ class AMPLRunFileBuilder {
     private String dataFile;
     private String solutionFile;
     private String solverPath;
-    private AMPLModel model = AMPLModel.KNAPSACK;
 
     AMPLRunFileBuilder setDataFile(String dataFile) {
         this.dataFile = dataFile;
@@ -42,11 +40,6 @@ class AMPLRunFileBuilder {
 
     AMPLRunFileBuilder setSolverPath(String solverPath) {
         this.solverPath = solverPath;
-        return this;
-    }
-
-    AMPLRunFileBuilder setModelType(AMPLModel amplModelType) {
-        model = amplModelType;
         return this;
     }
 
@@ -66,16 +59,7 @@ class AMPLRunFileBuilder {
 
     private InputStream getResourceFileStream() throws IOException {
         String resourceFilePath;
-        switch (model) {
-            case KNAPSACK:
-                resourceFilePath = "/AMPL/main_knapsack.template.run";
-                break;
-            case BIN_PACKING:
-                resourceFilePath = "/AMPL/main_bin_packing.template.run";
-                break;
-            default:
-                throw new AssertionError("The required model is still not implemented");
-        }
+        resourceFilePath = "/AMPL/main_knapsack.template.run";
         return getClass().getResourceAsStream(resourceFilePath);
     }
 }
