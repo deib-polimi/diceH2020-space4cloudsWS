@@ -178,6 +178,8 @@ class CoarseGrainedOptimizer extends Optimizer {
 			previous = interestingMetric;
 			if(dataService.getScenario().getTechnology() == Technology.STORM){
 				logger.trace(interestingMetric.orElse(Double.NaN) + " vs. " + solPerJob.getJob().getU()); 
+			} else {
+				logger.trace(interestingMetric.orElse(Double.NaN) + " vs. " + solPerJob.getJob().getD());
 			}
 			if (shouldKeepGoing) {
 				String message = String.format("class %s -> num VM: %d, simulator result: %f, metric: %f",
