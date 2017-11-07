@@ -51,8 +51,9 @@ class Selector {
 		Instant first = Instant.now();
 		Phase phase = new Phase();
 		try {
-			if(!dataService.getScenario().getCloudType().equals(CloudType.PUBLIC) || dataService.getScenario().getTechnology().equals(Technology.STORM))
-				throw new AssertionError("The required scenario does not require optimization");
+			if(dataService.getScenario().getCloudType().equals(CloudType.PUBLIC)) {
+				throw new RuntimeException("The required scenario does not require optimization");
+			}
 			if(! dataService.getScenario().getPhysicalAssignment()) {
 				phase.setId(PhaseID.SELECTION_KN);
 				minlpSolver.setModelType(AMPLModel.KNAPSACK);
