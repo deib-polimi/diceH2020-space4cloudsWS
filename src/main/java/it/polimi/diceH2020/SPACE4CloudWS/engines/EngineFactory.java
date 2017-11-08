@@ -20,7 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import it.polimi.diceH2020.SPACE4CloudWS.core.EngineService;
+import it.polimi.diceH2020.SPACE4CloudWS.core.EngineServiceGeneral;
+import it.polimi.diceH2020.SPACE4CloudWS.core.EngineServiceStormPublic;
 import it.polimi.diceH2020.SPACE4CloudWS.core.EngineServiceWithACService;
 
 import javax.annotation.PostConstruct;
@@ -49,9 +50,11 @@ public class EngineFactory {
         switch (type) {
             case AC:
                 return ctx.getBean(EngineServiceWithACService.class);
+            case ST:
+                return ctx.getBean(EngineServiceStormPublic.class);
             case GENERAL:
             default:
-                return ctx.getBean(EngineService.class);
+                return ctx.getBean(EngineServiceGeneral.class);
         }
     }
 }

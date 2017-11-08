@@ -77,7 +77,6 @@ class Controller {
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
 
-	@Autowired
 	private Engine engineService;
 
 	@Autowired
@@ -177,6 +176,8 @@ class Controller {
 		// TODO edit shared project in order to add EngineTypes to each case.
 		if (receivedScenario.getCloudType().equals(CloudType.PRIVATE) && receivedScenario.getAdmissionControl()) {
 			engineService = engineProxy.refreshEngine(EngineTypes.AC);
+		} else if(submittedScenario.equals(Scenarios.StormPublicAvgWorkLoad)) {
+			engineService = engineProxy.refreshEngine(EngineTypes.ST);
 		} else {
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);
 		}
