@@ -169,7 +169,8 @@ class AMPLSolFileParser {
 			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()),
 					entry.getValue()[0].getNumberUsers()));
 		}
-		solution.setFeasible(false);
+		///FIXME: check if the following line could actually be removed without any logical replacement
+		//solution.setFeasible(false);
 	}
 
 }
