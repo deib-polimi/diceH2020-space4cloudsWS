@@ -17,7 +17,8 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.PrivateCloudParameters;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenarios;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Phase;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
@@ -58,9 +59,8 @@ public class FineGrainedOptimizer extends Optimizer {
 		executionTime = 0L;
 		for (SolutionPerJob spj: matrix.getAllSolutions()) {
 			int maxNumVM = 0;
-			Scenarios scenarios = dataService.getScenario();
-			if (scenarios.equals(Scenarios.PrivateAdmissionControl)
-				|| scenarios.equals(Scenarios.PrivateAdmissionControlWithPhysicalAssignment)) {
+			Scenario scenario = dataService.getScenario();
+			if (scenario.getCloudType() == CloudType.PRIVATE) {
 				PrivateCloudParameters p = dataService.getData().getPrivateCloudParameters();
 				double m_tilde = dataService.getMemory(spj.getTypeVMselected().getId());
 				double v_tilde = dataService.getNumCores(spj.getTypeVMselected().getId());
@@ -77,6 +77,7 @@ public class FineGrainedOptimizer extends Optimizer {
 	}
 
 	private void aggregateAndFinish() {
+      logger.trace("aggregateAndFinish: " + matrix.getAllSolutions().size());
 		for (SolutionPerJob spj : matrix.getAllSolutions()) {
 			evaluator.evaluate(spj);
 		}

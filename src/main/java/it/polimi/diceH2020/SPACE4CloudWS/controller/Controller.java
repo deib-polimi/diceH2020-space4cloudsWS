@@ -23,6 +23,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.InstanceDat
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.Engine;
@@ -141,6 +142,7 @@ class Controller {
 			engineService.setSolution(sol);
 			stateHandler.sendEvent(Events.TO_CHARGED_INITSOLUTION);
 		}
+		logger.trace("Returning solution (web service state)");
 		return getWebServiceState();
 	}
 
@@ -156,6 +158,7 @@ class Controller {
 					logger.info (String.format ("Deleted input folder '%s'", folderName));
 				}
 			}
+			logger.trace("Returning solution " + engineService.getSolution().getFeasible());
 			return engineService.getSolution();
 		}
 		return null;
@@ -172,13 +175,14 @@ class Controller {
 
 	private void refreshEngine(Scenario receivedScenario) {
 
-		Scenario submittedScenario = new Scenario(); 
-		// TODO edit shared project in order to add EngineTypes to each case.
 		if (receivedScenario.getCloudType().equals(CloudType.PRIVATE) && receivedScenario.getAdmissionControl()) {
+			logger.trace("Engine set to AC");
 			engineService = engineProxy.refreshEngine(EngineTypes.AC);
-		} else if(submittedScenario.equals(Scenarios.StormPublicAvgWorkLoad)) {
+		} else if(receivedScenario.getTechnology().equals(Technology.STORM)) {
+			logger.trace("Engine set to ST");
 			engineService = engineProxy.refreshEngine(EngineTypes.ST);
 		} else {
+			logger.trace("Engine set to GENERAL");
 			engineService = engineProxy.refreshEngine(EngineTypes.GENERAL);
 		}
 	}

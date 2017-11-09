@@ -58,7 +58,9 @@ class Selector {
 		} catch (MatrixHugeHoleException e) {
 			logger.error("The matrix has too few feasible alternatives", e);
 			solution.setFeasible(false);
+         logger.trace("Feasibility of solution is " + solution.getFeasible());
 			minlpSolver.initializeSpj(solution, matrix);
+         logger.trace("Feasibility of solution is " + solution.getFeasible());
 			return;
 		}
 		Instant after = Instant.now();

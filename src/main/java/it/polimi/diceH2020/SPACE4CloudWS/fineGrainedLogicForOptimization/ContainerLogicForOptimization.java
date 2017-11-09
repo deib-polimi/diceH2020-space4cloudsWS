@@ -89,6 +89,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	}
 
 	public synchronized void registerCorrectSolutionPerJob(SolutionPerJob spj, long executionTime){
+		logger.trace("registerCorrectSolutionPerJob - Start");
 		nVMxSPJ.put(spj.getNumberVM(), spj);
 		printStatus();
 		if (finished) return;
@@ -114,6 +115,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			}
 			finished(optimalNVM);
 		}
+		logger.trace("registerCorrectSolutionPerJob - End");
 	}
 
 	public synchronized void registerFailedSolutionPerJob(SolutionPerJob spj, long executionTime){

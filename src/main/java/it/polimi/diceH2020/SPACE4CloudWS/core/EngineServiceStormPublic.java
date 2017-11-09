@@ -66,7 +66,10 @@ public class EngineServiceStormPublic extends EngineService {
 	public void localSearch() {
 		try {
 			coarseGrainedOptimizer.hillClimbing(solution);
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
+			if (!stateHandler.getState().getId().equals(States.IDLE)) {
+				logger.trace("EngineServiceStormPublic - Sending event FINISH");
+				stateHandler.sendEvent(Events.FINISH);
+			}
 		} catch (Exception e) {
 			logger.error("Error while performing local search", e);
 			stateHandler.sendEvent(Events.STOP);

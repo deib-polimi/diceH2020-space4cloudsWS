@@ -64,7 +64,7 @@ class AMPLSolFileParser {
 			}
 
 			for(int c=0; c<selectedCells.length; c++){
-				solution.setSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
+				solution.addSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
 			}
 
 			//TODO for failed rows.. add json property? (so add rows to the final solution)
@@ -143,7 +143,7 @@ class AMPLSolFileParser {
 			}
 
 			for(int c=0; c<selectedCells.length; c++){
-				solution.setSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
+				solution.addSolutionPerJob(matrix.getCell(matrix.getNotFailedRow(c+1), selectedCells[c]));
 			}
 
 			//TODO for failed rows.. add json property? (so add rows to the final solution)
@@ -166,7 +166,7 @@ class AMPLSolFileParser {
 	static void initializeSolution(Solution solution, Matrix matrix) {
 		solution.getLstSolutions().clear();
 		for (Entry<String,SolutionPerJob[]> entry : matrix.entrySet()) {
-			solution.setSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()),
+			solution.addSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()),
 					entry.getValue()[0].getNumberUsers()));
 		}
 		solution.setFeasible(false);

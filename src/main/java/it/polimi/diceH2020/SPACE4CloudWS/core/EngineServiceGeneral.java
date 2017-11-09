@@ -15,10 +15,14 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.core;
 
+import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
+import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.statemachine.annotation.WithStateMachine;
 import org.springframework.stereotype.Service;
 
+import java.util.*;
 import java.util.concurrent.Future;
 
 @Service
@@ -40,6 +44,26 @@ public class EngineServiceGeneral extends EngineService{
 	@Async("workExecutor")
 	public Future<String> runningInitSolution() {
       return fineGrainedRunningInitSolution();
+	}
+
+	public Future<String> reduceMatrix() {
+		fineGrainedOptimizer.finish();
+		///Check that matrix is composed of asingle cell
+		if(matrix.getNumCells() != 1) {
+			throw new RuntimeException("Matrix size is " + matrix.getNumCells());
+		}
+		List<SolutionPerJob> solutionPerJobs = matrix.getAllSolutions();
+		if(solutionPerJobs.size() != 1) {
+			throw new RuntimeException("Number of SolutionPerJob is " + solutionPerJobs.size());
+		}
+		getSolution().getLstSolutions().clear();
+		getSolution().addSolutionPerJob(solutionPerJobs.get(0));
+		if (!stateHandler.getState().getId().equals(States.IDLE)) {
+			logger.trace("Current solution is " + getSolution().toStringReduced());
+			logger.trace("EngineService - Sending event FINISH");
+			stateHandler.sendEvent(Events.FINISH);
+		}
+		return null;
 	}
 
 }

@@ -80,7 +80,6 @@ public abstract class EngineService implements Engine{
 	protected void fineGrainedLocalSearch() {
 		try {
 			fineGrainedOptimizer.hillClimbing(matrix);
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
 		} catch (Exception e) {
 			logger.error("Error while performing local search", e);
 			stateHandler.sendEvent(Events.STOP);

@@ -60,7 +60,10 @@ public class EngineServiceWithACService extends EngineService{
 		try {
 			selector.selectMatrixCells(matrix, solution);
 			fineGrainedOptimizer.finish();
-			if (!stateHandler.getState().getId().equals(States.IDLE)) stateHandler.sendEvent(Events.FINISH);
+			if (!stateHandler.getState().getId().equals(States.IDLE)) {
+				logger.trace("EngineServiceWithACService - Sending event FINISH");
+				stateHandler.sendEvent(Events.FINISH);
+			}
 		} catch (Exception e) {
 			logger.info("Error while performing optimization", e);
 			stateHandler.sendEvent(Events.STOP);

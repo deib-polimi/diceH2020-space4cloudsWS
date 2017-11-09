@@ -84,7 +84,7 @@ class SolutionBuilder extends Builder {
 					error = false;
 					TypeVM minTVM = s.getTypeVMselected();
 					logger.info("For job class " + s.getId() + " has been selected the machine " + minTVM.getId());
-					startingSol.setSolutionPerJob(s);
+					startingSol.addSolutionPerJob(s);
 				});
 			}
 		}

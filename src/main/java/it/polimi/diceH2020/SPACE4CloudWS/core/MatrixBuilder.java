@@ -62,7 +62,7 @@ class MatrixBuilder extends Builder {
 		for(Entry<String, ClassParameters> jobClass : dataService.getMapJobClass().entrySet()){
 			SolutionPerJob solutionPerJob = createSolPerJob(jobClass.getKey(),jobClass.getValue());
 
-			startingSol.setSolutionPerJob(solutionPerJob);
+			startingSol.addSolutionPerJob(solutionPerJob);
 		}
 		return startingSol;
 	}
