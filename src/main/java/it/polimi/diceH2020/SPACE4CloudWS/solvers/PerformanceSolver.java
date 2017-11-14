@@ -68,7 +68,6 @@ public abstract class PerformanceSolver extends AbstractSolver {
         return returnValue;
     }
 
-    @Override
     public void setAccuracy(double accuracy) {
         connSettings.setAccuracy(accuracy);
     }

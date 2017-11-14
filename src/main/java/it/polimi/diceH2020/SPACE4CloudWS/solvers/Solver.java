@@ -27,8 +27,6 @@ import java.util.function.Predicate;
 
 public interface Solver {
 
-    void setAccuracy(double accuracy);
-
     void setMaxDuration(Integer duration);
 
     void initRemoteEnvironment() throws Exception;
