@@ -17,7 +17,7 @@ package it.polimi.diceH2020.SPACE4CloudWS.core;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.PerformanceSolverType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
@@ -42,16 +42,16 @@ class SolverChecker {
 
         switch (technology) {
             case STORM:
-                override.setSolver(SolverType.SPNSolver);
+                override.setSolver(PerformanceSolverType.SPNSolver);
                 dataProcessor.changeSettings(override);
                 break;
             case HADOOP:
             case SPARK:
                 boolean needsSPN = hasModelInputFiles (solutionsPerJob, ".net");
-                if (needsSPN) override.setSolver (SolverType.SPNSolver);
+                if (needsSPN) override.setSolver (PerformanceSolverType.SPNSolver);
 
                 boolean needsQN = hasModelInputFiles (solutionsPerJob, ".jsimg");
-                if (needsQN) override.setSolver (SolverType.QNSolver);
+                if (needsQN) override.setSolver (PerformanceSolverType.QNSolver);
 
                 if (needsQN || needsSPN)  dataProcessor.changeSettings (override);
                 break;

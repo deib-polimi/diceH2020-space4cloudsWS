@@ -21,7 +21,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Scenario;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -38,7 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class QNSolver extends AbstractSolver {
+public class QNSolver extends PerformanceSolver{
 
 	private static final Pattern patternMap = Pattern.compile("(.*)(Map[0-9]*)(J)(.*)");
 	private static final Pattern patternRS = Pattern.compile("(.*)(RS[0-9]*)(J)(.*)");

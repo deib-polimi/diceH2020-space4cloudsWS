@@ -18,11 +18,11 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.PerformanceSolverType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolverFactory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -40,49 +40,49 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
-public class SolverProxy {
+public class PerformanceSolverProxy {
 
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Setter(onMethod = @__(@Autowired))
-	private SolverFactory solverFactory;
+	private PerformanceSolverFactory performanceSolverFactory;
 
 	@Getter
-	private Solver solver;
+	private PerformanceSolver performanceSolver;
 
 	@PostConstruct
-	private void createSolver () {
-		solver = solverFactory.create();
+	private void createPerofrmanceSolver () {
+		performanceSolver = performanceSolverFactory.create();
 	}
 
 	public void changeSettings (Settings settings) {
 		if (settings.getSolver() != null) {
-			solverFactory.setType(settings.getSolver());
+			performanceSolverFactory.setType(settings.getSolver());
 		} else {
-			solverFactory.restoreDefaults ();
+			performanceSolverFactory.restoreDefaults ();
 		}
 		refreshSolver();
 
-		if (settings.getAccuracy() != null) solver.setAccuracy (settings.getAccuracy());
-		if (settings.getSimDuration() != null) solver.setMaxDuration (settings.getSimDuration());
+		if (settings.getAccuracy() != null) performanceSolver.setAccuracy (settings.getAccuracy());
+		if (settings.getSimDuration() != null) performanceSolver.setMaxDuration (settings.getSimDuration());
 	}
 
 	public void restoreDefaults() {
-		solverFactory.restoreDefaults ();
+		performanceSolverFactory.restoreDefaults ();
 		refreshSolver ();
 	}
 
 	private void refreshSolver() {
-		createSolver ();
-		solver.restoreDefaults ();
+		createPerofrmanceSolver ();
+		performanceSolver.restoreDefaults ();
 	}
 
 	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME,
 			keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
 	public Pair<Optional<Double>, Long> evaluate(@NonNull SolutionPerJob solPerJob) {
 		Instant first = Instant.now();
-		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
-		Optional<Double> optionalResult = solver.evaluate(solPerJob);
+		logger.info("Cache missing. Evaluation with "+ performanceSolver.getClass().getSimpleName()+".");
+		Optional<Double> optionalResult = performanceSolver.evaluate(solPerJob);
 		Instant after = Instant.now();
 		return new ImmutablePair<>(optionalResult, Duration.between(first, after).toMillis());
 	}

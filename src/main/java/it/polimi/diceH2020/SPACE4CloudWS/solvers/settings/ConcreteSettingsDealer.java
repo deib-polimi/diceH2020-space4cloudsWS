@@ -26,7 +26,7 @@ public class ConcreteSettingsDealer implements SettingsDealer {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private SolverSettings solverSettings;
+    private PerformanceSolverSettings performanceSolverSettings;
 
     @Override
     public ConnectionSettings getConnectionDefaults(Class<? extends ConnectionSettings> aClass) {
@@ -35,7 +35,7 @@ public class ConcreteSettingsDealer implements SettingsDealer {
     }
 
     @Override
-    public SolverSettings getSolverDefaults() {
-        return new SolverSettings(solverSettings);
+    public PerformanceSolverSettings getPerformanceSolverDefaults() {
+        return new PerformanceSolverSettings(performanceSolverSettings);
     }
 }

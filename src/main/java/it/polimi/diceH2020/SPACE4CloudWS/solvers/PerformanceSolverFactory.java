@@ -14,9 +14,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.PerformanceSolverType;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SettingsDealer;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.DagSimSolver.DagSimSolver;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-public class SolverFactory {
+public class PerformanceSolverFactory {
 
     @Autowired
     private ApplicationContext ctx;
@@ -40,14 +40,14 @@ public class SolverFactory {
 
     @Setter
     @Getter
-    private SolverType type;
+    private PerformanceSolverType type;
 
     @PostConstruct
     public void restoreDefaults() {
-        type = dealer.getSolverDefaults().getType();
+        type = dealer.getPerformanceSolverDefaults().getType();
     }
 
-    public Solver create() throws RuntimeException {
+    public PerformanceSolver create() throws RuntimeException {
         switch (type) {
             case SPNSolver:
                 return ctx.getBean(SPNSolver.class);

@@ -40,6 +40,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+
 public abstract class AbstractSolver implements Solver {
 
     protected final Integer MAX_ITERATIONS = 3;
@@ -50,19 +51,16 @@ public abstract class AbstractSolver implements Solver {
     protected FileUtility fileUtility;
 
     @Setter(onMethod = @__(@Autowired))
-    protected Environment environment;
-
-    @Setter(onMethod = @__(@Autowired))
     protected SshConnectorProxy connector;
 
     @Setter(onMethod = @__(@Autowired))
     private SettingsDealer settingsDealer;
 
     @Setter(onMethod = @__(@Autowired))
-    protected DataProcessor dataProcessor;
+    protected DataService dataService;
 
     @Setter(onMethod = @__(@Autowired))
-    protected DataService dataService;
+    protected Environment environment;
 
     protected ConnectionSettings connSettings;
 
@@ -111,11 +109,6 @@ public abstract class AbstractSolver implements Solver {
     }
 
     @Override
-    public void setAccuracy(double accuracy) {
-        connSettings.setAccuracy(accuracy);
-    }
-
-    @Override
     public void setMaxDuration(Integer duration){
         connSettings.setMaxDuration(duration);
     }
@@ -157,14 +150,6 @@ public abstract class AbstractSolver implements Solver {
         }
     }
 
-    protected List<File> retrieveInputFiles (@NonNull SolutionPerJob solutionPerJob, String extension) {
-        String solutionID = solutionPerJob.getParentID();
-        String spjID = solutionPerJob.getId();
-        String provider = dataProcessor.getProviderName();
-        String typeVM = solutionPerJob.getTypeVMselected().getId();
-        return dataProcessor.retrieveInputFiles(extension, solutionID, spjID, provider, typeVM);
-    }
-
     protected void sendFiles(@NotNull String remoteDirectory, List<File> lstFiles) {
         try {
             connector.exec("mkdir -p " + remoteDirectory, getClass());
@@ -183,12 +168,12 @@ public abstract class AbstractSolver implements Solver {
         });
     }
 
-    private synchronized void putRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+    protected synchronized void putRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
         remoteSubDirectories.put (solutionPerJob,
                 connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID());
     }
 
-    private synchronized void removeRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+    protected synchronized void removeRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
         remoteSubDirectories.remove (solutionPerJob);
     }
 
@@ -203,11 +188,6 @@ public abstract class AbstractSolver implements Solver {
         } catch (JSchException|IOException e) {
             logger.error ("Could not purge remote subdirectory", e);
         }
-    }
-
-    @Override
-    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
-        return R -> R <= solutionPerJob.getJob ().getD ();
     }
 
     @Override

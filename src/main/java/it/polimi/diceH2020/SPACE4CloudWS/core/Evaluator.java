@@ -104,7 +104,7 @@ class Evaluator implements IEvaluator {
 		Technology technology = solverChecker.enforceSolverSettings (sol.getLstSolutions ());
 
 		BiConsumer<SolutionPerJob, Double> resultSaver =
-				dataProcessor.getSolver ().initialResultSaver (technology);
+				dataProcessor.getPerformanceSolver ().initialResultSaver (technology);
 
 		Consumer<SolutionPerJob> errorSetter = technology != Technology.STORM 
 				? (SolutionPerJob spj) -> {

@@ -15,7 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.PerformanceSolverType;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -25,15 +25,15 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "solver")
-public class SolverSettings {
+public class PerformanceSolverSettings {
 
-    private SolverType type = SolverType.SPNSolver;
+    private PerformanceSolverType type = PerformanceSolverType.SPNSolver;
 
-    SolverSettings(SolverSettings that) {
+    PerformanceSolverSettings(PerformanceSolverSettings that) {
         type = that.getType();
     }
 
-    SolverSettings() {
+    PerformanceSolverSettings() {
         super();
     }
 }

@@ -19,9 +19,9 @@ package it.polimi.diceH2020.SPACE4CloudWS.main;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineFactory;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.WrapperDispatcher;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolverFactory;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import org.apache.log4j.Logger;
@@ -43,10 +43,10 @@ public class Initializator {
 	@Autowired
 	WrapperDispatcher dispatcher;
 
-	private Solver solver;
+	private PerformanceSolver performanceSolver;
 
 	@Autowired
-	private SolverFactory solverFactory;
+	private PerformanceSolverFactory performanceSolverFactory;
 
 	@Autowired
 	private StateMachine<States, Events> stateHandler;
@@ -58,8 +58,8 @@ public class Initializator {
 	private EngineFactory engineFactory;
 
 	@PostConstruct
-	private void setSolver() {
-		solver = solverFactory.create();
+	private void setPerformanceSolver() {
+		performanceSolver = performanceSolverFactory.create();
 		engineFactory.create();
 	}
 
@@ -72,7 +72,7 @@ public class Initializator {
 		try {
 			fileUtility.createWorkingDir();
 			milpSolver.initRemoteEnvironment();
-			solver.initRemoteEnvironment();
+			performanceSolver.initRemoteEnvironment();
 			stateHandler.sendEvent(Events.MIGRATE);
 			logger.info("Current service state: " + stateHandler.getState().getId());
 		} catch (Exception e) {

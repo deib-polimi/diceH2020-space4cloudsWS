@@ -93,7 +93,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 		if (maybeResult.isPresent()) {
 			success = true;
 
-			Solver currentSolver = dataProcessor.getSolver ();
+			Solver currentSolver = dataProcessor.getPerformanceSolver ();
 			Function<Double, Double> fromResult = currentSolver
 					.transformationFromSolverResult (solPerJob, technology);
 			Predicate<Double> feasibilityCheck = currentSolver.feasibilityCheck (solPerJob, technology);
