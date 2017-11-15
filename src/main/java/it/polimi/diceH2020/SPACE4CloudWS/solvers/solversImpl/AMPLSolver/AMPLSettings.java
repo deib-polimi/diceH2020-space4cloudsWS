@@ -14,7 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.AMPLSolver;
 
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.AbstractConnectionSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
@@ -28,13 +28,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "minlp")
-final class MINLPSettings extends AbstractConnectionSettings {
+@ConfigurationProperties(prefix = "AMPL")
+final class AMPLSettings extends AbstractConnectionSettings {
 
     private String amplDirectory;
     private boolean verbose = false;
 
-    private MINLPSettings(MINLPSettings that) {
+    private AMPLSettings(AMPLSettings that) {
         super(that);
         amplDirectory = that.getAmplDirectory();
         verbose = that.isVerbose();
@@ -42,12 +42,12 @@ final class MINLPSettings extends AbstractConnectionSettings {
 
     // Used by Spring Boot
     @SuppressWarnings("unused")
-    MINLPSettings() {
+    AMPLSettings() {
         super();
     }
 
     @Override
     public ConnectionSettings shallowCopy() {
-        return new MINLPSettings(this);
+        return new AMPLSettings(this);
     }
 }

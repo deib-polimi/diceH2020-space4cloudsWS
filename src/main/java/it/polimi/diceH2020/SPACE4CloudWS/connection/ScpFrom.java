@@ -30,7 +30,6 @@ class ScpFrom {
 		this.connector = connector;
 	}
 
-	// copying remoteFile on AMPL server in localFile on local machine
 	void receiveFile(String localFile, String remoteFile) throws JSchException, IOException {
 		String prefix = null;
 		if (new File(localFile).isDirectory()) {

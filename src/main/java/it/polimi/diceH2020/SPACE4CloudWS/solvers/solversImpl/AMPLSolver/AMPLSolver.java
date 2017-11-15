@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.AMPLSolver;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
@@ -24,7 +24,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import lombok.Setter;
@@ -52,7 +52,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class MINLPSolver extends AbstractSolver{
+public class AMPLSolver extends MINLPSolver{
 
 	private static final String AMPL_FILES = "/AMPL";
 	private static final String RESULTS_SOLFILE = "/results/solution.sol";
@@ -63,7 +63,7 @@ public class MINLPSolver extends AbstractSolver{
 
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
-		return MINLPSettings.class;
+		return AMPLSettings.class;
 	}
 
 	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
@@ -173,7 +173,7 @@ public class MINLPSolver extends AbstractSolver{
 
 			logger.info(remoteName + "-> Processing execution...");
 			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(), REMOTE_SCRATCH,
-					((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
+					((AMPLSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
 			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) {
 				stillNotOk = false;
@@ -196,7 +196,7 @@ public class MINLPSolver extends AbstractSolver{
 			File solutionFile = amplFiles.get(1);
 			String fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath, getClass());
-			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
+			Double objFunctionValue = analyzeSolution(solutionFile, ((AMPLSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 			// TODO: this always returns false, should check if every error just throws
 			return Pair.of(objFunctionValue, false);

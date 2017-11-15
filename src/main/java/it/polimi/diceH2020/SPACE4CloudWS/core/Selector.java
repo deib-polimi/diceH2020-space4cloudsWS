@@ -20,7 +20,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
