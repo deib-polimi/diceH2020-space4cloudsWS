@@ -42,16 +42,16 @@ class SolverChecker {
 
         switch (technology) {
             case STORM:
-                override.setSolver(PerformanceSolverType.SPNSolver);
+                override.setPerformanceSolverType(PerformanceSolverType.SPNSolver);
                 dataProcessor.changeSettings(override);
                 break;
             case HADOOP:
             case SPARK:
                 boolean needsSPN = hasModelInputFiles (solutionsPerJob, ".net");
-                if (needsSPN) override.setSolver (PerformanceSolverType.SPNSolver);
+                if (needsSPN) override.setPerformanceSolverType (PerformanceSolverType.SPNSolver);
 
                 boolean needsQN = hasModelInputFiles (solutionsPerJob, ".jsimg");
-                if (needsQN) override.setSolver (PerformanceSolverType.QNSolver);
+                if (needsQN) override.setPerformanceSolverType (PerformanceSolverType.QNSolver);
 
                 if (needsQN || needsSPN)  dataProcessor.changeSettings (override);
                 break;

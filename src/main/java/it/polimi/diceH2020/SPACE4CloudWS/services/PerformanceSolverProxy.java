@@ -56,8 +56,8 @@ public class PerformanceSolverProxy {
 	}
 
 	public void changeSettings (Settings settings) {
-		if (settings.getSolver() != null) {
-			performanceSolverFactory.setType(settings.getSolver());
+		if (settings.getPerformanceSolverType() != null) {
+			performanceSolverFactory.setType(settings.getPerformanceSolverType());
 		} else {
 			performanceSolverFactory.restoreDefaults ();
 		}
