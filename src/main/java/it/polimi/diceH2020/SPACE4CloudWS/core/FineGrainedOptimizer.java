@@ -67,7 +67,8 @@ public class FineGrainedOptimizer extends Optimizer {
 				maxNumVM = (int) Math.floor(Math.min(Math.ceil(p.getM() / m_tilde),
 						Math.ceil(p.getV() / v_tilde))) * p.getN();
 			} else {
-				maxNumVM = Integer.MAX_VALUE;
+				///maxNumVM = Integer.MAX_VALUE;
+				maxNumVM = 1000;
 			}
 			System.out.println("MAX NUMVM:"+maxNumVM);
 			ContainerLogicForOptimization spjOptimizer =
