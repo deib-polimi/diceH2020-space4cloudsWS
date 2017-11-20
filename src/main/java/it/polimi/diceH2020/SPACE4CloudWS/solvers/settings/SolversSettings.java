@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "solver")
+@ConfigurationProperties(prefix = "solvers")
 public class SolversSettings {
 
     private PerformanceSolverType performanceSolverType = PerformanceSolverType.SPNSolver;
