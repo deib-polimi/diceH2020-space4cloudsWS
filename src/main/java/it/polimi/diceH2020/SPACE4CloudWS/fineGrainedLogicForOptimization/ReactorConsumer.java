@@ -20,7 +20,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.PerformanceSolverProxy;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -92,7 +92,7 @@ public class ReactorConsumer implements Consumer<Event<ContainerGivenHandN>> {
 		long runtime = solverResult.getRight();
 
 		if (solverMetric.isPresent()) {
-			Solver solver = solverCache.getPerformanceSolver ();
+			PerformanceSolver solver = solverCache.getPerformanceSolver ();
 			Technology technology = dataService.getScenario ().getTechnology ();
 			Double mainMetric = solver.transformationFromSolverResult (
 					solPerJob, technology).apply (solverMetric.get ());

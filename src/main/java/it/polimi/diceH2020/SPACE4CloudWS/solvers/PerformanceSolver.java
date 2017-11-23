@@ -23,6 +23,9 @@ import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.NonNull;
 import lombok.Setter;
@@ -42,7 +45,6 @@ public abstract class PerformanceSolver extends AbstractSolver {
         return dataProcessor.retrieveInputFiles(extension, solutionID, spjID, provider, typeVM);
     }
 
-    @Override
     public Optional<Double> evaluate(@NonNull SolutionPerJob solPerJob) {
         Optional<Double> returnValue = Optional.of(solPerJob.getThroughput());
 
@@ -72,10 +74,31 @@ public abstract class PerformanceSolver extends AbstractSolver {
         connSettings.setAccuracy(accuracy);
     }
 
-    @Override
     public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
         return R -> R <= solutionPerJob.getJob ().getD ();
     }
 
+    /**
+     * Prepare the working files needed for a subsequent call to {@link #run(Pair, String, String) run}.
+     * @param solPerJob partial solution for the class of interest.
+     * @return a Pair suitable for {@link #run(Pair, String, String) run}.
+     * @throws IOException if creating or writing these files fails.
+     */
+    protected abstract Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
 
+    /**
+     * Execute the model on the remote server.
+     * @param pFiles the first List contains the main model files, the second one allows for providing
+     *               also replayer files.
+     * @param remoteName is the human readable name presented in the logs.
+     * @param remoteDirectory is the path where the solver should work remotely.
+     * @return a Pair containing the value obtained via the solver and a Boolean that is set to true
+     *         in case of failure.
+     * @throws Exception in case of problems.
+     */
+    protected abstract Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName, String remoteDirectory) throws Exception;
+
+    public abstract Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology);
+
+    public abstract BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology);
 }

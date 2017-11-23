@@ -23,7 +23,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.PhaseID;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.Setter;
@@ -93,7 +93,7 @@ class CoarseGrainedOptimizer extends Optimizer {
 		if (maybeResult.isPresent()) {
 			success = true;
 
-			Solver currentSolver = dataProcessor.getPerformanceSolver ();
+			PerformanceSolver currentSolver = dataProcessor.getPerformanceSolver ();
 			Function<Double, Double> fromResult = currentSolver
 					.transformationFromSolverResult (solPerJob, technology);
 			Predicate<Double> feasibilityCheck = currentSolver.feasibilityCheck (solPerJob, technology);

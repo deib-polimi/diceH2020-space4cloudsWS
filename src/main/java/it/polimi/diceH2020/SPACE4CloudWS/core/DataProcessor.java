@@ -24,7 +24,7 @@ import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForEvaluation;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import it.polimi.diceH2020.SPACE4CloudWS.services.PerformanceSolverProxy;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.States;
 import lombok.NonNull;
@@ -68,7 +68,7 @@ public class DataProcessor {
 	@Setter(onMethod = @__(@Autowired))
 	private FileUtility fileUtility;
 
-	Solver getPerformanceSolver () {
+	PerformanceSolver getPerformanceSolver () {
 		return solverCache.getPerformanceSolver ();
 	}
 
