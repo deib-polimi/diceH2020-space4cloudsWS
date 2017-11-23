@@ -23,6 +23,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.fileManagement.FileUtility;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForEvaluation;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
+import it.polimi.diceH2020.SPACE4CloudWS.services.MINLPSolverProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.services.PerformanceSolverProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.stateMachine.Events;
@@ -55,6 +56,9 @@ public class DataProcessor {
 
 	@Setter(onMethod = @__(@Autowired))
 	private PerformanceSolverProxy solverCache;
+
+	@Setter(onMethod = @__(@Autowired))
+	private MINLPSolverProxy minlpSolverProxy;
 
 	@Setter(onMethod = @__(@Autowired))
 	private ApplicationContext context;

@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import lombok.Setter;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class MINLPDataFileBuilder {
@@ -44,17 +45,22 @@ public class MINLPDataFileBuilder {
    private InstanceDataMultiProvider data;
    private Matrix fullMatrix;
 
-   @Setter(onMethod = @___(@Autowired))
+   protected Logger logger = Logger.getLogger(getClass());
+
    FileUtility fileUtility;
 
 
    public MINLPDataFileBuilder (InstanceDataMultiProvider instanceDataMultiProvider, Matrix matrixWithoutHoles) {
       data = instanceDataMultiProvider;
       fullMatrix = matrixWithoutHoles;
+      lines = new LinkedList<>();
+      fileUtility = new FileUtility();
    }
 
    public void createDataFile(File dataFile) throws MatrixHugeHoleException, IOException {
       Matrix matrix = fullMatrix.removeFailedSimulations();
+      addHeader();
+      addScalarParameter("nAM", matrix.getNumRows());
 
       addScalarParameter("N", data.getPrivateCloudParameters().getN());
       addDoubleParameter("V", data.getPrivateCloudParameters().getV());
@@ -107,17 +113,17 @@ public class MINLPDataFileBuilder {
       addIndexedArrayParameter("Mtilde", mTildeFirst, mTilde);
       addIndexedArrayParameter("Vtilde", vTildeFirst, vTilde);
       addIndexedArrayParameter("nu", nuFirst, nu);
+      if(fileUtility == null)
+         throw new RuntimeException("fileUtility is null");
+      if(dataFile== null)
+         throw new RuntimeException("dataFile is null");
       fileUtility.writeContentToFile(build(), dataFile);
-   }
-
-   MINLPDataFileBuilder(int numberOfClasses) {
-      lines = new LinkedList<>();
-      addHeader();
-      addScalarParameter("nAM", numberOfClasses);
    }
 
    MINLPDataFileBuilder addScalarParameter(String name, int value) {
       String currentLine = String.format(Locale.UK,"param %s := %d;", name, value);
+      if(lines == null)
+         throw new RuntimeException("lines should not be null");
       lines.add(currentLine);
       return this;
    }

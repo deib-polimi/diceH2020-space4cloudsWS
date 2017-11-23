@@ -51,7 +51,7 @@ public class PerformanceSolverProxy {
 	private PerformanceSolver performanceSolver;
 
 	@PostConstruct
-	private void createPerofrmanceSolver () {
+	private void createPerformanceSolver () {
 		performanceSolver = performanceSolverFactory.create();
 	}
 
@@ -73,7 +73,7 @@ public class PerformanceSolverProxy {
 	}
 
 	private void refreshSolver() {
-		createPerofrmanceSolver ();
+		createPerformanceSolver ();
 		performanceSolver.restoreDefaults ();
 	}
 
