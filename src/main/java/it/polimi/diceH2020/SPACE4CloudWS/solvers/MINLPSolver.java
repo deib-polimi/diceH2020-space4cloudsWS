@@ -46,9 +46,7 @@ import org.apache.commons.lang3.tuple.Pair;
 public abstract class MINLPSolver extends AbstractSolver {
    
    protected static final String RESULTS_SOLFILE = "/results/solution.sol";
-   protected static final String REMOTE_SCRATCH = "/scratch";
    protected static final String REMOTE_RESULTS = "/results";
-   protected static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
    protected static final String REMOTEPATH_DATA_RUN = "data.run";
 
    abstract protected Pair<Double, Boolean> run (@NotNull Pair<List<File>, List<File>> pFiles, String remoteName) throws JSchException, IOException;
@@ -85,7 +83,7 @@ public abstract class MINLPSolver extends AbstractSolver {
 
    protected List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, MatrixHugeHoleException {
       MINLPDataFileBuilder dataFileBuilder = new MINLPDataFileBuilder(dataService.getData(), matrix);
-      String prefix = String.format("AMPL-%s-matrix-", sol.getId());
+      String prefix = String.format("MINLP-%s-matrix-", sol.getId());
       File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
       dataFileBuilder.createDataFile(dataFile);
       File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");

@@ -31,12 +31,12 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "GLPK")
 final class GLPKSettings extends AbstractConnectionSettings {
 
-    private String glpkDirectory;
+    private String executable;
     private boolean verbose = false;
 
     private GLPKSettings(GLPKSettings that) {
         super(that);
-        glpkDirectory = that.getGlpkDirectory();
+        executable = that.getExecutable();
         verbose = that.isVerbose();
     }
 

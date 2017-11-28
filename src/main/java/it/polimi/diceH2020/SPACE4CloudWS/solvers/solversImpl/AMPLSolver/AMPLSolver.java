@@ -51,6 +51,8 @@ import java.util.regex.Pattern;
 public class AMPLSolver extends MINLPSolver{
 
 	private static final String AMPL_FILES = "/AMPL";
+	private static final String REMOTE_SCRATCH = "/scratch";
+	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
 
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {

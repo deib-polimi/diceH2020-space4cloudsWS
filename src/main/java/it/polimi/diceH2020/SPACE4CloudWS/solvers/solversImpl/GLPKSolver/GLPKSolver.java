@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 public class GLPKSolver extends MINLPSolver{
    
    private static final String GLPK_PATH = "/GLPK";
+   private static final String REMOTEPATH_DATA_DAT =  "data/data.dat";
 
    @Override
    public void initRemoteEnvironment() throws Exception {
@@ -56,7 +57,7 @@ public class GLPKSolver extends MINLPSolver{
             connector.exec(cleanRemoteDirectoryTree, getClass());
 
             logger.info("Creating new remote work directory tree");
-            String makeRemoteDirectoryTree = "mkdir -p " + root + "/{problems,utils,results}";
+            String makeRemoteDirectoryTree = "mkdir -p " + root + "/{data,models,results}";
             connector.exec(makeRemoteDirectoryTree, getClass());
          } catch (Exception e) {
             logger.error("error preparing remote work directory", e);
@@ -64,7 +65,7 @@ public class GLPKSolver extends MINLPSolver{
 
          logger.info("Sending GLPK files");
          System.out.print("[#       ] Sending work files\r");
-         sendFile(localPath + "/model_glpk.mod", connSettings.getRemoteWorkDir() + "/problems/model_glpk.mod");
+         sendFile(localPath + "/model_glpk.mod", connSettings.getRemoteWorkDir() + "/models/model_glpk.mod");
 
          logger.info("GLPK files sent");
       }
@@ -75,11 +76,11 @@ public class GLPKSolver extends MINLPSolver{
       boolean stillNotOk = true;
       for (int iteration = 0; stillNotOk && iteration < MAX_ITERATIONS; ++iteration) {
          File dataFile = exchangedFiles.get(0);
-         String fullRemotePath = connSettings.getRemoteWorkDir() + REMOTEPATH_DATA_DAT;
-         connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath, getClass());
+         String fullRemotePath = connSettings.getRemoteWorkDir();
+         connector.sendFile(dataFile.getAbsolutePath(), fullRemotePath + "/data", getClass());
          logger.info(remoteName + "-> GLPK .data file sent");
 
-         String remoteRelativeDataPath = ".." + REMOTEPATH_DATA_DAT;
+         String remoteRelativeDataPath = "data/" + dataFile.getName();
          String remoteRelativeSolutionPath = ".." + RESULTS_SOLFILE;
          Matcher matcher = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.dat").matcher(dataFile.getName());
          if (! matcher.matches()) {
@@ -89,7 +90,7 @@ public class GLPKSolver extends MINLPSolver{
          clearResultDir();
 
          logger.info(remoteName + "-> Processing execution...");
-         String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(), REMOTE_SCRATCH, ((GLPKSettings) connSettings).getGlpkDirectory(), "--math problems/glpk_model.mod -d " + dataFile.getAbsolutePath());
+         String command = String.format("cd %s && %s %s", connSettings.getRemoteWorkDir(),  ((GLPKSettings) connSettings).getExecutable(), "--math models/model_glpk.mod -d " + remoteRelativeDataPath);
          List<String> remoteMsg = connector.exec(command, getClass());
          if (remoteMsg.contains("exit-status: 0")) {
             stillNotOk = false;

@@ -23,7 +23,7 @@ s.t. RAM: sum {i in AM, j in H[i]} (Mtilde[i, j] * nu[i, j] * x[i, j]) <= M * N;
 s.t. CPU: sum {i in AM, j in H[i]} (Vtilde[i, j] * nu[i, j] * x[i, j]) <= V * N;
 
 solve;
-param solfile symbolic default "solution.sol";
+param solfile symbolic default "results/solution.sol";
 printf "### Saved solution ###\n" > (solfile);
 printf "### Knapsack problem ###\n\n" >> (solfile);
 
