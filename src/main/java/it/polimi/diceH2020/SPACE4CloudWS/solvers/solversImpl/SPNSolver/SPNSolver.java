@@ -24,7 +24,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.core.DataProcessor;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.Utilization;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  * Class that manages the interactions with GreatSPN solver
  */
 @Component
-public class SPNSolver extends AbstractSolver {
+public class SPNSolver extends PerformanceSolver{
 
     private final static Pattern prefixRegex = Pattern.compile("([\\w.-]*)(?:-\\d*)\\.net");
     private final static String statSafeLabel = "SafeNameForStatFileButLongEnoughToBeImplausible";

@@ -15,6 +15,8 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.SolversSettings;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -26,7 +28,7 @@ public class ConcreteSettingsDealer implements SettingsDealer {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private SolverSettings solverSettings;
+    private SolversSettings solversSettings;
 
     @Override
     public ConnectionSettings getConnectionDefaults(Class<? extends ConnectionSettings> aClass) {
@@ -35,7 +37,7 @@ public class ConcreteSettingsDealer implements SettingsDealer {
     }
 
     @Override
-    public SolverSettings getSolverDefaults() {
-        return new SolverSettings(solverSettings);
+    public SolversSettings getSolverDefaults() {
+        return new SolversSettings(solversSettings);
     }
 }

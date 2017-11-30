@@ -20,7 +20,10 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+
 import java.io.*;
+
+import org.apache.log4j.Logger;
 
 class ScpTo {
 
@@ -30,7 +33,6 @@ class ScpTo {
 		this.connector = connector;
 	}
 
-	// copying localFile on local machine in remoteFile on AMPL server
 	void sendFile(String localFile, String remoteFile, boolean ptimestamp) throws JSchException, IOException {
 		Session session = connector.createSession();
 		ChannelExec channel = null;

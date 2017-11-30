@@ -15,25 +15,30 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.settings;
 
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.MINLPSolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.PerformanceSolverType;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "solver")
-public class SolverSettings {
+@ConfigurationProperties(prefix = "solvers")
+public class SolversSettings {
 
-    private SolverType type = SolverType.SPNSolver;
+    private PerformanceSolverType performanceSolverType = PerformanceSolverType.SPNSolver;
 
-    SolverSettings(SolverSettings that) {
-        type = that.getType();
+    private MINLPSolverType mINLPSolverType = MINLPSolverType.AMPLSOLVER;
+
+    SolversSettings(SolversSettings that) {
+        performanceSolverType = that.getPerformanceSolverType();
+        mINLPSolverType = that.getMINLPSolverType();
     }
 
-    SolverSettings() {
+    SolversSettings() {
         super();
     }
 }

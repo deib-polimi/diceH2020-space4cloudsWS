@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
+package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.AMPLSolver;
 
 import com.jcraft.jsch.JSchException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
@@ -24,12 +24,10 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.MatrixHugeHoleException;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import lombok.NonNull;
 import lombok.Setter;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +35,7 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.NotNull;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,32 +48,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class MINLPSolver extends AbstractSolver {
+public class AMPLSolver extends MINLPSolver{
 
 	private static final String AMPL_FILES = "/AMPL";
-	private static final String RESULTS_SOLFILE = "/results/solution.sol";
 	private static final String REMOTE_SCRATCH = "/scratch";
-	private static final String REMOTE_RESULTS = "/results";
 	private static final String REMOTEPATH_DATA_DAT = REMOTE_SCRATCH + "/data.dat";
-	private static final String REMOTEPATH_DATA_RUN = "data.run";
 
 	@Override
 	protected Class<? extends ConnectionSettings> getSettingsClass() {
-		return MINLPSettings.class;
-	}
-
-	private Double analyzeSolution(File solFile, boolean verbose) throws IOException {
-		String fileToString = FileUtils.readFileToString(solFile);
-		String objective = "knapsack_obj = ";
-		int startPos = fileToString.indexOf(objective);
-		int endPos = fileToString.indexOf('\n', startPos);
-		Double objFunctionValue = Double.parseDouble(fileToString.substring(startPos + objective.length(), endPos));
-
-		if (verbose) {
-			logger.info(fileToString);
-			logger.info(objFunctionValue);
-		}
-		return objFunctionValue;
+		return AMPLSettings.class;
 	}
 
 	@Override
@@ -126,20 +105,6 @@ public class MINLPSolver extends AbstractSolver {
 		}
 	}
 
-	private void sendFile(String localPath, String remotePath) throws Exception {
-		InputStream in = this.getClass().getResourceAsStream(localPath);
-		File tempFile = fileUtility.provideTemporaryFile("S4C-temp", null);
-		FileOutputStream out = new FileOutputStream(tempFile);
-		IOUtils.copy(in, out);
-		connector.sendFile(tempFile.getAbsolutePath(), remotePath, getClass());
-		if (fileUtility.delete(tempFile)) logger.debug(tempFile + " deleted");
-	}
-
-	private void clearResultDir() throws JSchException, IOException {
-		String command = "rm -rf " + connSettings.getRemoteWorkDir() + REMOTE_RESULTS + "/*";
-		connector.exec(command, getClass());
-	}
-
 	protected Pair<Double, Boolean> run (@NotNull Pair<List<File>, List<File>> pFiles, String remoteName)
 			throws JSchException, IOException {
 		List<File> amplFiles = pFiles.getLeft();
@@ -173,7 +138,7 @@ public class MINLPSolver extends AbstractSolver {
 
 			logger.info(remoteName + "-> Processing execution...");
 			String command = String.format("cd %s%s && %s %s", connSettings.getRemoteWorkDir(), REMOTE_SCRATCH,
-					((MINLPSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
+					((AMPLSettings) connSettings).getAmplDirectory(), REMOTEPATH_DATA_RUN);
 			List<String> remoteMsg = connector.exec(command, getClass());
 			if (remoteMsg.contains("exit-status: 0")) {
 				stillNotOk = false;
@@ -196,79 +161,10 @@ public class MINLPSolver extends AbstractSolver {
 			File solutionFile = amplFiles.get(1);
 			String fullRemotePath = connSettings.getRemoteWorkDir() + RESULTS_SOLFILE;
 			connector.receiveFile(solutionFile.getAbsolutePath(), fullRemotePath, getClass());
-			Double objFunctionValue = analyzeSolution(solutionFile, ((MINLPSettings) connSettings).isVerbose());
+			Double objFunctionValue = analyzeSolution(solutionFile, ((AMPLSettings) connSettings).isVerbose());
 			logger.info(remoteName + "-> The value of the objective function is: " + objFunctionValue);
 			// TODO: this always returns false, should check if every error just throws
 			return Pair.of(objFunctionValue, false);
 		}
-	}
-
-	@Override
-	protected Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException {
-		return null;
-	}
-
-	private List<File> createWorkingFiles(Matrix matrix, Solution sol) throws IOException, MatrixHugeHoleException {
-		AMPLDataFileBuilder builder = new AMPLDataFileBuilderBuilder(dataService.getData(), matrix).populateBuilder();
-		String prefix = String.format("AMPL-%s-matrix-", sol.getId());
-		File dataFile = fileUtility.provideTemporaryFile(prefix, ".dat");
-		fileUtility.writeContentToFile(builder.build(), dataFile);
-		File resultsFile = fileUtility.provideTemporaryFile(prefix, ".sol");
-		List<File> lst = new ArrayList<>(2);
-		lst.add(dataFile);
-		lst.add(resultsFile);
-		return lst;
-	}
-
-	public Optional<Double> evaluate(@NonNull Matrix matrix, @NonNull Solution solution)
-			throws MatrixHugeHoleException {
-		try {
-			List<File> filesList = createWorkingFiles(matrix, solution);
-			Pair<List<File>, List<File>> pair = new ImmutablePair<>(filesList, new ArrayList<>());
-			Pair<Double, Boolean> result = run(pair, "Knapsack solution");
-			File resultsFile = filesList.get(1);
-			new AMPLSolFileParser().updateResults(solution, matrix, resultsFile);
-			delete(filesList);
-			return Optional.of(result.getLeft());
-		} catch (IOException | JSchException e) {
-			logger.error("Evaluate Matrix: no result due to an exception", e);
-			return Optional.empty();
-		}
-	}
-
-	public void initializeSpj(Solution solution, Matrix matrix) {
-		AMPLSolFileParser.initializeSolution(solution, matrix);
-	}
-
-	@Override
-	public Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology) {
-		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
-				getClass ().getCanonicalName ()));
-	}
-
-	@Override
-	public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
-		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
-				getClass ().getCanonicalName ()));
-	}
-
-	@Override
-	public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology) {
-		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
-				getClass ().getCanonicalName ()));
-	}
-
-	@Override
-	public BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology) {
-		throw new UnsupportedOperationException (String.format ("'%s' is not an analytical solver!",
-				getClass ().getCanonicalName ()));
-	}
-
-	@Override
-	protected Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName,
-										 String remoteDirectory) throws Exception {
-		throw new Exception (String.format ("method '%s' is not implemented in class <%s>",
-				getClass ().getEnclosingMethod ().getName (),
-				getClass ().getCanonicalName ()));
 	}
 }

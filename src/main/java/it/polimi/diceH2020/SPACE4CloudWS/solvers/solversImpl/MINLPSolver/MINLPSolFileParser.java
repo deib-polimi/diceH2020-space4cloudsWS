@@ -15,6 +15,7 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver;
 
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Matrix;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.Solution;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
@@ -28,7 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-class AMPLSolFileParser {
+import org.apache.commons.lang3.tuple.ImmutablePair;
+
+public class MINLPSolFileParser {
 
 	private Logger logger = Logger.getLogger(getClass());
 
@@ -46,7 +49,7 @@ class AMPLSolFileParser {
 			String[] bufferStr = line.split("\\s+");
 			if (bufferStr[2].equals("infeasible")) {
 				logger.info("The problem is infeasible");
-				initializeSolution(solution,matrix);
+				MINLPSolver.initializeSolution(solution,matrix);
 				return;
 			}
 
@@ -88,7 +91,7 @@ class AMPLSolFileParser {
 			String[] bufferStr = line.split("\\s+");
 			if (bufferStr[2].equals("infeasible")) {
 				logger.info("The problem is infeasible");
-				initializeSolution(solution,matrix);
+				MINLPSolver.initializeSolution(solution,matrix);
 				return;
 			}
 
@@ -159,17 +162,8 @@ class AMPLSolFileParser {
 		}
 	}
 
-	void updateResults(Solution solution, Matrix matrix, File resultsFile) throws IOException {
+	public void updateResults(Solution solution, Matrix matrix, File resultsFile) throws IOException {
 		parseKnapsackSolution(solution, matrix, resultsFile);
-	}
-
-	static void initializeSolution(Solution solution, Matrix matrix) {
-		solution.getLstSolutions().clear();
-		for (Entry<String,SolutionPerJob[]> entry : matrix.entrySet()) {
-			solution.addSolutionPerJob(matrix.getCell(matrix.getID(entry.getValue()[0].getId()),
-					entry.getValue()[0].getNumberUsers()));
-		}
-		solution.setFeasible(false);
 	}
 
 }

@@ -19,7 +19,7 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.performanceMetrics.LittleLaw;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.AbstractSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.PerformanceSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.settings.ConnectionSettings;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-public class DagSimSolver extends AbstractSolver {
+public class DagSimSolver extends PerformanceSolver{
 
     private final static Pattern RESULT_LINE =
             Pattern.compile("0\\.0\\s+0\\.0\\s+(?<avg>[\\d.e-]+)\\s+(?<dev>[\\d.e-]+)\\s+(?<lower>[\\d.e-]+)\\s+(?<upper>[\\d.e-]+)\\s+(?<accuracy>[\\d.e-]+)");

@@ -20,7 +20,8 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.CloudType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.*;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.MINLPSolver.MINLPSolver;
+import it.polimi.diceH2020.SPACE4CloudWS.services.MINLPSolverProxy;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,7 +33,7 @@ import java.time.Instant;
 class Selector {
 
 	@Autowired
-	private MINLPSolver minlpSolver;
+	private MINLPSolverProxy minlpSolverProxy;
 
 	@Autowired
 	private DataService dataService; //TODO dataProcessor
@@ -54,12 +55,12 @@ class Selector {
 				throw new RuntimeException("The required scenario does not require optimization");
 			}
 			phase.setId(PhaseID.SELECTION_KN);
-			minlpSolver.evaluate(matrix, solution);
+			minlpSolverProxy.getMinlpSolver().evaluate(matrix, solution);
 		} catch (MatrixHugeHoleException e) {
 			logger.error("The matrix has too few feasible alternatives", e);
 			solution.setFeasible(false);
          logger.trace("Feasibility of solution is " + solution.getFeasible());
-			minlpSolver.initializeSpj(solution, matrix);
+			minlpSolverProxy.getMinlpSolver().initializeSpj(solution, matrix);
          logger.trace("Feasibility of solution is " + solution.getFeasible());
 			return;
 		}

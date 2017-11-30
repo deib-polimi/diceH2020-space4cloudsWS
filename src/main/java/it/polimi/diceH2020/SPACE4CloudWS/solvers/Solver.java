@@ -20,29 +20,13 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Technology;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface Solver {
-
-    void setAccuracy(double accuracy);
 
     void setMaxDuration(Integer duration);
 
     void initRemoteEnvironment() throws Exception;
 
-    Optional<Double> evaluate(SolutionPerJob solPerJob);
-
     void restoreDefaults();
-
-    Function<Double, Double> transformationFromSolverResult (SolutionPerJob solutionPerJob, Technology technology);
-
-    Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology);
-
-    Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology);
-
-    BiConsumer<SolutionPerJob, Double> initialResultSaver (Technology technology);
-
 }

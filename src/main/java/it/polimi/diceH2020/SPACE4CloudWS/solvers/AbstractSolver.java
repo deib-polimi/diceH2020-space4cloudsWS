@@ -40,6 +40,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+
 public abstract class AbstractSolver implements Solver {
 
     protected final Integer MAX_ITERATIONS = 3;
@@ -50,19 +51,16 @@ public abstract class AbstractSolver implements Solver {
     protected FileUtility fileUtility;
 
     @Setter(onMethod = @__(@Autowired))
-    protected Environment environment;
-
-    @Setter(onMethod = @__(@Autowired))
     protected SshConnectorProxy connector;
 
     @Setter(onMethod = @__(@Autowired))
     private SettingsDealer settingsDealer;
 
     @Setter(onMethod = @__(@Autowired))
-    protected DataProcessor dataProcessor;
+    protected DataService dataService;
 
     @Setter(onMethod = @__(@Autowired))
-    protected DataService dataService;
+    protected Environment environment;
 
     protected ConnectionSettings connSettings;
 
@@ -80,65 +78,14 @@ public abstract class AbstractSolver implements Solver {
                 getClass().getCanonicalName()));
     }
 
-    @Override
-    public Optional<Double> evaluate(@NonNull SolutionPerJob solPerJob) {
-        Optional<Double> returnValue = Optional.of(solPerJob.getThroughput());
-
-        if (solPerJob.getChanged()) {
-            try {
-                putRemoteSubDirectory (solPerJob);
-                Pair<List<File>, List<File>> pFiles = createWorkingFiles (solPerJob);
-                String jobID = solPerJob.getId ();
-                String directory = retrieveRemoteSubDirectory (solPerJob);
-                Pair<Double, Boolean> result = run (pFiles, "class" + jobID, directory);
-                delete (pFiles.getLeft ());
-                if (connSettings.isCleanRemote ()) cleanRemoteSubDirectory (directory);
-                solPerJob.setError (result.getRight ());
-                returnValue = Optional.of (result.getLeft ());
-                removeRemoteSubDirectory (solPerJob);
-            } catch (Exception e) {
-                logger.error ("Error in SPJ evaluation", e);
-                solPerJob.setError (Boolean.TRUE);
-                returnValue = Optional.empty ();
-            }
-        }
-
-        return returnValue;
-    }
-
     public void delete(List<File> pFiles) {
         if (fileUtility.delete(pFiles)) logger.debug("Working files correctly deleted");
-    }
-
-    @Override
-    public void setAccuracy(double accuracy) {
-        connSettings.setAccuracy(accuracy);
     }
 
     @Override
     public void setMaxDuration(Integer duration){
         connSettings.setMaxDuration(duration);
     }
-
-    /**
-     * Execute the model on the remote server.
-     * @param pFiles the first List contains the main model files, the second one allows for providing
-     *               also replayer files.
-     * @param remoteName is the human readable name presented in the logs.
-     * @param remoteDirectory is the path where the solver should work remotely.
-     * @return a Pair containing the value obtained via the solver and a Boolean that is set to true
-     *         in case of failure.
-     * @throws Exception in case of problems.
-     */
-    protected abstract Pair<Double, Boolean> run (Pair<List<File>, List<File>> pFiles, String remoteName, String remoteDirectory) throws Exception;
-
-    /**
-     * Prepare the working files needed for a subsequent call to {@link #run(Pair, String, String) run}.
-     * @param solPerJob partial solution for the class of interest.
-     * @return a Pair suitable for {@link #run(Pair, String, String) run}.
-     * @throws IOException if creating or writing these files fails.
-     */
-    protected abstract Pair<List<File>, List<File>> createWorkingFiles(SolutionPerJob solPerJob) throws IOException;
 
     @Override
     public void initRemoteEnvironment() throws Exception {
@@ -155,14 +102,6 @@ public abstract class AbstractSolver implements Solver {
             connector.exec("mkdir -p " + connSettings.getRemoteWorkDir(), getClass());
             logger.info("Done");
         }
-    }
-
-    protected List<File> retrieveInputFiles (@NonNull SolutionPerJob solutionPerJob, String extension) {
-        String solutionID = solutionPerJob.getParentID();
-        String spjID = solutionPerJob.getId();
-        String provider = dataProcessor.getProviderName();
-        String typeVM = solutionPerJob.getTypeVMselected().getId();
-        return dataProcessor.retrieveInputFiles(extension, solutionID, spjID, provider, typeVM);
     }
 
     protected void sendFiles(@NotNull String remoteDirectory, List<File> lstFiles) {
@@ -183,12 +122,12 @@ public abstract class AbstractSolver implements Solver {
         });
     }
 
-    private synchronized void putRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+    protected synchronized void putRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
         remoteSubDirectories.put (solutionPerJob,
                 connSettings.getRemoteWorkDir() + File.separator + UUID.randomUUID());
     }
 
-    private synchronized void removeRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
+    protected synchronized void removeRemoteSubDirectory (@NotNull SolutionPerJob solutionPerJob) {
         remoteSubDirectories.remove (solutionPerJob);
     }
 
@@ -205,12 +144,6 @@ public abstract class AbstractSolver implements Solver {
         }
     }
 
-    @Override
-    public Predicate<Double> feasibilityCheck (SolutionPerJob solutionPerJob, Technology technology) {
-        return R -> R <= solutionPerJob.getJob ().getD ();
-    }
-
-    @Override
     public Consumer<Double> metricUpdater (SolutionPerJob solutionPerJob, Technology technology) {
         return solutionPerJob::setDuration;
     }

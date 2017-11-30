@@ -18,11 +18,11 @@ limitations under the License.
 package it.polimi.diceH2020.SPACE4CloudWS.services;
 
 import it.polimi.diceH2020.SPACE4Cloud.shared.settings.Settings;
-import it.polimi.diceH2020.SPACE4Cloud.shared.settings.SolverType;
+import it.polimi.diceH2020.SPACE4Cloud.shared.settings.MINLPSolverType;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.Solver;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolver;
 import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SPNSolver.SPNSolver;
-import it.polimi.diceH2020.SPACE4CloudWS.solvers.solversImpl.SolverFactory;
+import it.polimi.diceH2020.SPACE4CloudWS.solvers.MINLPSolverFactory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -40,58 +40,37 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
-public class SolverProxy {
+public class MINLPSolverProxy {
 
 	private final Logger logger = Logger.getLogger(getClass());
 
 	@Setter(onMethod = @__(@Autowired))
-	private SolverFactory solverFactory;
+	private MINLPSolverFactory minlpSolverFactory;
 
 	@Getter
-	private Solver solver;
+	private MINLPSolver minlpSolver;
 
 	@PostConstruct
-	private void createSolver () {
-		solver = solverFactory.create();
+	private void createMINLPSolver () {
+		minlpSolver = minlpSolverFactory.create();
 	}
 
 	public void changeSettings (Settings settings) {
-		if (settings.getSolver() != null) {
-			solverFactory.setType(settings.getSolver());
+		if (settings.getMINLPSolverType() != null) {
+			minlpSolverFactory.setType(settings.getMINLPSolverType());
 		} else {
-			solverFactory.restoreDefaults ();
+			minlpSolverFactory.restoreDefaults ();
 		}
 		refreshSolver();
-
-		if (settings.getAccuracy() != null) solver.setAccuracy (settings.getAccuracy());
-		if (settings.getSimDuration() != null) solver.setMaxDuration (settings.getSimDuration());
 	}
 
 	public void restoreDefaults() {
-		solverFactory.restoreDefaults ();
+		minlpSolverFactory.restoreDefaults ();
 		refreshSolver ();
 	}
 
 	private void refreshSolver() {
-		createSolver ();
-		solver.restoreDefaults ();
+		createMINLPSolver ();
+		minlpSolver.restoreDefaults ();
 	}
-
-	@Cacheable(value=it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME,
-			keyGenerator = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.SPJ_KEYGENERATOR)
-	public Pair<Optional<Double>, Long> evaluate(@NonNull SolutionPerJob solPerJob) {
-		Instant first = Instant.now();
-		logger.info("Cache missing. Evaluation with "+ solver.getClass().getSimpleName()+".");
-		Optional<Double> optionalResult = solver.evaluate(solPerJob);
-		Instant after = Instant.now();
-		return new ImmutablePair<>(optionalResult, Duration.between(first, after).toMillis());
-	}
-
-	@CacheEvict(cacheNames = it.polimi.diceH2020.SPACE4CloudWS.main.Configurator.CACHE_NAME)
-	public void invalidate(@NonNull SolutionPerJob solutionPerJob) {
-		String message = String.format("Evicting stale cache data about %s/%s",
-				solutionPerJob.getParentID(), solutionPerJob.getId());
-		logger.info(message);
-	}
-
 }
