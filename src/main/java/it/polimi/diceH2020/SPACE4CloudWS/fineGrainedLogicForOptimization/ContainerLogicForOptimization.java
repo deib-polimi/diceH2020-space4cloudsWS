@@ -100,11 +100,13 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 				try{
 					if(!sendNextEvent()){ //encode Next spj
 						logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - VM limits exceeded.");
+						spj.setFeasible(false);
 						finished(-1); //not enough VM
 					}
 				}catch(Exception e){logger.error("Exception sending a new spj "+e);finished(-1);}
 			else{
 				logger.info("class" + initialSpjWithGivenH.getId() +" with H:"+initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - its durations aren't decreasing enough");
+				spj.setFeasible(false);
 				finished(-2);
 			}
 		}
@@ -124,6 +126,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 		if (finished) return;
 		this.executionTime += executionTime;
 		logger.info("class" + initialSpjWithGivenH.getId() +"."+	initialSpjWithGivenH.getNumberUsers()+"-> MakeFeasible ended with ERROR - duration not received");
+		spj.setFeasible(false);
 		finished(-3);
 	}
 
@@ -153,6 +156,8 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 			optimizer.registerSPJGivenHOptimalNVM(nVMxSPJ.get(nVM),executionTime);
 		}else{
 			initialSpjWithGivenH.updateNumberVM(nVM);
+			initialSpjWithGivenH.setFeasible(false);
+			initialSpjWithGivenH.setDuration(Double.MAX_VALUE);
 			optimizer.registerSPJGivenHOptimalNVM(initialSpjWithGivenH,executionTime);
 		}
 		dispatcher.dequeue(this);

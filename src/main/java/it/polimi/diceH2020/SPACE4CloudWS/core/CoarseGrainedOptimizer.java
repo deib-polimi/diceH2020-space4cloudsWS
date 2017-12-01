@@ -144,7 +144,10 @@ class CoarseGrainedOptimizer extends Optimizer {
 								solPerJob.getId(), output, metric, nVM));
 					})
 			);
-		} else logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
+		} else {
+			logger.info("class" + solPerJob.getId() + "-> MakeFeasible ended with ERROR");
+			solPerJob.setFeasible(false);
+		}
 		return success;
 	}
 
