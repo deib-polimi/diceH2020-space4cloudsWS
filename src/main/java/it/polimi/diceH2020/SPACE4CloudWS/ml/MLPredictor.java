@@ -16,17 +16,32 @@ limitations under the License.
 */
 package it.polimi.diceH2020.SPACE4CloudWS.ml;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobMLProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.JobProfile;
 import it.polimi.diceH2020.SPACE4Cloud.shared.inputDataMultiProvider.SVRFeature;
 import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
+import it.polimi.diceH2020.SPACE4CloudWS.main.DS4CSettings;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
-import lombok.Setter;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+
+import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.util.Map;
+
+import lombok.Setter;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.stereotype.Service;
 
 @Service
 public class MLPredictor {
@@ -37,6 +52,9 @@ public class MLPredictor {
 	@Setter(onMethod = @__(@Autowired))
 	private DataService dataService;
 
+	@Autowired
+	protected DS4CSettings ds4cSettings;
+
 	/**
 	 * Precondition: DataService has M,V (received from JSON or retrieved from
 	 * DB) SolutionPerJob has h,m,v,D and all the required parameters in
@@ -46,8 +64,43 @@ public class MLPredictor {
 		calculatePrediction(spj);
 	}
 
+	private String readJsonFile(String file) throws IOException { 
+		InputStream inputStream = getClass().getResourceAsStream(file);
+		if(inputStream != null) {
+			return IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+		}
+		inputStream = getClass().getResourceAsStream("/" + file);
+		if(inputStream != null) {
+			return IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+		}
+		return String.join("\n", Files.readAllLines(Paths.get(file)));
+	}
+
 	private void calculatePrediction(SolutionPerJob spj) {
 		JobMLProfile features = dataService.getMLProfile(spj.getId());
+		if(features == null) {
+			try {
+				ObjectMapper mapper = new ObjectMapper();
+				switch(dataService.getScenario().getTechnology()) {
+					case SPARK: {
+							String serialized = readJsonFile(ds4cSettings.getSparkModel());
+							features = mapper.readValue(serialized, JobMLProfile.class);
+							break;
+					}
+					case HADOOP: {
+							String serialized = readJsonFile(ds4cSettings.getHadoopModel());
+							features = mapper.readValue(serialized, JobMLProfile.class);
+							break;
+					}
+					case STORM:
+						throw new RuntimeException("MLPredictor cannot be used with STORM");
+					default:
+						throw new RuntimeException("Unexpected enum");
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e.getMessage());
+			}
+		}
 		JobProfile profile = spj.getProfile();
 
 		double deadline = spj.getJob().getD();

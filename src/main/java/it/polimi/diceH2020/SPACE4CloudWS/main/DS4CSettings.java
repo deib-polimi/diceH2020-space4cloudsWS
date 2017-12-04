@@ -38,5 +38,11 @@ public class DS4CSettings {
 
 	@NestedConfigurationProperty
 	private OptimizationSettings optimization;
+
+	///The file containing the default ML model for spark
+	private String sparkModel;
+
+	///The file containing the default ML model for hadoop
+	private String hadoopModel;
 }
 
