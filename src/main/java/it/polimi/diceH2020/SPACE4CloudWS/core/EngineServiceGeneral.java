@@ -48,16 +48,11 @@ public class EngineServiceGeneral extends EngineService{
 
 	public Future<String> reduceMatrix() {
 		fineGrainedOptimizer.finish();
-		///Check that matrix is composed of asingle cell
-		if(matrix.getNumCells() != 1) {
-			throw new RuntimeException("Matrix size is " + matrix.getNumCells());
-		}
 		List<SolutionPerJob> solutionPerJobs = matrix.getAllSolutions();
-		if(solutionPerJobs.size() != 1) {
-			throw new RuntimeException("Number of SolutionPerJob is " + solutionPerJobs.size());
-		}
 		getSolution().getLstSolutions().clear();
-		getSolution().addSolutionPerJob(solutionPerJobs.get(0));
+		for(SolutionPerJob solution : solutionPerJobs) {
+			getSolution().addSolutionPerJob(solution);
+		}
 		if (!stateHandler.getState().getId().equals(States.IDLE)) {
 			logger.trace("Current solution is " + getSolution().toStringReduced());
 			logger.trace("EngineService - Sending event FINISH");
