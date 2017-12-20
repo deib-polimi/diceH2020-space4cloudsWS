@@ -204,7 +204,7 @@ public class ContainerLogicForOptimization implements ContainerLogicGivenH {
 	private int recursiveBisection(int nVM){
 		if(nVMxSPJ.containsKey(nVM)){
 			logger.trace("Bisection: min(" + maxVM + ", " + getMinVM_Feas() + "):max(" + minVM + ", " + getMaxVM_Infeas() + ")");
-			return (int)Math.ceil((Math.min(maxVM, getMinVM_Feas())/2 + Math.max(minVM, getMaxVM_Infeas())/2));
+			return (int)Math.ceil((Math.min(maxVM, getMinVM_Feas())/2.0 + Math.max(minVM, getMaxVM_Infeas())/2.0));
 
 //			if(!nVMxSPJ.get(nVM).getFeasible()) return updateN(nVM+1);
 //			else return updateN(nVM-1);
