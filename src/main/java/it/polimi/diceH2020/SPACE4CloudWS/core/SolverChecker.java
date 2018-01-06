@@ -48,12 +48,17 @@ class SolverChecker {
             case HADOOP:
             case SPARK:
                 boolean needsSPN = hasModelInputFiles (solutionsPerJob, ".net");
-                if (needsSPN) override.setPerformanceSolverType (PerformanceSolverType.SPNSolver);
+                if (needsSPN)
+                   override.setPerformanceSolverType (PerformanceSolverType.SPNSolver);
 
                 boolean needsQN = hasModelInputFiles (solutionsPerJob, ".jsimg");
-                if (needsQN) override.setPerformanceSolverType (PerformanceSolverType.QNSolver);
+                if (needsQN)
+                   override.setPerformanceSolverType (PerformanceSolverType.QNSolver);
 
-                if (needsQN || needsSPN)  dataProcessor.changeSettings (override);
+                boolean needDAGSIM = hasModelInputFiles (solutionsPerJob, ".txt");
+                   override.setPerformanceSolverType (PerformanceSolverType.DagSimSolver);
+                if (needsQN || needsSPN || needDAGSIM)
+                   dataProcessor.changeSettings (override);
                 break;
             default:
                 throw new RuntimeException ("The required technology is still not implemented");
