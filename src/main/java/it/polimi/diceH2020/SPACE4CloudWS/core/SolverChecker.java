@@ -56,6 +56,7 @@ class SolverChecker {
                    override.setPerformanceSolverType (PerformanceSolverType.QNSolver);
 
                 boolean needDAGSIM = hasModelInputFiles (solutionsPerJob, ".txt");
+                if (needDAGSIM)
                    override.setPerformanceSolverType (PerformanceSolverType.DagSimSolver);
                 if (needsQN || needsSPN || needDAGSIM)
                    dataProcessor.changeSettings (override);
