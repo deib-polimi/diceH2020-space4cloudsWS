@@ -26,12 +26,15 @@ import it.polimi.diceH2020.SPACE4Cloud.shared.solution.SolutionPerJob;
 import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.fineGrainedLogicForOptimization.ContainerLogicForOptimization;
 import lombok.Setter;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FineGrainedOptimizer extends Optimizer {
+	private final Logger logger = Logger.getLogger(getClass());
+
 	@Setter(onMethod = @__(@Autowired))
 	private ApplicationContext context;
 
@@ -90,6 +93,7 @@ public class FineGrainedOptimizer extends Optimizer {
 	}
 
 	public void finish() {
+		logger.trace("FineGrainedOptimizer - Finish");
 		engineProxy.getEngine().getSolution().setEvaluated(false);
 		evaluator.evaluate(engineProxy.getEngine().getSolution());
 	}

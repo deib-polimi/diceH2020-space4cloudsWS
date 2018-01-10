@@ -24,6 +24,9 @@ import it.polimi.diceH2020.SPACE4CloudWS.engines.EngineProxy;
 import it.polimi.diceH2020.SPACE4CloudWS.services.DataService;
 import lombok.NonNull;
 import lombok.Setter;
+
+import org.apache.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +35,8 @@ import java.util.function.Consumer;
 
 @Component
 class Evaluator implements IEvaluator {
+
+	private final Logger logger = Logger.getLogger(getClass());
 
 	@Setter(onMethod = @__(@Autowired))
 	private DataProcessor dataProcessor;
@@ -55,7 +60,9 @@ class Evaluator implements IEvaluator {
 
 	@Override
 	public double evaluate(Solution solution) {
+		logger.trace("Evaluate solution");
 		Double cost = solution.getLstSolutions().parallelStream().mapToDouble(this::calculateCostPerJob).sum();
+		logger.trace("Total cost is " + cost.toString());
 		solution.getLstSolutions().parallelStream().forEach(this::evaluateFeasibility);
 		solution.setEvaluated(true);
 
@@ -65,12 +72,15 @@ class Evaluator implements IEvaluator {
 
 	@Override
 	public double evaluate(SolutionPerJob solutionPerJob) {
+		logger.trace("Evaluating SolutionPerJob");
 		double cost = calculateCostPerJob(solutionPerJob);
+		logger.trace("Evaluated SolutionPerJob");
 		evaluateFeasibility(solutionPerJob);
 		return cost;
 	}
 
 	private double calculateCostPerJob(SolutionPerJob solPerJob) {
+		logger.trace("Calculating cost per job");
 		double deltaBar = solPerJob.getDeltaBar();
 		double rhoBar = solPerJob.getRhoBar();
 		double sigmaBar = solPerJob.getSigmaBar();
@@ -83,6 +93,7 @@ class Evaluator implements IEvaluator {
 				+ sigmaBar * solPerJob.getNumSpotVM() +
 				(maxNumberOfUsers - currentNumberOfUsers) * hourlyPenalty;
 		solPerJob.setCost(cost);
+		logger.trace("Cost of solPerJob " + String.valueOf(cost));
 		return cost;
 	}
 
