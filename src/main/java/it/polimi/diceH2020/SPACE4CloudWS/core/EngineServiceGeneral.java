@@ -47,12 +47,12 @@ public class EngineServiceGeneral extends EngineService{
 	}
 
 	public Future<String> reduceMatrix() {
-		fineGrainedOptimizer.finish();
 		List<SolutionPerJob> solutionPerJobs = matrix.getAllSolutions();
 		getSolution().getLstSolutions().clear();
 		for(SolutionPerJob solution : solutionPerJobs) {
 			getSolution().addSolutionPerJob(solution);
 		}
+		fineGrainedOptimizer.finish();
 		if (!stateHandler.getState().getId().equals(States.IDLE)) {
 			logger.trace("Current solution is " + getSolution().toStringReduced());
 			logger.trace("EngineService - Sending event FINISH");
