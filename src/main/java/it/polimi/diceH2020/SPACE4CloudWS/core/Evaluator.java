@@ -87,7 +87,11 @@ class Evaluator implements IEvaluator {
 		int currentNumberOfUsers = solPerJob.getNumberUsers();
 		int maxNumberOfUsers =  solPerJob.getJob().getHup();
 		System.out.println("Hup-H "+maxNumberOfUsers+"-"+currentNumberOfUsers);
-		double jobsPerHour = 3600000 / solPerJob.getJob().getD();
+		Technology technology = dataService.getData().getScenario().getTechnology();
+		double jobsPerHour = 1;
+		if (technology != technology.STORM) {
+			jobsPerHour = 3600000 / solPerJob.getJob().getD();
+		}
 		double hourlyPenalty = solPerJob.getJob().getPenalty() * jobsPerHour;
 		double cost = deltaBar * solPerJob.getNumOnDemandVM() + rhoBar * solPerJob.getNumReservedVM()
 				+ sigmaBar * solPerJob.getNumSpotVM() +
