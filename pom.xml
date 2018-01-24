@@ -5,7 +5,7 @@
 
 	<groupId>it.polimi.diceH2020</groupId>
 	<artifactId>D-SPACE4Cloud</artifactId>
-	<version>0.3.4-SNAPSHOT</version>
+	<version>0.3.4-RELEASE</version>
 	<packaging>jar</packaging>
 
 	<organization>
@@ -36,7 +36,7 @@
 		<start-class>it.polimi.diceH2020.SPACE4CloudWS.main.SPACE4CloudWS</start-class>
 		<java.version>1.8</java.version>
 		<jackson.version>2.7.4</jackson.version>
-		<DS4C-shared.version>0.3.5-dev</DS4C-shared.version>
+		<DS4C-shared.version>0.3.5-RELEASE</DS4C-shared.version>
 	</properties>
 
 	<dependencies>
